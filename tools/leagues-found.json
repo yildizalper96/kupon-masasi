@@ -1,0 +1,274 @@
+[
+ {
+  "id": 39,
+  "country": "England",
+  "name": "Premier League",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 45,
+  "country": "England",
+  "name": "FA Cup",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++--++"
+ },
+ {
+  "id": 48,
+  "country": "England",
+  "name": "League Cup",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-++-"
+ },
+ {
+  "id": 140,
+  "country": "Spain",
+  "name": "La Liga",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 143,
+  "country": "Spain",
+  "name": "Copa del Rey",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-+++"
+ },
+ {
+  "id": 135,
+  "country": "Italy",
+  "name": "Serie A",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 137,
+  "country": "Italy",
+  "name": "Coppa Italia",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-++-"
+ },
+ {
+  "id": 78,
+  "country": "Germany",
+  "name": "Bundesliga",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 81,
+  "country": "Germany",
+  "name": "DFB Pokal",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-++-"
+ },
+ {
+  "id": 61,
+  "country": "France",
+  "name": "Ligue 1",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 66,
+  "country": "France",
+  "name": "Coupe de France",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+----+-"
+ },
+ {
+  "id": 203,
+  "country": "Turkey",
+  "name": "Süper Lig",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 206,
+  "country": "Turkey",
+  "name": "Türkiye Kupası",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+----+-"
+ },
+ {
+  "id": 88,
+  "country": "Netherlands",
+  "name": "Eredivisie",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 90,
+  "country": "Netherlands",
+  "name": "KNVB Beker",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-++-"
+ },
+ {
+  "id": 94,
+  "country": "Portugal",
+  "name": "Primeira Liga",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 96,
+  "country": "Portugal",
+  "name": "Taça de Portugal",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++--+-"
+ },
+ {
+  "id": 144,
+  "country": "Belgium",
+  "name": "Jupiler Pro League",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 147,
+  "country": "Belgium",
+  "name": "Cup",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "++---+-"
+ },
+ {
+  "id": 179,
+  "country": "Scotland",
+  "name": "Premiership",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 181,
+  "country": "Scotland",
+  "name": "FA Cup",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+----+-"
+ },
+ {
+  "id": 307,
+  "country": "Saudi-Arabia",
+  "name": "Pro League",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 504,
+  "country": "Saudi-Arabia",
+  "name": "King's Cup",
+  "type": "Cup",
+  "season": 2027,
+  "cov": "++---+-"
+ },
+ {
+  "id": 2,
+  "country": "World",
+  "name": "UEFA Champions League",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 3,
+  "country": "World",
+  "name": "UEFA Europa League",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 531,
+  "country": "World",
+  "name": "UEFA Super Cup",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-++-"
+ },
+ {
+  "id": 5,
+  "country": "World",
+  "name": "UEFA Nations League",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 848,
+  "country": "World",
+  "name": "UEFA Europa Conference League",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 71,
+  "country": "Brazil",
+  "name": "Serie A",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 73,
+  "country": "Brazil",
+  "name": "Copa Do Brasil",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "+++-+++"
+ },
+ {
+  "id": 128,
+  "country": "Argentina",
+  "name": "Liga Profesional Argentina",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 130,
+  "country": "Argentina",
+  "name": "Copa Argentina",
+  "type": "Cup",
+  "season": 2026,
+  "cov": "++--+++"
+ },
+ {
+  "id": 253,
+  "country": "USA",
+  "name": "Major League Soccer",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ },
+ {
+  "id": 262,
+  "country": "Mexico",
+  "name": "Liga MX",
+  "type": "League",
+  "season": 2026,
+  "cov": "+++++++"
+ }
+]

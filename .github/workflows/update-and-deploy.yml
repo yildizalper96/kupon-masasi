@@ -1,0 +1,90 @@
+# Veriyi API-Football'dan ceker, siteyi paketler ve GitHub Pages'e yayinlar.
+#  - canli mod: her 20 dk, yalnizca 10:00-22:59 UTC (13 saat x 3 = 39 calistirma, 1 istek, nadiren 2)
+#  - tam mod: gunde 4 kez (3 tarih + en fazla 8 yeni mac tahmini = en cok 4x11 = 44 istek)
+#  - kod degisince (push): veri cekmeden yeniden yayinlar
+#  - elle: Actions sekmesinden "Run workflow" (mod secilir)
+# Ucretsiz plan gunluk 100 istek: en kotu durumda ~39..78 + 44 -> arac her calistirmada /status ile (sayilmaz)
+# kalan kotaya bakar ve 10'un altindaysa hic istek yapmaz.
+name: Veri güncelle ve yayınla
+
+on:
+  schedule:
+    - cron: '*/20 10-22 * * *'
+    - cron: '7 5,11,17,23 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Veri modu'
+        type: choice
+        default: full
+        options: [full, live, none]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Veri ve tahmin onbellegi calistirmalar arasinda korunur
+      - name: Önbelleği geri yükle
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/fixtures
+            tools/cache
+          key: fx-${{ github.run_id }}
+          restore-keys: fx-
+
+      - name: Veri çek
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
+        run: |
+          MODE=none
+          if [ "$EVENT" = "schedule" ]; then
+            if [ "$SCHEDULE" = "*/20 10-22 * * *" ]; then MODE=live; else MODE=full; fi
+          elif [ "$EVENT" = "workflow_dispatch" ]; then
+            MODE="${INPUT_MODE:-full}"
+          fi
+          if [ -z "$API_FOOTBALL_KEY" ]; then
+            echo "::warning::API_FOOTBALL_KEY secret tanımlı değil, veri çekilmedi."
+            MODE=none
+          fi
+          if [ "$MODE" = "live" ] && [ ! -f data/fixtures/latest.json ]; then MODE=full; fi
+          echo "Mod: $MODE"
+          if [ "$MODE" = "full" ]; then node tools/fetch-fixtures.mjs --max-pred=8; fi
+          if [ "$MODE" = "live" ]; then node tools/fetch-fixtures.mjs --live; fi
+
+      - name: Siteyi paketle
+        run: node tools/build-site.mjs _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

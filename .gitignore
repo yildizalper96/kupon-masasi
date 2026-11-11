@@ -1,0 +1,12 @@
+﻿yayin/
+yayin.zip
+.env
+tools/out/
+tools/cache/
+_site/
+yedek/
+kupon-masasi-v200.html
+data/kupon/
+data/history/rules.json
+data/history/applied.json
+.claude/
