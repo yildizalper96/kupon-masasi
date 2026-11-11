@@ -67,7 +67,9 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - Panelde yapıldı (kullanıcı): `supabase/schema.sql` çalıştırıldı (Success), "Confirm email" KAPALI, Site URL ve Redirect URL = https://yildizalper96.github.io/kupon-masasi/, anonim giriş kapalı, Google kapalı.
 - Doğrulandı (yalnızca public anahtarla, hesap açmadan): shared_coupons herkese okunur (200 []), misafir yazamaz (RLS 401), misafir user_docs'ta boş liste görür (RLS), `/auth/v1/settings`: kayıt açık, autoconfirm true, anonim false, google false.
 - Opsiyonel sertleştirme: `revoke all on public.user_docs from anon;` (şu an anon'a varsayılan yetki var ama RLS satır döndürmüyor).
-- Gerçek hesapla uçtan uca test: kullanıcı canlı sitede kendi hesabını açar (ben hesap açmam); Table Editor'de `user_docs` satırı görünmeli.
+- GERÇEK HESAPLA UÇTAN UCA TEST GEÇTİ (12 Kas 2026, kullanıcı yaptı): misafir kupon+favori → hesap açma → çıkış → giriş (geri geldi) → TELEFONDAN girişte de kupon ve favori takım duruyor (gerçek cihaz değişikliği). Panelde `user_docs` ~2 satır (tahmini sayı, içerik açılmadı), Authentication > Users'ta tek gerçek kullanıcı ("10 estimated" yanlış tahmin). Çıkışta cihazdaki `kmdb:data/users/*` kopyaları silinir (cloud.js signOut).
+- Henüz denenmemiş: paylaşım kodunun iki hesap arasında gerçek projede denenmesi, Google girişi (kapalı), şifre sıfırlama (yok), `revoke all on public.user_docs from anon` sertleştirmesi.
+- NOT (git): `git push` TÜM yerel commit'leri yayınlar; başka oturumun (tasarım) henüz onaylanmamış commit'leri varken push etmeden önce `git status -sb` ile "ahead" sayısına bak.
 
 ## Supabase ve giriş (11 Kas 2026, kod ve mimari)
 - `js/config.js`: `window.KM_SUPABASE={url,anonKey}`. BOŞ = misafir modu (yayındaki hal, hiçbir şey değişmez). Anon/publishable anahtar herkese açık olacak şekilde tasarlandı, repoya yazılabilir; `service_role`/`secret` anahtarı ASLA yazılmaz.
