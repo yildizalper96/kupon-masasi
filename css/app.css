@@ -213,6 +213,7 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   .dztum{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border:0;background:none;color:var(--ink);font:700 17px var(--f);cursor:pointer}
 }
 @media(min-width:1500px){
+  #dz .dr .tm2{font-size:28px}
   :root{--dzw:1560px}
   #dz{grid-template-columns:300px minmax(0,1fr) 380px;gap:26px}
 }
@@ -250,4 +251,46 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
 @media(min-width:1100px) and (max-width:1279px){
   #dz{grid-template-columns:minmax(0,1fr) 320px}
   #dzl{display:none!important}
+}
+
+/* ==== Tasarim v2 dilim 4: masaustu mac detayi basligi, sekmeler, 1-X-2 karti ==== */
+.dgl,.u3d{display:none}
+@media(min-width:1100px){
+  #dz .dh2{position:relative;background:var(--sf)!important;border:1px solid var(--ln);border-radius:20px;margin:0 0 16px;padding:0;overflow:hidden;color:var(--ink)}
+  #dz .dr{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:20px;padding:44px 24px 16px;color:var(--ink)}
+  #dz .dr .bk{position:absolute;left:16px;top:14px;width:40px;height:40px;padding:0;border-radius:50%;background:var(--sf2);color:var(--ink);font-size:18px;line-height:40px}
+  #dz .dr .tm2{width:auto;display:flex;align-items:center;gap:14px;font:600 24px/1.15 var(--f);min-width:0;text-wrap:balance}
+  #dz .dr .tm2 br{display:none}
+  #dz .dr .tm2:nth-child(2){grid-column:1;flex-direction:row-reverse;text-align:right}
+  #dz .dr .tm2:nth-child(4){grid-column:3}
+  #dz .dr .tm2 [data-tm]{text-decoration:none}
+  #dz .dr .tm2 .bd{width:50px!important;height:50px!important;line-height:50px!important;font-size:14px!important;flex:none}
+  #dz .dr .ct{grid-column:2}
+  #dz .dr .ct b{font:700 46px/1 var(--f);letter-spacing:.02em}
+  #dz .dr .ct div{font-size:14px;color:var(--mut);opacity:1;margin-top:6px}
+  #dz .dr .ct div:last-child{font-weight:700;color:var(--ink)}
+  #dz .dgl{display:grid;grid-template-columns:1fr 32px 1fr;gap:12px;padding:0 24px 20px;color:var(--mut);font-size:14.5px;line-height:1.55}
+  #dz .dgl>div:first-child{text-align:right}
+  #dz .dgl i{width:16px;height:16px;margin:3px auto 0;border-radius:50%;border:2px solid var(--mut2,var(--mut))}
+  #dz .dtab{gap:30px;padding:0 24px;border-top:1px solid var(--ln)}
+  #dz .dtab button{color:var(--mut);font:600 16px var(--f);padding:16px 0 13px;border-bottom:3px solid transparent}
+  #dz .dtab button.on{color:var(--ink);border-color:var(--ok)}
+  /* 1-X-2 karti */
+  #dz .dpb>.bar,#dz .dpb>.mut{display:none}
+  #dz .u3d{display:block}
+  #dz .u3d h3{margin:2px 0 12px;font-size:17px}
+  #dz .u3d h3 small{color:var(--mut);font-weight:500;font-size:13px}
+  #dz .u3d .u3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  #dz .u3d .u3>div{background:var(--sf2);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+  #dz .u3d .u3 small{color:var(--mut);font-weight:700}
+  #dz .u3d .u3 b{font:700 28px var(--f)}
+  #dz .u3d .u3 span{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #dz .u3d .u3 em{font-style:normal;font-size:12px;color:var(--mut)}
+  #dz .u3d .u3>div.f{background:var(--okbg)}
+  #dz .u3d .u3>div.f b{color:var(--ok)}
+  #dz .u3d .ub{display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden;margin:12px 0 8px}
+  #dz .u3d .ub i{background:var(--ln)}
+  #dz .u3d .ub i.f{background:var(--ok);opacity:.75}
+  #dz .u3d p{margin:0;color:var(--mut);font-size:12.5px}
+  #dzr .nwb{margin:0}
 }

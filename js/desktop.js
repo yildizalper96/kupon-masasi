@@ -41,7 +41,7 @@
   // sag sutun: Maclar sekmesindeki "Gunun dusuk riskli kuponu" ve "Veri kaynagi" kutularini tasi
   function sagCiz() {
     if (!MQ.matches) return;
-    const kutular = [app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note')].filter(Boolean);
+    const kutular = [app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note'), app.querySelector(':scope > .nwb')].filter(Boolean);
     sag.innerHTML = '';
     kutular.forEach(k => sag.appendChild(k));
     const cp = sag.querySelector('#cpd'); if (cp && !cp.dataset.dzAcik) { cp.open = true; cp.dataset.dzAcik = '1'; }
