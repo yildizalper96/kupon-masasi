@@ -43,4 +43,7 @@ grant usage on schema public to anon, authenticated;
 grant select on public.shared_coupons to anon, authenticated;
 grant insert, update, delete on public.shared_coupons to authenticated;
 grant select, insert, update, delete on public.user_docs to authenticated;
--- anon (giris yapmamis) kullanici user_docs'a hic erisemez.
+-- 4) Sertlestirme (12 Kas 2026'da panelde calistirildi): giris yapmamis (anon) kullanici user_docs'a hic erisemez,
+--    shared_coupons'a yalnizca okur (yazma yetkisi yok). RLS zaten engelliyordu; bu ikinci kilit.
+revoke all on public.user_docs from anon;
+revoke insert, update, delete on public.shared_coupons from anon;
