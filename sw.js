@@ -3,10 +3,10 @@
  * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
  * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.
  * Surum degistirmek icin CACHE adini artir (eski onbellekler silinir). */
-const CACHE = 'km-v1';
+const CACHE = 'km-v2';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/data-shim.js', 'js/i18n-keys.js', 'js/app.js', 'js/fixtures-api.js', 'js/gestures.js', 'js/extras.js',
+  'js/config.js', 'js/cloud.js', 'js/data-shim.js', 'js/i18n-keys.js', 'js/app.js', 'js/fixtures-api.js', 'js/gestures.js', 'js/extras.js',
   'icons/icon-192.png',
 ];
 

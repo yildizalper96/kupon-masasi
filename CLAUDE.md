@@ -62,6 +62,15 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - Test: dosyalar ve simgeler yerelde 200; SW mantığı sahte ortamda 10 senaryoyla geçti (çevrimdışı, önbellek, POST/başka kaynak dokunulmaz). Uygulama içi tarayıcı paneli SW kaydını engelliyor (403), bu yüzden gerçek SW yaşam döngüsü ve "ana ekrana ekle" kurulumu TELEFONDA doğrulanmadı. iOS'ta `black-translucent` durum çubuğu kullanıldı, güvenli alan CSS'i var ama iPhone'da görülmedi.
 - Simgeleri yeniden üretmek gerekirse: tarayıcıda canvas ile çizilip PNG kaydedildi (araç dosyası tutulmadı); logo yolu `index.html` içindeki SVG.
 
+## Supabase ve giriş (11 Kas 2026, KOD HAZIR, proje henüz bağlanmadı)
+- `js/config.js`: `window.KM_SUPABASE={url,anonKey}`. BOŞ = misafir modu (yayındaki hal, hiçbir şey değişmez). Anon/publishable anahtar herkese açık olacak şekilde tasarlandı, repoya yazılabilir; `service_role`/`secret` anahtarı ASLA yazılmaz.
+- `js/cloud.js` (kütüphanesiz istemci): e-posta+şifre (`/auth/v1/signup`, `/token`), Google (`/authorize` yönlendirmesi, dönüşte `#access_token` hash'i okunup temizlenir), jeton yenileme, PostgREST (`/rest/v1`). Profil sekmesi giriş formu `KMAUTH` (7 dilli kendi sözlüğü, `T` nesnesi).
+- `js/data-shim.js`: `db.doc()` yolları: `data/users/<uid>/<ad>` → `user_docs` tablosu (+ her zaman yerel kopya), `kupon/<KOD>` → `shared_coupons` (herkes okur, giriş yapan yazar), diğerleri statik. Oturum yoksa her şey yerel.
+- `js/app.js` yamaları (`tools/patch-auth.mjs`, tekrar çalıştırılabilir): misafir kartı→giriş formu, giriş sonrası metinler, memBind, sOut (bulutta gerçek çıkış, cihaz verisini temizler; hesap verisi kalır).
+- `supabase/schema.sql`: tablolar + RLS + açık GRANT'ler (yeni projelerde Data API için şart). Kullanıcı SQL Editor'de çalıştırır.
+- Supabase kısıtları (araştırıldı): yerleşik e-posta saatte 2 doğrulama maili (özel SMTP ile 30) → bu yüzden e-posta ONAYI KAPALI tutulur (şifre sıfırlama e-postası da yok, bilinen eksik); ücretsiz proje 1 hafta işlem olmazsa duraklar (`tools/keepalive.mjs` zamanlı çalıştırmada okuma yapar); 500 MB veritabanı.
+- Test: `node tools/mock-supabase.mjs` (sahte Supabase + site, http://localhost:5174). Geçen senaryolar: geçersiz e-posta/kısa şifre/yanlış giriş mesajları, kayıt, misafir kupon+favorinin buluta taşınması, çıkış (cihaz verisi temizlenir), başka cihaz taklidiyle girişte kupon+favori geri gelir, süresi dolmuş jeton tam bir kez yenilenir, sayfa yenilemede oturum kalır, paylaşım kodu (sahip yazar, misafir okur, bilinmeyen kod yok, misafir bulut çağrısı yapmaz), Google yönlendirmesi (hash temizlenir, isim gelir), yapılandırma boşken eski davranış. GERÇEK Supabase ile denenmedi.
+
 ## Ürün kuralları (eski proje talimatından)
 - Veri uydurma. Her tahminin nedeni gerçek veriye (puan durumu, sonuçlar, olasılıklar) dayansın. Veri yoksa "veri yok" yaz.
 - Hiçbir bahis risksiz değildir. "Düşük riskli" denir, "risksiz" denmez.

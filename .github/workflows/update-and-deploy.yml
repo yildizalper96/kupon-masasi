@@ -72,6 +72,11 @@ jobs:
           if [ "$MODE" = "full" ]; then node tools/fetch-fixtures.mjs --max-pred=8; fi
           if [ "$MODE" = "live" ]; then node tools/fetch-fixtures.mjs --live; fi
 
+      # Supabase ucretsiz projesi 1 hafta islem olmazsa durur: zamanli calistirmalarda hafif bir okuma yap
+      - name: Supabase canlılık denemesi
+        if: github.event_name == 'schedule'
+        run: node tools/keepalive.mjs
+
       - name: Siteyi paketle
         run: node tools/build-site.mjs _site
 
