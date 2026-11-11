@@ -24,7 +24,9 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - Test (Aşama 1): 7 dilde 5 sekme tarandı, NaN/undefined/hata yok; kupon localStorage'a yazılıyor.
 
 ## Yayın
-- Canlı adres: https://serene-cassata-8c864a.netlify.app (Netlify, herkese açık, 10 Kas 2026'da doğrulandı).
+- ASIL SİTE (11 Kas 2026'dan beri): https://yildizalper96.github.io/kupon-masasi/ — GitHub Pages, repo herkese açık (github.com/yildizalper96/kupon-masasi). GitHub Actions veriyi otomatik çeker ve yayınlar (secret `API_FOOTBALL_KEY` tanımlı, Pages kaynağı "GitHub Actions"). İlk çalıştırma doğrulandı: akış başarılı, veri taze, gizli yollar 404, uygulama tarayıcıda hatasız. Kod değişikliği: commit + `git push` (GitHub girişi için kullanıcının terminali gerekebilir; git yolu `C:\Program Files\Git\cmd\git.exe`).
+- Eski Netlify sitesi (elle yükleme, otomatik güncellenmez, kota ayda ~20 yayın): https://serene-cassata-8c864a.netlify.app — emekliye ayrılabilir.
+- Not: arayüzdeki "Son güncelleme" yazısı elle yazılan `results/latest.json` saatini gösterir (8 Kas 20:18), API çekimini göstermez.
 - Yayın paketi `yayin/` klasörü (git'e girmez). İçeriği: index.html, css/, js/, data/{results,lineups,players} ve data/history/all.json. Girmeyenler: yedek/, tools/, data/kupon (kişisel kupon adları), data/history/rules ve applied (iç kurallar).
 - Güncelleme: yayin/ yeniden hazırlanır, kullanıcı Netlify'da siteye (Deploys sekmesi) sürükleyip bırakır. CLI/otomatik dağıtım henüz yok.
 
