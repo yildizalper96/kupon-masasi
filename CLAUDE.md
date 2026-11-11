@@ -62,7 +62,14 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - Test: dosyalar ve simgeler yerelde 200; SW mantığı sahte ortamda 10 senaryoyla geçti (çevrimdışı, önbellek, POST/başka kaynak dokunulmaz). Uygulama içi tarayıcı paneli SW kaydını engelliyor (403), bu yüzden gerçek SW yaşam döngüsü ve "ana ekrana ekle" kurulumu TELEFONDA doğrulanmadı. iOS'ta `black-translucent` durum çubuğu kullanıldı, güvenli alan CSS'i var ama iPhone'da görülmedi.
 - Simgeleri yeniden üretmek gerekirse: tarayıcıda canvas ile çizilip PNG kaydedildi (araç dosyası tutulmadı); logo yolu `index.html` içindeki SVG.
 
-## Supabase ve giriş (11 Kas 2026, KOD HAZIR, proje henüz bağlanmadı)
+## Supabase PROJESİ BAĞLANDI (12 Kas 2026)
+- Proje: `kupon-masasi`, ref `rrlmrwmhexwrujlweubh`, URL https://rrlmrwmhexwrujlweubh.supabase.co, bölge East US (Ohio), Free plan. `js/config.js` içinde bu URL ve publishable anahtar (herkese açık tasarım) var. Secret/service_role anahtarı hiçbir yerde yok ve yazılmaz.
+- Panelde yapıldı (kullanıcı): `supabase/schema.sql` çalıştırıldı (Success), "Confirm email" KAPALI, Site URL ve Redirect URL = https://yildizalper96.github.io/kupon-masasi/, anonim giriş kapalı, Google kapalı.
+- Doğrulandı (yalnızca public anahtarla, hesap açmadan): shared_coupons herkese okunur (200 []), misafir yazamaz (RLS 401), misafir user_docs'ta boş liste görür (RLS), `/auth/v1/settings`: kayıt açık, autoconfirm true, anonim false, google false.
+- Opsiyonel sertleştirme: `revoke all on public.user_docs from anon;` (şu an anon'a varsayılan yetki var ama RLS satır döndürmüyor).
+- Gerçek hesapla uçtan uca test: kullanıcı canlı sitede kendi hesabını açar (ben hesap açmam); Table Editor'de `user_docs` satırı görünmeli.
+
+## Supabase ve giriş (11 Kas 2026, kod ve mimari)
 - `js/config.js`: `window.KM_SUPABASE={url,anonKey}`. BOŞ = misafir modu (yayındaki hal, hiçbir şey değişmez). Anon/publishable anahtar herkese açık olacak şekilde tasarlandı, repoya yazılabilir; `service_role`/`secret` anahtarı ASLA yazılmaz.
 - `js/cloud.js` (kütüphanesiz istemci): e-posta+şifre (`/auth/v1/signup`, `/token`), Google (`/authorize` yönlendirmesi, dönüşte `#access_token` hash'i okunup temizlenir), jeton yenileme, PostgREST (`/rest/v1`). Profil sekmesi giriş formu `KMAUTH` (7 dilli kendi sözlüğü, `T` nesnesi).
 - `js/data-shim.js`: `db.doc()` yolları: `data/users/<uid>/<ad>` → `user_docs` tablosu (+ her zaman yerel kopya), `kupon/<KOD>` → `shared_coupons` (herkes okur, giriş yapan yazar), diğerleri statik. Oturum yoksa her şey yerel.
