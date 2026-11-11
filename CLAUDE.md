@@ -114,3 +114,8 @@ eksik/tutarsız kısım src içinde belirtilir. Veri uydurulmaz.
 
 ## Eski yapılacaklar listesi
 Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için son 5 maç, ev/deplasman, aralarındaki maçlar; kadro ve sakatlık verisi; Ligue 1 (artık eklenmiş olabilir, kodda kontrol et).
+
+## Tasarim v2 (FotMob ruhunda masaustu, 11 Kas 2026)
+- Secilen yon: A "Uc sutun" (solda ligler, ortada tarih + lig lig maclar, sagda gunun secimleri). Taslaklar: `yerel-notlar/taslak/` (git'e girmez; http://localhost:5173/yerel-notlar/taslak/index.html, 375/768/1280/1600 ve acik/koyu karsilastirma). Kucuk dilimlerle uygulanir; her dilimden sonra 4 genislik x 2 tema ekran goruntusu.
+- GECICI: uygulama yalnizca Turkce. `js/app.js` basinda `KM_SADECE_TR=true` (detect/set hep 'tr', profildeki dil kutusu gizli). Ceviri katmani ve `js/i18n-keys.js` yerinde, silinmez; tasarim bitince `false` yapilip yeni metinlerin 6 dil cevirisi eklenecek.
+- Dilim 1 (tamam): renk tokenlari `css/app.css` sonunda ("Tasarim v2" blogu): pastel yesil `--ok` (olumlu), pastel kirmizi `--hot` (risk), yeni `--sf2 --okbg --warnbg --hotbg`. Alt menu renkleri koda sabit yazili (tokenlardan gelmiyor), sonraki dilimde yenilenecek.
