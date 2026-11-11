@@ -108,6 +108,8 @@
   C.signOut = function () {
     var tok = S && S.access_token;
     saveS(null);
+    // ortak cihaz gizliligi: bu cihazdaki hesap kopyalarini (kupon, favori, profil) da sil; hesaptaki veri kalir
+    try { Object.keys(localStorage).filter(function (k) { return k.indexOf('kmdb:data/users/') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
     if (tok) { try { authFetch('/logout', 'POST', null, tok).catch(function () {}); } catch (e) {} }
   };
 
