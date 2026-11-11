@@ -54,7 +54,8 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - `node tools/build-site.mjs [klasör]`: yayın paketi (varsayılan `yayin/`); kişisel/iç dosyalar girmez.
 - `js/fixtures-api.js`: canlı skor/durum hem yeni hem elle yazılı maçlara işlenir (RES 'L a-b' canlı, 'a-b' kesin; elle girilmiş kesin skorun üstüne yazmaz). Sentetik kayıtla doğrulandı.
 - Kota hesabı (ücretsiz 100/gün): canlı en çok 39 çalıştırma + tam 4x(3+8) = ~83. Canlı skor ve olaylar (gol/kart dakikaları) YOK, yalnızca skor ve durum.
-- API verisini herkese açık sitede yeniden yayınlamanın kullanım şartı (bahis içerikli) HENÜZ DOĞRULANMADI.
+- API-Sports/API-Football KULLANIM ŞARTLARI okundu (api-sports.io/terms, "Last updated: May 21, 2025", kullanıcı yapıştırdı). Özet: uygulama/web sitesi/fantezi oyunu yapmak için veri verildiğini söylüyor (yasaklanan: verinin doğrudan SATIŞI/yeniden satışı, hesap paylaşımı, ücretsiz limiti artırmak için çoklu hesap). AMA yayın LİSANSI VERMİYOR: verinin yayın hakkı için lig/federasyon gibi yetkili kurumlardan izin almak kullanıcının sorumluluğu. Bahis platformu, TV, fantezi, medya kullanımı ek lisans gerektirebilir (sorumluluk kullanıcıda). Lig/federasyon resmi şikâyet ederse API erişimi anında, iadesiz kapatılabilir. Dakikalık limit aşımı "ciddi ihlal" (araç artık istekler arasında bekler). Ücretsiz planda günlük kota dolunca hesap o gün askıya alınır (araç buna kalmadan durur). Logo/görseller kullanılmıyor (uygulama baş harf rozeti kullanır). Şüphede destek e-postasıyla sorulabilir, öneri: yazılı teyit iste.
+- Durum: bu uygulama bahis YAPTIRMAZ, analiz/simülasyon aracıdır; şartlarla çelişen açık bir madde yok ama yayın hakkı garantisi de yok. Elle toplanmış veri (futboltotal, t-online vb.) için ayrı bir şart kontrolü YAPILMADI.
 
 ## Ürün kuralları (eski proje talimatından)
 - Veri uydurma. Her tahminin nedeni gerçek veriye (puan durumu, sonuçlar, olasılıklar) dayansın. Veri yoksa "veri yok" yaz.

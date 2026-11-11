@@ -98,8 +98,16 @@ function teamName(code, api) {
 // ---------- API ----------
 const HOST = 'https://v3.football.api-sports.io';
 let remaining = null, used = 0;
+// Sartlar dakikalik istek sinirini asmayi ciddi ihlal sayar: istekler arasinda bekle.
+// Aralik, API'nin bildirdigi dakikalik limitten (x-ratelimit-limit) hesaplanir; bilinmiyorsa 7 sn (10/dk varsayimi).
+let gapMs = 7000, lastReq = 0;
 async function api(p) {
+  const wait = lastReq + gapMs - Date.now();
+  if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait));
+  lastReq = Date.now();
   const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
+  const perMin = Number(r.headers.get('x-ratelimit-limit'));
+  if (Number.isFinite(perMin) && perMin > 0) gapMs = Math.ceil(60000 / perMin) + 500;
   used++;
   remaining = Number(r.headers.get('x-ratelimit-requests-remaining') ?? remaining);
   const j = await r.json();
