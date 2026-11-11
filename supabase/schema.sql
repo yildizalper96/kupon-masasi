@@ -47,3 +47,7 @@ grant select, insert, update, delete on public.user_docs to authenticated;
 --    shared_coupons'a yalnizca okur (yazma yetkisi yok). RLS zaten engelliyordu; bu ikinci kilit.
 revoke all on public.user_docs from anon;
 revoke insert, update, delete on public.shared_coupons from anon;
+-- 5) Sahip kimligi (owner) herkese acik olmasin: anon yalnizca code, data, created_at sutunlarini okur
+--    (istemci yalnizca select=data kullanir; select=* anon icin artik izin yok hatasi verir). 12 Kas 2026'da calistirildi.
+revoke select on public.shared_coupons from anon;
+grant select (code, data, created_at) on public.shared_coupons to anon;
