@@ -242,7 +242,9 @@
 
   // Veri bayatsa kullaniciya acikca soyle: baslama saati gecmis (son 8 saat) ama durumu hala "bekliyor" olan mac
   // varsa ve veri 40 dk'dan eskiyse (ornegin API gunluk kotasi dolmussa) kucuk bir uyari goster.
+  // Kullanici istegiyle kapali (12 Kas 2026): bant gosterilmez, eski bant varsa kaldirilir.
   function staleNote() {
+    try { var old = document.getElementById('kmstale'); if (old) old.remove(); return; } catch (e) { return; }
     try {
       var now = Date.now(), at = Date.parse(FXAT) || 0, bad = 0;
       if (at && now - at > 40 * 60e3) {

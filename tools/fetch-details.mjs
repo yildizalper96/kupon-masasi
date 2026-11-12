@@ -98,6 +98,23 @@ function marketFrom(resp) {
 const ddmmyyyy = iso => { const d = new Date(iso); return String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + d.getUTCFullYear(); };
 const POS = { Goalkeeper: 'K', Defender: 'D', Midfielder: 'O', Attacker: 'F' };
 const log = [];
+// ilk 11 + yedekler: /fixtures/lineups ya da /fixtures?id= cevabindaki lineups dizisinden (ikisi ayni bicim)
+function luKoy(e, L) {
+  if (!Array.isArray(L) || L.length !== 2 || !L.every(t => t && Array.isArray(t.startXI) && t.startXI.length)) return false;
+  const side = t => {
+    const xi = t.startXI.slice().sort((p, q) => { const [a1, a2] = String(p.player.grid || '9:9').split(':').map(Number), [b1, b2] = String(q.player.grid || '9:9').split(':').map(Number); return a1 - b1 || a2 - b2; });
+    return { f: t.formation || '', xi: xi.map(p => p.player.name), bn: (t.substitutes || []).map(p => p.player.name), co: t.coach && t.coach.name || '' };
+  };
+  // paralel ham yapi (tasarim oturumu icin): oyuncu kimligi, numara, mevki, grid ("satir:sutun")
+  const raw = t => {
+    const o = p => ({ id: p.player.id || null, n: p.player.name, no: p.player.number || null, pos: p.player.pos || '', grid: p.player.grid || '' });
+    return { f: t.formation || '', xi: t.startXI.map(o), bn: (t.substitutes || []).map(o) };
+  };
+  const hs = L.find(t => t.team && t.team.id === e.hid) || L[0], as = L.find(t => t.team && t.team.id === e.aid) || L[1];
+  e.luRaw = { h: raw(hs), a: raw(as) };
+  e.lu = { h: side(hs), a: side(as) }; e.luOk = true; e.luAt = new Date().toISOString();
+  return true;
+}
 
 // ---- 1. oncelik: mac verisi. Ilk yari (baslamasindan 50-120 dk sonra, bir kez) ve mac sonu (125 dk sonra, bitene kadar en cok 4 deneme).
 // Tek istek /fixtures?id= -> olaylar (gol, asist, kart, degisiklik), istatistik, oyuncu puanlari, skor. Ilk 11 gibi yedek kotaya girebilir;
@@ -107,13 +124,17 @@ for (const m of cand) {
   const mk = (now - Date.parse(m.t)) / 60000;
   const wantHT = mk >= 50 && mk < 120 && !e.htOk && !e.ftOk;
   const wantFT = mk >= 125 && !e.ftOk && (e.ftTry || 0) < 4;
-  if (!(wantHT || wantFT) || !canSpendLineup()) continue;
+  // mac bitmis ama resmi 11 eksik (or. veri birlestirmesinde silinmis): ayni istekle kadroyu da al, en cok 2 deneme
+  const wantLU = mk >= 125 && e.ftOk && !e.luRaw && (e.luTry || 0) < 2;
+  if (!(wantHT || wantFT || wantLU) || !canSpendLineup()) continue;
+  if (wantLU && !wantFT) e.luTry = (e.luTry || 0) + 1;
   try {
     const j = await api('/fixtures?id=' + m.id);
     const f = j.response && j.response[0];
     if (f) {
       const lv = normalize(f, e.hid, e.aid);
       e.live = lv; e.liveAt = new Date().toISOString();
+      if (!e.luRaw && luKoy(e, f.lineups)) log.push(`${m.h}-${m.a}: ilk 11 mac verisinden alindi`);
       if (lv.fin) { e.ftOk = true; log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
       else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
       else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
@@ -162,19 +183,7 @@ for (const m of cand) {
   if (!e.luOk && canSpendLineup() && ko < now + HRS(75 / 60) && ko > now - 15 * 60e3) {
     try {
       const j = await api('/fixtures/lineups?fixture=' + m.id);
-      if (j.response.length === 2) {
-        const side = t => {
-          const xi = t.startXI.slice().sort((p, q) => { const [a1, a2] = String(p.player.grid || '9:9').split(':').map(Number), [b1, b2] = String(q.player.grid || '9:9').split(':').map(Number); return a1 - b1 || a2 - b2; });
-          return { f: t.formation || '', xi: xi.map(p => p.player.name), bn: t.substitutes.map(p => p.player.name), co: t.coach && t.coach.name || '' };
-        };
-        // paralel ham yapi (tasarim oturumu icin): oyuncu kimligi, numara, mevki, grid ("satir:sutun")
-        const raw = t => {
-          const o = p => ({ id: p.player.id || null, n: p.player.name, no: p.player.number || null, pos: p.player.pos || '', grid: p.player.grid || '' });
-          return { f: t.formation || '', xi: t.startXI.map(o), bn: t.substitutes.map(o) };
-        };
-        const hs = j.response.find(t => t.team.id === e.hid) || j.response[0], as = j.response.find(t => t.team.id === e.aid) || j.response[1];
-        e.luRaw = { h: raw(hs), a: raw(as) };
-        e.lu = { h: side(hs), a: side(as) }; e.luOk = true; e.luAt = new Date().toISOString();
+      if (j.response.length === 2 && luKoy(e, j.response)) {
         log.push(`${m.h}-${m.a}: ilk 11 alindi (${e.lu.h.f} / ${e.lu.a.f})`);
       } else log.push(`${m.h}-${m.a}: ilk 11 henuz yok`);
     } catch (er) { log.push('ilk11 hata: ' + String(er.message).slice(0, 80)); }

@@ -23,7 +23,24 @@ const wr = (p, o) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.wr
     }
   }
 }
-for (const rel of ['fixtures/latest.json', 'fixtures/details.json']) {
+{ // details.json: mac mac birlestir. Yeni dosya taban; eski kopyadaki alanlar (or. onbellekteki resmi 11 luRaw/lu)
+  // yeni kopyada YOKSA korunur. Boylece depoya commit'lenen kismi veri, onbellekteki veriyi silmez (12 Kas 2026 hatasi).
+  const rel = 'fixtures/details.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
+  if (rep && cur && rep.m && cur.m) {
+    const [yeni, eski] = ts(rep) > ts(cur) ? [rep, cur] : [cur, rep];
+    const m = {}; let dolan = 0;
+    for (const id of new Set([...Object.keys(eski.m), ...Object.keys(yeni.m)])) {
+      const o = eski.m[id] || {}, n = yeni.m[id] || {};
+      m[id] = Object.assign({}, o, n);
+      for (const k of Object.keys(o)) if (!(k in n) && yeni.m[id]) dolan++;
+    }
+    const sq = Object.assign({}, eski.sq || {}, yeni.sq || {});
+    wr(path.join(root, 'data', rel), Object.assign({}, eski, yeni, { m, sq }));
+    console.log(rel + ': mac mac birlesti (' + Object.keys(m).length + ' mac, eski kopyadan ' + dolan + ' alan korundu)');
+  } else if (rep && !cur) { wr(path.join(root, 'data', rel), rep); console.log(rel + ': onbellek yok, depodaki kullanildi'); }
+  else console.log(rel + ': ' + (cur ? 'onbellek korundu' : 'dosya yok'));
+}
+for (const rel of ['fixtures/latest.json']) {
   const cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
   if (rep && (!cur || ts(rep) > ts(cur))) { wr(path.join(root, 'data', rel), rep); console.log(rel + ': depodaki daha yeni, o kullanildi'); }
   else console.log(rel + ': ' + (cur ? 'onbellek yeni/esit, korundu' : 'dosya yok'));
