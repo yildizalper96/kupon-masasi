@@ -206,6 +206,29 @@ for (const m of cand) {
   }
 }
 
+// ---- kulup kadrolari (dusuk oncelik): --squads=N ile en cok N takim, yalnizca kalan kota 60'in ustundeyse; eksik olanlar once, sonra en eski.
+// Oyuncu kimligi ve fotografi bu listeden gelir (milli takimlar zaten maca gore cekiliyor). Takim kimligi: data/teams/ids.json (uygulama adi -> kimlik)
+{
+  const NSQ = +arg('squads', 0);
+  if (NSQ > 0) {
+    let ids = {};
+    try { ids = JSON.parse(fs.readFileSync(path.join(root, 'data', 'teams', 'ids.json'), 'utf8')).t || {}; } catch { }
+    const todo = Object.entries(ids)
+      .filter(([nm, tid]) => !D.sq[tid] || age(D.sq[tid].at) > HRS(24 * 7))
+      .sort((a, b) => (D.sq[a[1]] ? Date.parse(D.sq[a[1]].at) : 0) - (D.sq[b[1]] ? Date.parse(D.sq[b[1]].at) : 0));
+    let k = 0;
+    for (const [nm, tid] of todo) {
+      if (k >= NSQ || left() <= 60 || used >= MAX) break;
+      try {
+        const j = await api('/players/squads?team=' + tid);
+        const pl = j.response?.[0]?.players || [];
+        D.sq[tid] = { n: nm, at: new Date().toISOString(), p: pl.map(p => ({ id: p.id || null, n: p.name, p: POS[p.position] || '', no: p.number || null, a: p.age || null, ph: p.photo || null })) };
+        log.push(`${nm}: kadro listesi ${pl.length} oyuncu (kulup/ek)`); k++;
+      } catch (er) { log.push('kulup kadro hata: ' + String(er.message).slice(0, 80)); break; }
+    }
+  }
+}
+
 D.at = new Date().toISOString();
 // eski maclari temizle (baslamasindan 2 gun gecmis)
 for (const [id, e] of Object.entries(D.m)) if (e.t && Date.parse(e.t) < now - HRS(48)) delete D.m[id];

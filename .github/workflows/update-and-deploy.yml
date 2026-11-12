@@ -84,7 +84,7 @@ jobs:
             node tools/fetch-fixtures.mjs --max-pred=4
             # --reserve: kalan kota bunun altina inerse ayrintilar (kadro listesi, oran, karsilikli) durur;
             # yalnizca ilk 11 yedek kotaya girebilir. Boylece mac gunu canli skor ve ilk 11 icin kota kalir.
-            node tools/fetch-details.mjs --max=14 --hours=24 --reserve=45 || true
+            node tools/fetch-details.mjs --max=20 --hours=24 --reserve=45 --squads=6 || true
           fi
           if [ "$MODE" = "live" ]; then
             node tools/fetch-fixtures.mjs --live
