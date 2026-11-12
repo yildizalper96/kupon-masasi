@@ -41,6 +41,10 @@ jobs:
         with:
           node-version: 22
 
+      # Onbellek geri yuklenince depodaki YENI veri eskisiyle ezilmesin: once depodaki kopyayi sakla, sonra birlestir
+      - name: Depodaki veriyi sakla
+        run: mkdir -p .repo-data && cp -r data/fixtures data/teams .repo-data/ 2>/dev/null || true
+
       # Veri ve tahmin onbellegi calistirmalar arasinda korunur
       - name: Önbelleği geri yükle
         uses: actions/cache@v4
@@ -51,6 +55,9 @@ jobs:
             tools/cache
           key: fx-${{ github.run_id }}
           restore-keys: fx-
+
+      - name: Önbellek ve depoyu birleştir (yeni olan kazanır)
+        run: node tools/merge-restored.mjs .repo-data
 
       - name: Veri çek
         env:
