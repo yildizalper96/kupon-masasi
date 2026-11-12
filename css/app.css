@@ -708,3 +708,17 @@ input,button,select,textarea{font-family:var(--f)}
   #dz>main#app{padding:36px 2px 48px!important}
   #dzl>*,#dzr>*,#dzr .mside>*{flex-shrink:0}
 }
+
+/* ==== FotMob turu 1: tarih/filtre cubugu (ust: < Gun > tam satir, alt: haplar + Filtre sagda) ==== */
+@media(min-width:1100px){
+  #dz .stk{display:grid!important;grid-template-columns:1fr auto;grid-template-areas:"tarih tarih" "hap filtre";padding:0!important;gap:0}
+  #dz .stk>.dn{display:contents}
+  #dz .stk .dp{grid-area:tarih;display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;padding:14px 18px;border-bottom:1px solid var(--ln);background:none!important;border-radius:0!important;margin:0!important;border-top:0;border-left:0;border-right:0}
+  #dz .stk .dp span{text-align:center;font:600 15px var(--f)!important}
+  #dz .stk .dp button{width:32px;height:32px;border-radius:50%!important;background:var(--sf2)!important;border:0!important;display:grid;place-items:center;font:600 18px/1 var(--f)!important;padding:0!important;cursor:pointer}
+  #dz .stk .dp button[disabled]{opacity:.4;cursor:default}
+  #dz .stk .fpl{grid-area:hap;margin:0!important;padding:14px 18px}
+  #dz .stk #flt{grid-area:filtre;align-self:center;margin:0 18px 0 0!important;background:var(--sf2)!important;border:0!important;border-radius:var(--rb,6px)!important;padding:7px 14px!important;color:var(--mut)!important;display:inline-flex;gap:8px;align-items:center}
+  #dz .stk #flt.on{color:var(--ink)!important}
+  #dz .stk>.chips{grid-column:1/-1;padding:0 18px 14px}
+}
