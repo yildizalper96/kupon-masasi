@@ -46,6 +46,7 @@ jobs:
         with:
           path: |
             data/fixtures
+            data/teams
             tools/cache
           key: fx-${{ github.run_id }}
           restore-keys: fx-

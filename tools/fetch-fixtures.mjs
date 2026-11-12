@@ -70,6 +70,7 @@ const ALIAS = {
   'fc copenhagen': 'Copenhagen', 'aek athens fc': 'AEK Atina', 'aek athens': 'AEK Atina', 'club brugge kv': 'Club Brugge', 'fc salzburg': 'Salzburg',
   'red bull salzburg': 'Salzburg', 'shakhtar donetsk': 'Shakhtar', 'psv eindhoven': 'PSV', 'az alkmaar': 'AZ Alkmaar', 'fc twente': 'Twente',
   'fc utrecht': 'Utrecht', 'sc heerenveen': 'Heerenveen', 'sc cambuur': 'Cambuur',
+  'st truiden': 'STVV', 'union st gilloise': 'Union SG', 'al qadisiyah fc': 'Al Qadsiah', 'al qadisiyah': 'Al Qadsiah', 'al taawon': 'Al Taawoun',
 };
 const STOP = new Set(['fc', 'cf', 'afc', 'sc', 'fk', 'sk', 'bk', 'ac', 'as', 'ssc', 'sv', 'fsv', 'vfb', 'vfl', 'rb', 'the', 'de', 'club', 'cd', 'ud', 'kv', 'sd', 'rc', 'if', 'ik', 'sl', '1']);
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').replace(/ø/g, 'o').replace(/[’'`.]/g, ' ').replace(/[^a-zA-Z0-9]+/g, ' ').trim().toLowerCase();
@@ -146,6 +147,15 @@ const cachePath = path.join(root, 'tools', 'cache', 'predictions.json');
 fs.mkdirSync(path.dirname(cachePath), { recursive: true });
 const cache = fs.existsSync(cachePath) ? JSON.parse(fs.readFileSync(cachePath, 'utf8')) : {};
 
+// ---------- takim kimlikleri (logo icin): data/teams/ids.json, calistirmalar arasinda birikir ----------
+// Uygulamadaki takim adi -> API-Football takim kimligi. Logo adresi: https://media.api-sports.io/football/teams/<id>.png
+const tidPath = path.join(root, 'data', 'teams', 'ids.json');
+const TID = fs.existsSync(tidPath) ? (JSON.parse(fs.readFileSync(tidPath, 'utf8')).t || {}) : {};
+let tidNew = 0;
+const tidAdd = (name, id) => { if (!name || !Number.isFinite(id)) return; if (TID[name] !== id) { TID[name] = id; tidNew++; } };
+const TID_SYN = { 'STVV': 'Sint-Truidense', 'Sint-Truidense': 'STVV' };
+const tidSave = () => { for (const [a, b] of Object.entries(TID_SYN)) if (TID[a] && !TID[b]) TID[b] = TID[a]; if (DRY) return; fs.mkdirSync(path.dirname(tidPath), { recursive: true }); fs.writeFileSync(tidPath, JSON.stringify({ at: new Date().toISOString(), t: TID })); };
+
 const DOMESTIC_CUPS = new Set(['FAC', 'EFL', 'CDR', 'CIT', 'DFB', 'CDF', 'TUK', 'KNV', 'TDP', 'BCP', 'SFA']);
 let skippedCup = 0;
 // API kaydi -> uygulama maci (hedef lig degilse veya alt lig kupa maciysa null)
@@ -155,6 +165,7 @@ function toMatch(x) {
   const hn = teamName(c, x.teams.home.name), an = teamName(c, x.teams.away.name);
   // yerel kupalarin ilk turlari: iki takim da uygulamanin bildigi ust lig takimlarindan degilse alma (2./3. lig istemiyoruz)
   if (DOMESTIC_CUPS.has(c) && !APP_ALL.includes(hn) && !APP_ALL.includes(an)) { skippedCup++; return null; }
+  tidAdd(hn, x.teams.home.id); tidAdd(an, x.teams.away.id);
   return {
     id: x.fixture.id, c, t: x.fixture.date.slice(0, 16) + 'Z', h: hn, a: an,
     st: x.fixture.status.short, el: x.fixture.status.elapsed ?? null,
@@ -162,6 +173,28 @@ function toMatch(x) {
     rd: x.league.round || '',
     hand: handPairs.has(hn + '|' + an),
   };
+}
+
+// ---------- TAKIM MODU (bir kerelik): node tools/fetch-fixtures.mjs --teams [--season=2026] [--leagues=SL,PL]
+// Her lig icin 1 istek (/teams?league=&season=). Yalnizca uygulamanin bildigi adlara eslesenler kaydedilir.
+if (process.argv.includes('--teams')) {
+  const now = new Date();
+  const season = +arg('season', now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1);
+  const list = String(arg('leagues', 'SL,PL,LL,SA,BL,L1,POR,ERE,BEL,SCO,KSA')).split(',').filter(c => LEAGUES[c]);
+  let ok = 0; const miss = [];
+  for (const c of list) {
+    if (remaining !== null && remaining < 12) { console.log('Kota azaldi, durdu.'); break; }
+    try {
+      const j = await api('/teams?league=' + LEAGUES[c][0] + '&season=' + season);
+      let n = 0;
+      for (const r of j.response) { const nm = teamName(c, r.team.name); if (APP_ALL.includes(nm)) { tidAdd(nm, r.team.id); n++; } else miss.push(c + ': ' + r.team.name); }
+      ok += n; console.log('  ' + c + ' (' + season + '): ' + j.response.length + ' takim, eslesen ' + n);
+    } catch (e) { console.log('  ' + c + ' hata: ' + String(e.message).slice(0, 200)); }
+  }
+  tidSave();
+  console.log('Eslesen toplam ' + ok + ', yeni/degisen ' + tidNew + ', sozlukte ' + Object.keys(TID).length + '. Harcanan istek: ' + used + ', kalan gunluk: ' + remaining);
+  if (miss.length) console.log('Eslesmeyen (kaydedilmedi): ' + miss.slice(0, 60).join(' | '));
+  process.exit(0);
 }
 
 // ---------- CANLI MOD: node tools/fetch-fixtures.mjs --live ----------
@@ -195,6 +228,7 @@ if (process.argv.includes('--live')) {
   prev.m.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c));
   prev.at = new Date().toISOString();
   fs.writeFileSync(latestPath, JSON.stringify(prev));
+  tidSave();
   console.log(`Canli: dunya ${j.response.length} canli mac, hedef liglerde guncellenen ${upd}, eklenen ${add}, bayat kontrol ${stale.length}. Harcanan istek: ${used}, kalan gunluk: ${remaining}`);
   process.exit(0);
 }
@@ -259,6 +293,7 @@ const LG_ALIASES = {
 const meta = Object.fromEntries(Object.entries(LEAGUES).map(([c, v]) => [c, { id: v[0], n: v[1], ln: v[2], col: v[3], al: LG_ALIASES[c] || [] }]));
 const out = { at: new Date().toISOString(), from: dates[0], to: dates[dates.length - 1], lg: meta, m: matches };
 if (!DRY) fs.writeFileSync(path.join(outDir, 'latest.json'), JSON.stringify(out));
+tidSave();
 
 // ---------- rapor ----------
 const byC = {};
