@@ -89,7 +89,30 @@
       <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div>
       <p class="kmkay">Davet listesidir, maç kadrosu değildir. Kaynak: API-Football.</p>`);
   }
+  // resmi ilk 11 (API ham veri, grid "satir:sutun"): FotMob gibi yatay saha, fotografli
+  function hamSaha(m, raw) {
+    const ok = t => t && Array.isArray(t.xi) && t.xi.length >= 10 && t.xi.every(p => /^\d+:\d+$/.test(String(p.grid || '')));
+    if (!ok(raw.h) || !ok(raw.a)) return '';
+    const oyuncu = (n, p) => { const [a, b] = renk(n); return `<div class="pp kmpp" data-pn="${E(n)}|${E(p.n)}"><span class="kmav buyuk" style="--ka:${a};--kb:${b}"><i>${E(p.no || basH(p.n))}</i>${fotoImg(fotoUrl(n, p))}</span><span>${p.no ? `<em>${E(p.no)}</em> ` : ''}${E(String(p.n).split(' ').pop())}</span></div>`; };
+    const sutunlar = (n, t, ters) => {
+      const g = {}; t.xi.forEach(p => { const [r, c] = String(p.grid).split(':').map(Number); (g[r] = g[r] || []).push([c, p]); });
+      return Object.keys(g).map(Number).sort((x, y) => x - y).map(r => {
+        const l = g[r].sort((x, y) => x[0] - y[0]).map(x => x[1]); if (ters) l.reverse();
+        return `<div class="kmps">${l.map(p => oyuncu(n, p)).join('')}</div>`;
+      }).join('');
+    };
+    const yedek = (n, t) => (t.bn || []).length ? t.bn.map(p => { const [a, b] = renk(n); return `<div class="kmoyr"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(p.no || basH(p.n))}</i>${fotoImg(fotoUrl(n, p))}</span><div><b>${E(p.n)}</b><small>${p.no ? '#' + E(p.no) : ''}</small></div></div>`; }).join('') : '<p class="kmbos">Yedek listesi yok.</p>';
+    const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], inj = (e && e.inj) || [];
+    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(x => `<div class="kmeks"><i class="${/Cezalı/.test(nedenTr(x.r)) ? 'kmkk' : 'kmsk'}"></i><div><b>${E(x.n)}</b><small>${E(nedenTr(x.r))}</small></div></div>`).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
+    return card('kmkadro', `<div class="kmkb"><div>${bd(m.h)}<b>${E(m.h)}</b><span>${E(raw.h.f || '')}</span></div><h3>Resmi ilk 11</h3><div><span>${E(raw.a.f || '')}</span><b>${E(m.a)}</b>${bd(m.a)}</div></div>
+      <div class="kmsaha"><i class="kmorta-c"></i><i class="kmorta-n"></i><i class="kmceza s"></i><i class="kmceza g"></i>
+        <div class="kmyari">${sutunlar(m.h, raw.h, true)}</div><div class="kmyari dep">${sutunlar(m.a, raw.a, false)}</div></div>
+      <h4 class="kmalt">Yedekler</h4><div class="kmiki"><div>${yedek(m.h, raw.h)}</div><div>${yedek(m.a, raw.a)}</div></div>
+      <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div>
+      <p class="kmkay">Kaynak: API-Football (resmi ilk 11).</p>`);
+  }
   function kadroKarti(m) {
+    try { const raw = window.KMX && typeof KMX.luRaw === 'function' && KMX.luRaw(m); if (raw) { const h = hamSaha(m, raw); if (h) return h; } } catch (e) { }
     const lu = LU[key(m)];
     if (!lu) return davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
     const iki = pitchOk(lu.h) && pitchOk(lu.a);

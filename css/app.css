@@ -793,3 +793,11 @@ input,button,select,textarea{font-family:var(--f)}
   .kmsaha .sh{position:relative;overflow:hidden}
   .kmsaha .sh.hf{background:var(--sf2)!important;color:transparent!important}
 }
+/* resmi ilk 11: fotografli saha oyuncusu */
+@media(min-width:1100px){
+  .kmsaha .kmpp{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .kmav.buyuk{width:46px;height:46px}
+  .kmav.buyuk i{font-size:13px}
+  .kmsaha .kmpp>span:last-child{font:500 12.5px var(--f);color:var(--ink);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kmsaha .kmpp em{font-style:normal;color:var(--mut)}
+}
