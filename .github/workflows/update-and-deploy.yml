@@ -1,6 +1,7 @@
 # Veriyi API-Football'dan ceker, siteyi paketler ve GitHub Pages'e yayinlar.
-#  - canli mod: her 20 dk, yalnizca 10:00-22:59 UTC (13 saat x 3 = 39 calistirma, 1 istek, nadiren 2)
-#  - tam mod: gunde 4 kez (3 tarih + en fazla 8 yeni mac tahmini = en cok 4x11 = 44 istek)
+#  - canli mod: her 20 dk, yalnizca 10:00-22:59 UTC; bilinen mac oynanmiyorsa canli istek yapilmaz
+#  - tam mod: gunde 3 kez (3 tarih + en fazla 4 yeni mac tahmini); ardindan mac ayrintilari (en cok 14 istek)
+#  - mac ayrintilari (tools/fetch-details.mjs): milli takim kadro listesi, ilk 11 (mactan ~100 dk once), oran, eksik, karsilikli
 #  - kod degisince (push): veri cekmeden yeniden yayinlar
 #  - elle: Actions sekmesinden "Run workflow" (mod secilir)
 # Ucretsiz plan gunluk 100 istek: en kotu durumda ~39..78 + 44 -> arac her calistirmada /status ile (sayilmaz)
@@ -10,7 +11,7 @@ name: Veri güncelle ve yayınla
 on:
   schedule:
     - cron: '*/20 10-22 * * *'
-    - cron: '7 5,11,17,23 * * *'
+    - cron: '7 6,13,20 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -70,8 +71,15 @@ jobs:
           fi
           if [ "$MODE" = "live" ] && [ ! -f data/fixtures/latest.json ]; then MODE=full; fi
           echo "Mod: $MODE"
-          if [ "$MODE" = "full" ]; then node tools/fetch-fixtures.mjs --max-pred=8; fi
-          if [ "$MODE" = "live" ]; then node tools/fetch-fixtures.mjs --live; fi
+          # Ucretsiz plan gunluk 100 istek: once maclar/canli skor, sonra ayrintilar (kadro listesi, ilk 11, oran, eksik, karsilikli)
+          if [ "$MODE" = "full" ]; then
+            node tools/fetch-fixtures.mjs --max-pred=4
+            node tools/fetch-details.mjs --max=14 --hours=24 || true
+          fi
+          if [ "$MODE" = "live" ]; then
+            node tools/fetch-fixtures.mjs --live
+            node tools/fetch-details.mjs --max=6 --hours=24 || true
+          fi
 
       # Supabase ucretsiz projesi 1 hafta islem olmazsa durur: zamanli calistirmalarda hafif bir okuma yap
       - name: Supabase canlılık denemesi

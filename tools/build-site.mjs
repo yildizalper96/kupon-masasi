@@ -20,7 +20,7 @@ const copy = rel => {
 for (const rel of [
   'index.html', 'manifest.webmanifest', 'sw.js', 'icons', 'css', 'js',
   'data/results', 'data/lineups', 'data/players',
-  'data/history/all.json', 'data/fixtures/latest.json', 'data/teams/ids.json',
+  'data/history/all.json', 'data/fixtures/latest.json', 'data/fixtures/details.json', 'data/teams/ids.json',
 ]) copy(rel);
 
 fs.writeFileSync(path.join(out, '.nojekyll'), '');

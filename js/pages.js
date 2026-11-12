@@ -59,7 +59,7 @@
   }
   function kadroKarti(m) {
     const lu = LU[key(m)];
-    if (!lu) return card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
+    if (!lu) return (window.KMX && KMX.squadCard && KMX.squadCard(m)) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
@@ -130,7 +130,7 @@
     const eski = eskiDetail(m);
     if (!MQ.matches) return eski;
     const p = eskiParcalar(m, eski), x = xm(m);
-    const yan = `<div class="mside">${kimKazanir(m)}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.tbx}${p.nwb}</div>`;
+    const yan = `<div class="mside">${kimKazanir(m)}${(window.KMX && KMX.oddsCard) ? KMX.oddsCard(m) : ''}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.tbx}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else ana = `<div class="kmeski">${p.kalan}</div>`;

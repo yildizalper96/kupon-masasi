@@ -208,6 +208,8 @@ if (process.argv.includes('--live')) {
   const byId = new Map(prev.m.map(m => [m.id, m]));
   const seen = new Set();
   let upd = 0, add = 0;
+  // bilinen hicbir mac oynanmiyor ya da 10 dk icinde baslamiyorsa canli istek yapma (kota tasarrufu)
+  { const nowMs = Date.now(); const inPlay = prev.m.some(m => { const t = Date.parse(m.t); return nowMs >= t - 10 * 60e3 && nowMs <= t + 170 * 60e3; }); if (!inPlay) { console.log('Canli: simdi oynanan ya da yaklasan bilinen mac yok, istek yapilmadi.'); process.exit(0); } }
   const j = await api('/fixtures?live=all&timezone=UTC');
   for (const x of j.response) {
     const m = toMatch(x);
@@ -219,10 +221,13 @@ if (process.argv.includes('--live')) {
   }
   const stale = prev.m.filter(m => LIVE_ST.has(m.st) && !seen.has(m.id)).slice(0, 20);
   if (stale.length && (remaining === null || remaining > 8)) {
-    const k = await api('/fixtures?ids=' + stale.map(m => m.id).join('-') + '&timezone=UTC');
-    for (const x of k.response) {
-      const old = byId.get(x.fixture.id);
-      if (old) { Object.assign(old, { st: x.fixture.status.short, el: x.fixture.status.elapsed ?? null, sc: x.goals.home == null ? null : [x.goals.home, x.goals.away] }); upd++; }
+    // ucretsiz plan "ids" parametresine izin vermez: bayat maclarin gunleri icin /fixtures?date= (gun basina 1 istek)
+    for (const day of [...new Set(stale.map(m => m.t.slice(0, 10)))]) {
+      const k = await api('/fixtures?date=' + day + '&timezone=UTC');
+      for (const x of k.response) {
+        const old = byId.get(x.fixture.id);
+        if (old && stale.includes(old)) { Object.assign(old, { st: x.fixture.status.short, el: x.fixture.status.elapsed ?? null, sc: x.goals.home == null ? null : [x.goals.home, x.goals.away] }); upd++; }
+      }
     }
   }
   prev.m.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c));
