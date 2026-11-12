@@ -722,3 +722,5 @@ input,button,select,textarea{font-family:var(--f)}
   #dz .stk #flt.on{color:var(--ink)!important}
   #dz .stk>.chips{grid-column:1/-1;padding:0 18px 14px}
 }
+/* tarih/filtre cubugu masaustunde yapiskan degil: yerinde durur, alttaki kartin uzerine binmez */
+@media(min-width:1100px){#dz .stk{position:static!important;top:auto!important;z-index:auto!important;background:var(--sf)!important;margin:0 0 28px!important}}
