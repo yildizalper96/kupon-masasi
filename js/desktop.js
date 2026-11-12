@@ -60,9 +60,13 @@
   }
 
   // sag sutun: Maclar sekmesindeki "Gunun dusuk riskli kuponu" ve "Veri kaynagi" kutularini tasi
+  let ilkCocuk = null;
   function sagCiz() {
     if (!MQ.matches) return;
-    const kutular = [app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note'), app.querySelector(':scope > .nwb')].filter(Boolean);
+    const kutular = [app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note'), app.querySelector(':scope > .tbx'), app.querySelector(':scope > .nwb')].filter(Boolean);
+    // uygulama sayfayi yeniden cizmediyse (yalnizca kucuk bir ekleme) ve tasinacak kutu yoksa sag sutuna dokunma
+    if (!kutular.length && app.firstElementChild === ilkCocuk) return;
+    ilkCocuk = app.firstElementChild;
     sag.innerHTML = '';
     kutular.forEach(k => sag.appendChild(k));
     const cp = sag.querySelector('#cpd'); if (cp && !cp.dataset.dzAcik) { cp.open = true; cp.dataset.dzAcik = '1'; }
@@ -71,6 +75,18 @@
   MQ.addEventListener('change', () => { if (!MQ.matches) { [...sag.children].forEach(k => app.appendChild(k)); sag.innerHTML = ''; } else sagCiz(); });
 
   // yalnizca uygulama yeniden cizdiginde (dugum eklendiginde) calis; bizim tasimamiz sadece dugum cikarir
+  // logo: her genislikte ana sayfaya (Maclar, bugun/varsayilan gun, arama ve mac detayi kapali)
+  const marka = document.querySelector('header .brand');
+  if (marka) {
+    marka.style.cursor = 'pointer'; marka.setAttribute('role', 'link'); marka.title = 'Ana sayfa';
+    marka.addEventListener('click', () => {
+      try { det = null; PMV = null; Q = ''; QX = ''; LV = false; TS = false; const e = document.getElementById('q'); if (e) e.value = ''; } catch (e) { }
+      const nb = document.querySelector('nav button[data-t="k"]');
+      try { if (typeof tab !== 'undefined' && tab === 'k') render(); else if (nb) nb.click(); } catch (e) { if (nb) nb.click(); }
+      window.scrollTo(0, 0);
+    });
+  }
+
   new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) sagCiz(); }).observe(app, { childList: true });
   solCiz(); sagCiz();
 })();
