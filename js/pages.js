@@ -130,7 +130,7 @@
     const eski = eskiDetail(m);
     if (!MQ.matches) return eski;
     const p = eskiParcalar(m, eski), x = xm(m);
-    const yan = `<div class="mside">${kimKazanir(m)}${(window.KMX && KMX.oddsCard) ? KMX.oddsCard(m) : ''}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.tbx}${p.nwb}</div>`;
+    const yan = `<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else ana = `<div class="kmeski">${p.kalan}</div>`;

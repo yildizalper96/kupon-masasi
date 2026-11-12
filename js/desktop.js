@@ -87,6 +87,17 @@
     });
   }
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) sagCiz(); }).observe(app, { childList: true });
+  // bagimsiz kaydirma: masaustunde sutunlar kendi icinde kayar (CSS). Ust bar yuksekligi --dzhdr.
+  const hdr = document.querySelector('header');
+  const hdrOlc = () => { if (hdr) document.documentElement.style.setProperty('--dzhdr', hdr.offsetHeight + 'px'); };
+  hdrOlc(); addEventListener('resize', hdrOlc);
+  // yeni sayfa (sekme/mac/takim/arama) acilinca orta ve sag sutun en uste doner (uygulamanin scrollTo'su artik pencereyi kaydirmaz)
+  let sayfaAnahtar = '';
+  const ustaDon = () => {
+    let k = ''; try { k = [tab, det, dt, Q, QX, PMV ? 1 : 0].join('|'); } catch (e) { }
+    if (k !== sayfaAnahtar) { sayfaAnahtar = k; app.scrollTop = 0; sag.scrollTop = 0; }
+  };
+
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); } }).observe(app, { childList: true });
   solCiz(); sagCiz();
 })();

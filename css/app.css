@@ -698,3 +698,13 @@ input,button,select,textarea{font-family:var(--f)}
   header #rs{display:none!important}
   #dz .fpl #lv,#dz .fpl [data-fts]{display:none!important}
 }
+
+/* ==== Masaustu: bagimsiz kaydirma (her sutun kendi icinde, fare hangisinin ustundeyse o kayar) ==== */
+@media(min-width:1100px){
+  html,body{height:100%;overflow:hidden}
+  #dz{height:calc(100vh - var(--dzhdr,65px));padding-top:0!important;padding-bottom:0!important;align-items:stretch;overflow:hidden}
+  #dzl,#dzr,#dz>main#app{height:100%;overflow-y:auto;overscroll-behavior:contain;position:static!important;top:auto;scrollbar-width:thin;scrollbar-color:var(--ln) transparent}
+  #dzl,#dzr{padding:36px 0 48px}
+  #dz>main#app{padding:36px 2px 48px!important}
+  #dzl>*,#dzr>*,#dzr .mside>*{flex-shrink:0}
+}
