@@ -689,3 +689,12 @@ input,button,select,textarea{font-family:var(--f)}
   .kmsaha .shw{margin-bottom:4px}
 }
 @media(min-width:1500px){.kmsaha .pp{width:88px}.kmsaha .pp span{max-width:88px;font-size:12.5px}}
+
+/* ==== Kullanici istegi (12 Kas 2026): masaustunde kaldirilanlar ==== */
+@media(min-width:1100px){
+  #dz .mr .pb{display:none!important}
+  #dz .mr{grid-template-columns:46px minmax(0,1fr) 64px minmax(0,1fr) auto!important}
+  #dzr .note,#app>details.note{display:none!important}
+  header #rs{display:none!important}
+  #dz .fpl #lv,#dz .fpl [data-fts]{display:none!important}
+}
