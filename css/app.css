@@ -840,3 +840,18 @@ input,button,select,textarea{font-family:var(--f)}
 
 /* Kupon analizi masaustunde sag sutunda */
 @media(min-width:1100px){#dzr .box.ka{margin:0!important;border-radius:var(--rk,8px)!important;background:var(--sf)!important;border:1px solid var(--ln)!important}}
+
+/* ==== Lig sayfasi (FotMob basligi) ==== */
+@media(min-width:1100px){
+  .kmlrz{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 16px var(--f);flex:none}
+  #dz:has(#app>.kmlh){grid-template-columns:minmax(0,1fr) 360px!important}
+  #dz:has(#app>.kmlh) #dzl{display:none!important}
+  #app>.kmeski>.box{margin:0 0 28px!important}
+}
+/* lig Maclar sekmesi: tek tek kartlar yerine birlesik liste */
+@media(min-width:1100px){
+  #app>.kmeski>.box:has(>.mr){margin:0!important;border-radius:0!important;padding:0!important;border-top:0!important}
+  #app>.kmeski>.box:has(>.mr) .mr{padding:16px 22px!important}
+  #app>.kmeski>h3{margin:24px 0 10px;font:600 15px var(--f)}
+  #app>.kmeski>h3+.box:has(>.mr){border-top:1px solid var(--ln)!important;border-radius:var(--rk,8px) var(--rk,8px) 0 0!important}
+}

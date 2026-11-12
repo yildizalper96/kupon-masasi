@@ -298,6 +298,35 @@
     }
   };
 
+  // ================= LIG SAYFASI =================
+  // uygulamanin leagueView(c) ciktisini masaustunde FotMob duzenine cevirir; sekme dugmeleri (data-lt) uygulamaninkiler
+  if (typeof leagueView === 'function') {
+    const eskiLeagueView = leagueView;
+    window.leagueView = function (c) {
+      const eski = eskiLeagueView(c);
+      if (!MQ.matches) return eski;
+      try {
+        const t = document.createElement('template'); t.innerHTML = eski;
+        const kok = t.content;
+        const sekmeler = [...kok.querySelectorAll('[data-lt]')];
+        const bas = sekmeler.length ? sekmeler[0].closest('#app > *, template > *') || null : null;
+        // ilk ust kutu: lig basligi ve sekmeler
+        const ilk = [...kok.children].find(e => e.querySelector && e.querySelector('[data-lt]'));
+        const bilgi = ilk ? (ilk.querySelector('.lg2 small') || {}).textContent || '' : '';
+        const renk = (typeof C !== 'undefined' && C[c]) || 'var(--mut)';
+        const kisa = (ligAd(c) || c).replace(/[^A-Za-zÇĞİÖŞÜçğıöşü ]/g, '').split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 3).toUpperCase();
+        const baslik = `<div class="kmc kmth kmlh"><div class="kmth-u"><span class="kmlrz" style="background:${renk}">${E(kisa)}</span><div><h2>${E(ligAd(c))}</h2><small>${E(ulke(c) || bilgi)}</small></div></div>
+          <div class="kmsek">${sekmeler.map(b => `<button data-lt="${E(b.dataset.lt)}" class="${b.classList.contains('on') ? 'on' : ''}">${E(b.textContent.trim())}</button>`).join('')}</div></div>`;
+        if (ilk) ilk.remove();
+        // puan durumu kutusu: FotMob tablosu (takim sayfasindaki ile ayni)
+        const ilkTakim = Object.keys(TM).find(n => TM[n].l === c);
+        const eskiTablo = [...kok.children].find(e => e.querySelector && e.querySelector('.tb.th'));
+        if (eskiTablo && ilkTakim) eskiTablo.outerHTML = tabloKutusu(ilkTakim, []);
+        return baslik + `<div class="kmeski">${t.innerHTML}</div>`;
+      } catch (e) { return eski; }
+    };
+  }
+
   // ortak tiklamalar (yakalama asamasinda, uygulamanin belge dinleyicisinden once)
   document.addEventListener('click', e => {
     const mm = e.target.closest && e.target.closest('[data-kmm]');
