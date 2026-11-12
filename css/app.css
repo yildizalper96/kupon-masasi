@@ -820,14 +820,6 @@ input,button,select,textarea{font-family:var(--f)}
   .kmh2sk{font-style:normal;font:600 13px var(--f);background:var(--sf2);padding:4px 10px;border-radius:var(--rb,6px);min-width:52px;text-align:center}
 }
 
-/* ==== FotMob turu 6: arama kutusunda Ctrl K ipucu ==== */
-.dzkbd{display:none}
-@media(min-width:1100px){
-  header .sb{position:relative}
-  .dzkbd{display:inline-block;margin-left:auto;flex:none;font:500 12px var(--f);color:var(--mut);border:1px solid var(--ln);border-radius:5px;padding:2px 7px;background:transparent;pointer-events:none}
-  header .sb.dzdolu .dzkbd{display:none}
-}
-
 /* ==== FotMob turu 7: Maclar kartinda < > gecisi ==== */
 @media(min-width:1100px){
   .kmmh{display:grid;grid-template-columns:auto 1fr auto;align-items:center;padding:16px 18px 10px}
@@ -921,18 +913,6 @@ input,button,select,textarea{font-family:var(--f)}
   .kmlkay{padding:0 4px!important}
 }
 
-/* ==== Ligler sekmesi listesi: tek parca siki liste (FotMob "Tum ligler" gibi) ==== */
-@media(min-width:1100px){
-  #app>.box.lgc{margin:0!important;border-radius:0!important;border-top:0!important;padding:14px 22px!important;cursor:pointer}
-  #app>.box.lgc:hover{background:var(--sf2)}
-  #app>h3+.box.lgc,#app>.box.lgc:not(.box.lgc+.box.lgc){border-top:1px solid var(--ln)!important;border-radius:var(--rk,8px) var(--rk,8px) 0 0!important}
-  #app>.box.lgc:not(:has(+.box.lgc)){border-radius:0 0 var(--rk,8px) var(--rk,8px)!important;margin-bottom:28px!important}
-  #app>.box.lgc>.lg2{margin:0!important;gap:14px}
-  #app>.box.lgc>.lg2>.bd{width:32px!important;height:32px!important;font-size:10px!important;flex:none}
-  #app>.box.lgc>.lg2>div:last-child{font:500 14.5px var(--f)}
-  #app>.box.lgc>.lg2 small{display:block;font:400 12px/1.5 var(--f);color:var(--mut);margin-top:2px}
-  #app>h3{font:600 15px var(--f)}
-}
 /* sag sutuna tasinan kartlar da kart zemininde (Kim kazanir, lig listeleri vb.) */
 @media(min-width:1100px){#dzr .kmc{background:var(--sf);border:1px solid var(--ln);border-radius:var(--rk,8px);overflow:hidden}}
 @media(min-width:1100px){.kmkb.kmkb1{display:block;text-align:center}}

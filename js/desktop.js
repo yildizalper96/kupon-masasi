@@ -132,8 +132,7 @@
   // arama: FotMob gibi "Ctrl K" ipucu ve kisayolu (Mac'te Cmd K), Esc ile cik
   const qi = document.getElementById('q'), sb = qi && qi.closest('.sb');
   if (qi && sb && !sb.querySelector('.dzkbd')) {
-    const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
-    sb.insertAdjacentHTML('beforeend', `<kbd class="dzkbd">${mac ? '⌘' : 'Ctrl'} K</kbd>`);
+    // Kullanici istegi (12 Kas 2026): "Ctrl K" yazisi gorunmesin; kisayol (Ctrl/Cmd K) gizli calismaya devam eder
     const ipucu = () => sb.classList.toggle('dzdolu', !!qi.value || document.activeElement === qi);
     qi.addEventListener('input', ipucu); qi.addEventListener('focus', ipucu); qi.addEventListener('blur', ipucu);
     document.addEventListener('keydown', e => {
