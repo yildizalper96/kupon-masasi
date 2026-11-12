@@ -198,6 +198,7 @@
     const yan = `<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
+    else if (dt === 'z' && TM[m.h] && TM[m.h].l === m.c) ana = tabloKutusu(m.h, [m.h, m.a]);
     else ana = `<div class="kmeski">${p.kalan}</div>`;
     return sahaFoto(macBaslik(m) + ana + yan);
   };
@@ -238,13 +239,13 @@
     return card('kmsonraki', `<div class="kmb2"><h3 class="kmb">Sonraki maç</h3><small>${E(ligAd(x.c))}</small></div>
       <div class="kmsm" data-kmm="${E(key(x))}"><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>`);
   }
-  function tabloKutusu(n) {
-    const t = TM[n];
+  function tabloKutusu(n, vurgu) {
+    const t = TM[n], hl = new Set(vurgu || [n]);
     if (!t || !t.l) return card('kmtablo', `<h3 class="kmb">Puan durumu</h3><p class="kmbos">Bu takım için lig puan durumu verisi yok.</p>`);
     const ts = Object.entries(TM).filter(([, v]) => v.l === t.l).sort((a, b) => a[1].r - b[1].r);
     const satir = ([k, v]) => {
       const f = son5(k), nx = siradaki(k), op = nx ? (nx.h === k ? nx.a : nx.h) : '';
-      return `<tr class="${k === n ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.o}</td><td>${v.w}</td><td>${v.d}</td><td>${v.o}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
+      return `<tr class="${hl.has(k) ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.o}</td><td>${v.w}</td><td>${v.d}</td><td>${v.o}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
         <td class="fm">${f.map(r => `<i class="kmkare ${sonuc(r.r)}">${r.r}</i>`).join('')}</td><td class="nx">${op ? bd(op) : ''}</td></tr>`;
     };
     return card('kmtablo', `<h3 class="kmb">${E(ligAd(t.l))}</h3><table><thead><tr><th>#</th><th class="tk"></th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${ts.map(satir).join('')}</tbody></table>`);
