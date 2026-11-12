@@ -270,9 +270,13 @@
   function maclarKutusu(n) {
     const tum = R.filter(x => x.h === n || x.a === n).sort((a, b) => a.t - b.t);
     const gel = tum.filter(x => stt(x).k !== 'ft').slice(0, 5), bit = tum.filter(x => stt(x).k === 'ft').slice(-5).reverse();
-    const l = gel.length ? gel : bit;
-    return card('kmmaclar', `<h3 class="kmb orta">Maçlar</h3>${l.length ? l.map(x => macSatiri(x, n)).join('') : '<p class="kmbos">Maç yok.</p>'}`);
+    if (MKSn !== n) { MKSn = n; MKS = gel.length ? 'gel' : 'bit'; }
+    const l = MKS === 'gel' ? gel : bit;
+    const ok = (yon, akt) => `<button class="kmok" data-kmms="${yon}" ${akt ? '' : 'disabled'} aria-label="${yon === 'bit' ? 'Oynanan maçlar' : 'Gelecek maçlar'}">${yon === 'bit' ? '‹' : '›'}</button>`;
+    return card('kmmaclar', `<div class="kmmh">${ok('bit', MKS === 'gel' && bit.length)}<div><h3>Maçlar</h3><small>${MKS === 'gel' ? 'Gelecek' : 'Oynanan'}</small></div>${ok('gel', MKS === 'bit' && gel.length)}</div>
+      ${l.length ? l.map(x => macSatiri(x, n)).join('') : `<p class="kmbos">${MKS === 'gel' ? 'Takvimde sıradaki maç yok.' : 'Oynanan maç yok.'}</p>`}`);
   }
+  let MKS = 'gel', MKSn = '';
   const eskiTeamView = teamView;
   window.teamView = function () {
     const tek = QX && Q === QX && !QX.startsWith('@p:') && (typeof lgm !== 'function' || lgm(Q).length !== 1 || R.some(m => m.h === QX || m.a === QX));
@@ -299,6 +303,8 @@
     if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = 'p'; PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
     const tt = e.target.closest && e.target.closest('[data-kmtt]');
     if (tt) { TT = tt.dataset.kmtt; render(); return; }
+    const ms = e.target.closest && e.target.closest('[data-kmms]');
+    if (ms) { if (!ms.disabled) { MKS = ms.dataset.kmms; render(); } return; }
     const fv = e.target.closest && e.target.closest('[data-kmfav]');
     if (fv) { try { favTgl(fv.dataset.kmfav); } catch (x) { } render(); }
   }, true);
