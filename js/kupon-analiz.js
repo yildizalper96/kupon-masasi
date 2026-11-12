@@ -236,6 +236,20 @@
       '<div class="ka-note">Bu bir bahis tavsiyesi değil, istatistiksel simülasyondur. İhtimaller modelin maç öncesi tahminidir; farklı maçlar birbirinden bağımsız varsayılır. Kadro, sakatlık ve maç içi gelişmeler ihtimalleri değiştirebilir. Hiçbir bahis risksiz değildir.</div></div>';
   }
 
+  // Kayitli (bekleyen) kuponlar icin kisa ozet
+  function savedHtml() {
+    var rows = [];
+    (KPS || []).forEach(function (s) {
+      try {
+        if (!s.legs || !s.legs.length || kStat(s) !== 'wait') return;
+        var a = analyze(s.legs), lbl = a.risk === 'low' ? 'Düşük riskli' : a.risk === 'mid' ? 'Orta riskli' : 'Yüksek riskli';
+        var w = a.weakest && a.pend.length > 1 ? '<div class="ka-sub">En zayıf halka: ' + esc(a.weakest.lab) + ' (' + esc(a.weakest.mname) + ', %' + pc(a.weakest.p) + ')</div>' : '';
+        rows.push('<div class="ka-leg"><div class="ka-lt"><div><b>' + esc(s.name || 'Kupon') + '</b><small>' + a.pend.length + ' bekleyen seçim · tahmini oran ' + a.od.toFixed(2) + '</small></div><div style="text-align:right"><b>%' + pc(a.pAll) + '</b><br><span class="ka-tag ' + a.risk + '">' + lbl + '</span></div></div>' + w + '</div>');
+      } catch (e) {}
+    });
+    return rows.length ? '<div class="box ka"><h3>Kayıtlı kuponların analizi<small>simülasyon</small></h3>' + rows.join('') + '<div class="ka-note">Bahis tavsiyesi değildir. Hiçbir bahis risksiz değildir.</div></div>' : '';
+  }
+
   window.KMA = { analyze: analyze, advice: advice, html: html };
 
   // Simulator sayfasina ekle: taslak kuponun hemen altina
@@ -247,6 +261,8 @@
         var a = html(KPD, { draft: true }), mark = '<h3>Kayıtlı simülasyonlarım</h3>', i = h.indexOf(mark);
         h = i >= 0 ? h.slice(0, i) + a + h.slice(i) : h + a;
       }
+      var sv = savedHtml(), j = h.indexOf("<div class='box'><h3>Arkadaşımın kuponu");
+      if (sv) h = j >= 0 ? h.slice(0, j) + sv + h.slice(j) : h + sv;
     } catch (e) { if (window.console) console.warn('kupon-analiz ekleme:', e); }
     return h;
   };

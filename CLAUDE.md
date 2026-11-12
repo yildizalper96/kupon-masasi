@@ -158,4 +158,4 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 
 ## Kupon analizi (Simülatör, 12 Kas 2026)
 - `js/kupon-analiz.js` (`window.KMA`, index.html'de pages.js'ten sonra): `kupHtml`'i sarar, taslak kuponun altına "Kupon analizi" kartı koyar. Hesap uygulamanın `kpTot/kgrp/kjp/ksp` fonksiyonlarıyla (ekrandaki ihtimalle aynı): hepsinin tutma ihtimali, "kaç seçim yatar" dağılımı, zayıf halka (çıkarılırsa ihtimal/oran), risk etiketi, Türkçe öneriler, seçim başına dayanak (piyasa beklentisi, form, karşılıklı maç, kadro, modelin geçmiş isabeti `LGR`; veri yoksa "veri yok"). "Çıkar" düğmeleri `data-krm`. Bahis tavsiyesi değil, "risksiz" denmez.
-- Test: gerçek maçlarla 375 ve masaüstü, hata yok, çıkar düğmesi çalışıyor. Henüz yok: kayıtlı (bekleyen) kuponlar için analiz.
+- Test: gerçek maçlarla 375 ve masaüstü, hata yok, çıkar düğmesi çalışıyor. Kayıtlı bekleyen kuponlar için kısa özet kartı da var (`savedHtml`).
