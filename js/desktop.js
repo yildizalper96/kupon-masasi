@@ -98,6 +98,20 @@
     if (k !== sayfaAnahtar) { sayfaAnahtar = k; app.scrollTop = 0; sag.scrollTop = 0; }
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); } }).observe(app, { childList: true });
+  // lig kartlarini ac/kapa (FotMob gibi baslikta ok); durum oturum boyunca lig adina gore hatirlanir
+  const kapali = new Set((() => { try { return JSON.parse(sessionStorage.getItem('dzKapali') || '[]'); } catch (e) { return []; } })());
+  const kartAd = b => (b.querySelector(':scope > .lg2 > div') || {}).childNodes?.[0]?.textContent?.trim() || '';
+  const kapaliUygula = () => { if (!MQ.matches) return; app.querySelectorAll(':scope > .box').forEach(b => { if (b.querySelector(':scope > .lg2')) b.classList.toggle('dzkapali', kapali.has(kartAd(b))); }); };
+  app.addEventListener('click', e => {
+    if (!MQ.matches) return;
+    const h = e.target.closest && e.target.closest('#app > .box > .lg2');
+    if (!h || e.target.closest('[data-tm],[data-fav],button,a')) return;
+    const b = h.parentElement, ad = kartAd(b); if (!ad) return;
+    kapali.has(ad) ? kapali.delete(ad) : kapali.add(ad);
+    try { sessionStorage.setItem('dzKapali', JSON.stringify([...kapali])); } catch (x) { }
+    b.classList.toggle('dzkapali', kapali.has(ad));
+  });
+
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); } }).observe(app, { childList: true });
   solCiz(); sagCiz();
 })();

@@ -724,3 +724,17 @@ input,button,select,textarea{font-family:var(--f)}
 }
 /* tarih/filtre cubugu masaustunde yapiskan degil: yerinde durur, alttaki kartin uzerine binmez */
 @media(min-width:1100px){#dz .stk{position:static!important;top:auto!important;z-index:auto!important;background:var(--sf)!important;margin:0 0 28px!important}}
+
+/* ==== FotMob turu 2: lig karti basligi (kenara kadar serit, yuvarlak rozet, ac/kapa oku) ==== */
+@media(min-width:1100px){
+  #app>.box:has(>.lg2){padding:0!important}
+  #app>.box>.lg2{display:flex!important;align-items:center;gap:12px;margin:0!important;padding:15px 22px!important;background:var(--sf2);border-bottom:1px solid var(--ln);cursor:pointer;user-select:none}
+  #app>.box>.lg2 .bd{border-radius:50%!important}
+  #app>.box>.lg2>div{display:flex;align-items:baseline;gap:8px}
+  #app>.box>.lg2::after{content:'';margin-left:auto;width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-135deg);margin-top:4px;transition:transform .15s}
+  #app>.box.dzkapali>.lg2::after{transform:rotate(45deg);margin-top:-4px}
+  #app>.box.dzkapali>.lg2{border-bottom:0}
+  #app>.box.dzkapali>:not(.lg2){display:none!important}
+  #app>.box>.lg2~.mr{padding:18px 22px!important}
+  #app>.box>.lg2+.mr{border-top:0!important}
+}
