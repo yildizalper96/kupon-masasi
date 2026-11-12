@@ -223,12 +223,16 @@
       <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki">${'<div>' + eksik(lu.h) + '</div><div>' + eksik(lu.a) + '</div>'}</div>
       ${lu.src ? `<p class="kmkay">Kaynak: ${E(lu.src)}</p>` : ''}`);
   }
+  // biriken biten maclar (veri oturumu: data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}); yoksa bos
+  let BITEN = [];
+  fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { });
   // Takim formu: once lig kaydi (SLG); yoksa uygulamadaki biten maclar + karsilasma gecmisi (tum yarismalar), acilan mac haric
   function formListesi(n, m) {
     const slg = son5(n);
     if (slg.length) return slg.slice().reverse().map(r => ({ ev: r.H ? n : r.o, dep: r.H ? r.o : n, sk: r.H ? `${r.f} - ${r.c}` : `${r.c} - ${r.f}`, r: r.r }));
     const l = [], gor = new Set(), ren = (x, y) => x > y ? 'G' : x < y ? 'M' : 'B';
     const ekle = (h, a, x, y, t) => { const k = h + '|' + a + '|' + x + '-' + y + '|' + new Date(t).toISOString().slice(0, 10); if (gor.has(k)) return; gor.add(k); l.push({ ev: h, dep: a, sk: x + ' - ' + y, r: h === n ? ren(x, y) : ren(y, x), t }); };
+    BITEN.forEach(x => { if (!x || (x.h !== n && x.a !== n) || (x.c === m.c && x.h === m.h && x.a === m.a)) return; const t = Date.parse(x.t); if (t && Number.isFinite(+x.x) && Number.isFinite(+x.y)) ekle(x.h, x.a, +x.x, +x.y, t); });
     R.forEach(x => { if (key(x) === key(m) || (x.h !== n && x.a !== n)) return; const s2 = stt(x); if (s2.k === 'ft' && s2.sc) ekle(x.h, x.a, +s2.sc[0], +s2.sc[1], x.t); });
     try { Object.values(HH).forEach(arr => (arr || []).forEach(r => { if (r.h !== n && r.a !== n) return; const p = String(r.d || '').split('.'); const t = p.length === 3 ? Date.UTC(+p[2], +p[1] - 1, +p[0]) : 0; if (t && t < m.t - 36e5) ekle(r.h, r.a, +r.x, +r.y, t); })); } catch (e) { }
     return l.sort((p, q) => q.t - p.t).slice(0, 5);
