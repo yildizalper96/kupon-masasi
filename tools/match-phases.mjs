@@ -12,7 +12,7 @@ const STAT = [ // API tur adi -> uygulamadaki etiket
   ['Ball Possession', 'Topla oynama %'], ['expected_goals', 'Beklenen gol (xG)'], ['Total passes', 'Toplam pas'], ['Passes accurate', 'İsabetli pas'],
   ['Corner Kicks', 'Korner'], ['Fouls', 'Faul'], ['Offsides', 'Ofsayt'], ['Goalkeeper Saves', 'Kaleci kurtarışı'],
   ['Total Shots', 'Şut'], ['Shots on Goal', 'İsabetli şut'], ['Shots off Goal', 'İsabetsiz şut'], ['Blocked Shots', 'Engellenen şut'],
-  ['Shots insidebox', 'Ceza sahası içi şut'], ['Shots outsidebox', 'Ceza sahası dışı şut'], ['Yellow Cards', 'Sarı kart'], ['Red Cards', 'Kırmızı kart'],
+  ['Shots insidebox', 'Ceza sahası içi şut'], ['Shots outsidebox', 'Ceza sahası dışı şut'], ['Free Kicks', 'Serbest vuruş'], ['Yellow Cards', 'Sarı kart'], ['Red Cards', 'Kırmızı kart'],
 ];
 const SX = { 'Topla oynama %': 'pos', 'Şut': 'sh', 'İsabetli şut': 'sot', 'Korner': 'co', 'Faul': 'fo', 'Sarı kart': 'yc', 'Kırmızı kart': 'rc' };
 
@@ -66,7 +66,8 @@ export function normalize(f, hid, aid) {
   const subIn = {}, subOut = {};
   for (const e of evs) if (e.type === 'subst') { if (e.assist?.name) subIn[e.assist.name] = mm(e); if (e.player?.name) subOut[e.player.name] = mm(e); }
   const lineSets = {}; for (const l of f.lineups || []) lineSets[side(l.team?.id)] = new Set((l.startXI || []).map(x => x.player.name));
-  const p = { h: [], a: [] };
+  const p = { h: [], a: [] }, px = { h: [], a: [] };
+  const nn = v => (v === undefined || v === '' ? null : v), nr = v => { if (v == null || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
   for (const pl of f.players || []) {
     const s = side(pl.team?.id); if (!s) continue;
     for (const q of pl.players || []) {
@@ -76,8 +77,9 @@ export function normalize(f, hid, aid) {
       const rt = Number(g.games?.rating); const y = g.cards?.yellow || 0, r = g.cards?.red || 0;
       const card = r ? (y ? 'YR' : 'R') : y ? 'Y' : '';
       const so = look(subOut, n), si = look(subIn, n), sb = so !== undefined ? '▼' + so : si !== undefined ? '▲' + si : '';
+      px[s].push({ id: q.player.id ?? null, n, no: nn(g.games?.number), pos: nn(g.games?.position), cap: !!g.games?.captain, min: nn(mins), r: rt > 0 ? rt : null, g: nn(g.goals?.total), a: nn(g.goals?.assists), gc: nn(g.goals?.conceded), sv: nn(g.goals?.saves), sh: nn(g.shots?.total), sot: nn(g.shots?.on), ps: nn(g.passes?.total), kp: nn(g.passes?.key), pa: nr(g.passes?.accuracy), tk: nn(g.tackles?.total), bl: nn(g.tackles?.blocks), int: nn(g.tackles?.interceptions), du: nn(g.duels?.total), dw: nn(g.duels?.won), dra: nn(g.dribbles?.attempts), drs: nn(g.dribbles?.success), dp: nn(g.dribbles?.past), fd: nn(g.fouls?.drawn), fc: nn(g.fouls?.committed), off: nn(g.offsides), y: nn(g.cards?.yellow), rd: nn(g.cards?.red), pw: nn(g.penalty?.won), pc: nn(g.penalty?.commited), psc: nn(g.penalty?.scored), pm: nn(g.penalty?.missed), psv: nn(g.penalty?.saved) });
       p[s].push([n, '', rt > 0 ? rt : '', mins ?? '', g.goals?.total || 0, g.goals?.assists || 0, '', '', '', card, sb]);
     }
   }
-  return { st, fin: FIN.has(st), min: el, g: [gh, ga], ht: htg, ev, t, sx, p };
+  return { st, fin: FIN.has(st), min: el, g: [gh, ga], ht: htg, ev, t, sx, p, px };
 }
