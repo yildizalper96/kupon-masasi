@@ -307,6 +307,8 @@
   // Takim: STX[k].t (API takim istatistikleri) + oyuncu verisinden toplananlar (live.px varsa). Oyuncu: live.px, yoksa STX.p (sinirli).
   const EVR = '#D63630', DPR = '#4668D6';
   let OIS = 'onem', OSS = { k: 'r', y: -1 };
+  let DV = 'tum';
+  function devreVeri(m) { const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], th = e && e.live && e.live.th; if (!th) return null; const ok = v => Array.isArray(v) && v.length; return ok(th['1']) || ok(th['2']) ? th : null; }
   function pxVeri(m) {
     const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], px = e && e.live && e.live.px;
     if (px && (px.h || px.a)) return { tam: true, h: px.h || [], a: px.a || [] };
@@ -325,8 +327,11 @@
   }
   function istatGrup(baslik, satirlar) { const h = satirlar.join(''); return h ? `<div class="kmisg"><h4>${E(baslik)}</h4>${h}</div>` : ''; }
   function istatistikSekmesi(m) {
-    const st = stxOf(m), t = st && Array.isArray(st.t) ? st.t : [];
-    const px = pxVeri(m);
+    const st = stxOf(m), th = devreVeri(m);
+    if (DV !== 'tum' && !(th && Array.isArray(th[DV]) && th[DV].length)) DV = 'tum';
+    const t = DV !== 'tum' ? th[DV] : (st && Array.isArray(st.t) ? st.t : []);
+    const px0 = pxVeri(m), px = DV === 'tum' ? px0 : (px0 ? { tam: false, h: [], a: [] } : null);
+    const secici = th ? `<div class="kmdvs">${[['tum', 'Tümü'], ['1', '1.'], ['2', '2.']].filter(([k]) => k === 'tum' || (Array.isArray(th[k]) && th[k].length)).map(([k, l]) => `<button data-kmdv="${k}" class="${DV === k ? 'on' : ''}">${l}</button>`).join('')}</div>` : '';
     if (!t.length && !px) return card('kmistat', `<h3 class="kmb">İstatistikler</h3><p class="kmbos">Bu maç için istatistik verisi yok. Maç başladıktan sonra kaynak verdikçe görünür.</p>`);
     const T = re => { const r = t.find(x => re.test(x[0])); return r ? [r[1], r[2]] : null; };
     const S = (ad, re, o) => { const v = T(re); return v ? istatSatir(ad, v[0], v[1], o) : ''; };
@@ -351,12 +356,12 @@
       muc: istatGrup('Mücadele', [oran('Kazanılan ikili mücadele', 'dw', 'du'), oran('Başarılı çalım', 'drs', 'dra'), PS2('Kazanılan faul', 'fd')]),
       cez: istatGrup('Cezalar', [S('Sarı kartlar', /Sarı kart/i, { az: 1 }), S('Kırmızı kartlar', /Kırmızı kart/i, { az: 1 }), S('Faul', /^Faul$/i, { az: 1 }), S('Serbest vuruş', /Serbest vuruş/i)]),
     };
-    const takim = t.length ? card('kmistat', `<div class="kmisw"><div class="kmisk"><div class="kmisg kmisg1"><h4>Önemli istatistik</h4>${onem.join('')}</div>${G.pas}${G.cez}</div><div class="kmisk">${G.xg}${G.sut}${G.sav}${G.muc}</div></div>
-      <p class="kmkay">Kaynak: API-Football${P ? '; kilit pas, top çalma, top kapma, blok, ikili mücadele, çalım ve kazanılan faul oyuncu verilerinin toplamıdır' : ''}.</p>`) : '';
-    return takim + oyuncuIstatTablosu(m, px);
+    const takim = t.length ? card('kmistat', `${secici}<div class="kmisw"><div class="kmisk"><div class="kmisg kmisg1"><h4>Önemli istatistik</h4>${onem.join('')}</div>${G.pas}${G.cez}</div><div class="kmisk">${G.xg}${G.sut}${G.sav}${G.muc}</div></div>
+      <p class="kmkay">Kaynak: API-Football${DV !== 'tum' ? ' (' + DV + '. yarı; oyuncu verisinden toplanan satırlar devreye bölünmediği için gösterilmez)' : ''}${P ? '; kilit pas, top çalma, top kapma, blok, ikili mücadele, çalım ve kazanılan faul oyuncu verilerinin toplamıdır' : ''}.</p>`) : '';
+    return takim + oyuncuIstatTablosu(m, px0, DV !== 'tum');
   }
   // oyuncu istatistikleri tablosu (sekmeli, siralanabilir)
-  function oyuncuIstatTablosu(m, px) {
+  function oyuncuIstatTablosu(m, px, devreNot) {
     if (!px) return '';
     const sat = [...px.h.map(p => ({ ...p, s: 'h' })), ...px.a.map(p => ({ ...p, s: 'a' }))].filter(p => p.min > 0 || p.r);
     if (!sat.length) return '';
@@ -382,7 +387,7 @@
       ${Object.keys(SEK).length > 1 ? `<div class="kmsuz kmoisk">${Object.entries(SEK).map(([id, [ad]]) => `<button data-kmois="${id}" class="${OIS === id ? 'on' : ''}">${E(ad)}</button>`).join('')}</div>` : ''}
       <div class="kmotw"><table class="kmot"><thead><tr><th class="kmotn">Oyuncu</th>${kol.map(c => `<th data-kmoss="${c[0]}" class="${c === k ? 'on' : ''}">${E(c[1])}${c === k ? (OSS.y === 1 ? ' ▴' : ' ▾') : ''}</th>`).join('')}</tr></thead>
       <tbody>${liste.map(p => `<tr>${oyuncu(p)}${kol.map(c => `<td>${hucre(p, c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-      ${px.tam ? '' : '<p class="kmkay">Ayrıntılı oyuncu istatistikleri (şut, pas, mücadele) bu maç için henüz yok; puan, dakika, gol, asist ve kart gösteriliyor.</p>'}`);
+      ${devreNot ? '<p class="kmkay">Oyuncu istatistikleri maçın tamamı içindir (kaynak devreye bölmüyor).</p>' : ''}      ${px.tam ? '' : '<p class="kmkay">Ayrıntılı oyuncu istatistikleri (şut, pas, mücadele) bu maç için henüz yok; puan, dakika, gol, asist ve kart gösteriliyor.</p>'}`);
   }
   const eskiDetail = detail;
   window.detail = function (m) {
@@ -669,6 +674,8 @@
     const mm = e.target.closest && e.target.closest('[data-kmm]');
     if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = 'p'; PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
     if (e.target.closest && e.target.closest('[data-kmpgeri]')) { e.preventDefault(); try { if (!back()) { Q = ''; QX = ''; render(); } } catch (x) { } return; }
+    const dv = e.target.closest && e.target.closest('[data-kmdv]');
+    if (dv) { DV = dv.dataset.kmdv; render(); return; }
     const oi = e.target.closest && e.target.closest('[data-kmois]');
     if (oi) { OIS = oi.dataset.kmois; OSS = { k: '', y: -1 }; render(); return; }
     const os = e.target.closest && e.target.closest('[data-kmoss]');
