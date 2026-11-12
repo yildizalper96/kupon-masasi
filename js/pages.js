@@ -554,6 +554,15 @@
   // Bilinmeyen alan gosterilmez; veri uydurulmaz.
   const MEVKI = { K: 'Kaleci', D: 'Defans', O: 'Orta saha', F: 'Forvet' };
   const nz = x => (typeof nzq === 'function' ? nzq(String(x || '')) : String(x || '').toLowerCase());
+  // sitede biriken oyuncu toplamlari (veri oturumu): {at, done, p:{<id>|n:<takim>:<ad>: {n,tm,no,pos,ph,c:{<lig>:{m,min,rs,rn,g,a,...}}}}}
+  let SEZ = null;
+  fetch('data/players/season.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.p) { SEZ = j; try { render(); } catch (e) { } } }).catch(() => { });
+  function sezonKaydi(e, team) {
+    if (!SEZ || !SEZ.p) return null;
+    if (e.id && SEZ.p[e.id]) return SEZ.p[e.id];
+    for (const n of [e.ad, e.n, ...(e.adlar || [])]) { const k = SEZ.p['n:' + team + ':' + n] || (e.milli && SEZ.p['n:' + e.milli + ':' + n]); if (k) return k; }
+    return null;
+  }
   // ---- birlesik oyuncu dizini: kulup istatistigi (PS) + API oyunculari (kadro listesi, resmi 11, mac verisi) ----
   // Ayni oyuncu tek kayitta: once API kimligi, sonra takim + soyad/ilk harf (tek eslesme sart). Tam ad: PS adi ya da mac olaylarindaki ad.
   let OYI = null;
@@ -695,7 +704,16 @@
         <p class="kmkay">Kaynak: ${E(o.t.src || '–')}${o.t.at ? ', ' + E(o.t.at) : ''}. Hesaplanan değerler bu toplamlardan.</p>`);
     } else sezon = '';
     ((e.diger) || []).forEach(d => { const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(T.src || '–')}${T.at ? ', ' + E(T.at) : ''}.</p>`); });
-    const mil = api.filter(m => true);
+    // sitede biriken maclar (data/players/season.json): yarisma yarisma toplam; varsa maç verisinden hesaplananin yerine gecer
+    const sz = sezonKaydi(e, o.team);
+    if (sz && sz.c) Object.entries(sz.c).forEach(([c, v]) => {
+      const t2 = (x, ad) => x == null ? '' : kut(x, ad);
+      const ort = v.rn > 0 ? v.rs / v.rn : null, kl = (sz.pos || e.pos) === 'G' || (sz.pos || e.pos) === 'K';
+      sezon += card('kmpsz', `<h3 class="kmb">${E(ligAd(c))} <small>sitede biriken maçlar (${v.m || 0} maç)</small></h3><div class="kmph-s">${t2(v.g, 'Goller')}${t2(v.a, 'Asistler')}${t2(v.m, 'Maçlar')}${t2(v.min, 'Oyun süresi')}
+        ${ort ? `<div><b>${puanHap(ort.toFixed(1))}</b><small>Ortalama puan</small></div>` : ''}${kl ? t2(v.sv, 'Kurtarış') + t2(v.gc, 'Yenen gol') : t2(v.sh, 'Şut') + t2(v.kp, 'Kilit pas')}${t2(v.tk, 'Top çalma')}<div><b><i class="kmkrt s"></i>${v.y || 0}</b><small>Sarı kartlar</small></div></div>
+        <p class="kmkay">Kaynak: API-Football maç verisi; yalnızca sitenin kaydetmeye başladığı tarihten sonraki maçlar (tam sezon değil), her maç sonunda otomatik güncellenir.</p>`);
+    });
+    const mil = sz ? [] : api.filter(m => true);
     if (mil.length) {
       const pu = mil.map(m => +m.pu).filter(x => x > 0), ort = pu.length ? pu.reduce((a, b) => a + b, 0) / pu.length : null;
       sezon += card('kmpsz', `<h3 class="kmb">${p ? 'Kayıtlı maçlar' : 'Sezon performansı'} <small>maç verisinden (${mil.length} maç)</small></h3><div class="kmph-s">${kut(mil.reduce((s, m) => s + m.g, 0), 'Goller')}${kut(mil.reduce((s, m) => s + m.a, 0), 'Asistler')}${kut(mil.length, 'Maçlar')}${kut(mil.reduce((s, m) => s + (+m.dk || 0), 0), 'Oyun süresi')}
