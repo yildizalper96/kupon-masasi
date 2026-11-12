@@ -22,6 +22,7 @@
       // yeni ligler: ad, uzun ad, renk
       Object.keys(d.lg || {}).forEach(function (c) {
         var v = d.lg[c];
+        if (v.id) { (window.KMX = window.KMX || {}).lgId = window.KMX.lgId || {}; window.KMX.lgId[c] = v.id; }
         if (!(c in N)) N[c] = v.n;
         if (!(c in LN)) LN[c] = v.ln;
         if (!(c in C)) C[c] = v.col;
