@@ -120,6 +120,19 @@
     if (k !== sayfaAnahtar) { sayfaAnahtar = k; app.scrollTop = 0; sag.scrollTop = 0; }
   };
 
+  // arama: FotMob gibi "Ctrl K" ipucu ve kisayolu (Mac'te Cmd K), Esc ile cik
+  const qi = document.getElementById('q'), sb = qi && qi.closest('.sb');
+  if (qi && sb && !sb.querySelector('.dzkbd')) {
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
+    sb.insertAdjacentHTML('beforeend', `<kbd class="dzkbd">${mac ? '⌘' : 'Ctrl'} K</kbd>`);
+    const ipucu = () => sb.classList.toggle('dzdolu', !!qi.value || document.activeElement === qi);
+    qi.addEventListener('input', ipucu); qi.addEventListener('focus', ipucu); qi.addEventListener('blur', ipucu);
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); qi.focus(); qi.select(); ipucu(); }
+      else if (e.key === 'Escape' && document.activeElement === qi) { qi.blur(); ipucu(); }
+    });
+  }
+
   // lig kartlarini ac/kapa (FotMob gibi baslikta ok); durum oturum boyunca lig adina gore hatirlanir
   const kapali = new Set((() => { try { return JSON.parse(sessionStorage.getItem('dzKapali') || '[]'); } catch (e) { return []; } })());
   const kartAd = b => (b.querySelector(':scope > .lg2 > div') || {}).childNodes?.[0]?.textContent?.trim() || '';

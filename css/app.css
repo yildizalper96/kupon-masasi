@@ -819,3 +819,11 @@ input,button,select,textarea{font-family:var(--f)}
   .kmh2s .bd{width:20px!important;height:20px!important;line-height:20px!important;font-size:6px!important;flex:none}
   .kmh2sk{font-style:normal;font:600 13px var(--f);background:var(--sf2);padding:4px 10px;border-radius:var(--rb,6px);min-width:52px;text-align:center}
 }
+
+/* ==== FotMob turu 6: arama kutusunda Ctrl K ipucu ==== */
+.dzkbd{display:none}
+@media(min-width:1100px){
+  header .sb{position:relative}
+  .dzkbd{display:inline-block;margin-left:auto;flex:none;font:500 12px var(--f);color:var(--mut);border:1px solid var(--ln);border-radius:5px;padding:2px 7px;background:transparent;pointer-events:none}
+  header .sb.dzdolu .dzkbd{display:none}
+}
