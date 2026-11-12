@@ -930,3 +930,11 @@ input,button,select,textarea{font-family:var(--f)}
   .dzhb-u small,.dzhb>small{color:var(--mut);font-size:11.5px}
   .dzhb p{margin:6px 0 4px;font:400 13px/1.5 var(--f)}
 }
+/* Puan tablosu: sonraki rakip tiklanir (mac sayfasi), uzerine gelince tarih (title) */
+@media(min-width:1100px){
+  .kmtablo td.nx[data-kmm]{cursor:pointer}
+  .kmtablo td.nx[data-kmm] .bd{transition:transform .12s, box-shadow .12s}
+  .kmtablo td.nx[data-kmm]:hover .bd{transform:scale(1.15);box-shadow:0 0 0 2px var(--ok)}
+  .kmtablo .fm i[title]{cursor:default}
+  .kmlyan .kmb small{font-weight:400;color:var(--mu);font-size:11px;margin-left:4px}
+}

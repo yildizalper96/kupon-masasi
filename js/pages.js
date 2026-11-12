@@ -210,7 +210,7 @@
     const yan = `<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
-    else if (dt === 'z' && TM[m.h] && TM[m.h].l === m.c) ana = tabloKutusu(m.h, [m.h, m.a]);
+    else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
     else if (dt === 'k') ana = kadroKarti(m);
     else if (dt === 'm') ana = sonMaclarKarti(m) + h2hKarti(m);
     else ana = `<div class="kmeski">${p.kalan}</div>`;
@@ -261,16 +261,42 @@
     return card('kmsonraki', `<div class="kmb2"><h3 class="kmb">Sonraki maç</h3><small>${E(ligAd(x.c))}</small></div>
       <div class="kmsm" data-kmm="${E(key(x))}"><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>`);
   }
-  function tabloKutusu(n, vurgu) {
-    const t = TM[n], hl = new Set(vurgu || [n]);
-    if (!t || !t.l) return card('kmtablo', `<h3 class="kmb">Puan durumu</h3><p class="kmbos">Bu takım için lig puan durumu verisi yok.</p>`);
-    const ts = Object.entries(TM).filter(([, v]) => v.l === t.l).sort((a, b) => a[1].r - b[1].r);
-    const satir = ([k, v]) => {
-      const f = son5(k), nx = siradaki(k), op = nx ? (nx.h === k ? nx.a : nx.h) : '';
-      return `<tr class="${hl.has(k) ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.o}</td><td>${v.w}</td><td>${v.d}</td><td>${v.o}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
-        <td class="fm">${f.map(r => `<i class="kmkare ${sonuc(r.r)}">${r.r}</i>`).join('')}</td><td class="nx">${op ? bd(op) : ''}</td></tr>`;
+  // yarismanin puan tablosu satirlari: lig (TM), Sampiyonlar Ligi (clT), Avrupa/Konferans Ligi (EUS)
+  function tabloSatir(c) {
+    try {
+      const lig = Object.entries(TM).filter(([, v]) => v.l === c).sort((a, b) => a[1].r - b[1].r);
+      if (lig.length) return lig.map(([n, v]) => ({ n, r: v.r, w: v.w, d: v.d, l: v.o, f: v.f, a: v.a, p: v.p }));
+      if (c === 'CL' && typeof clT === 'function') return clT().map(([r, n, w, d, l, f, a, p]) => ({ n, r, w, d, l, f, a, p }));
+      if (typeof EUS !== 'undefined' && EUS[c]) return Object.entries(EUS[c]).sort((x, y) => y[1].p - x[1].p || (y[1].f - y[1].c) - (x[1].f - x[1].c) || y[1].f - x[1].f || y[1].w - x[1].w).map(([n, q], k) => ({ n, r: k + 1, w: q.w, d: q.d, l: q.l, f: q.f, a: q.c, p: q.p }));
+    } catch (e) { }
+    return [];
+  }
+  // takimin o yarismadaki son 5 sonucu (G/B/M): lig SLG, CL CLR, EL/ECL EUR
+  function formYar(c, n) {
+    const ren = (gf, ga) => gf > ga ? 'G' : gf < ga ? 'M' : 'B';
+    try {
+      if (TM[n] && TM[n].l === c) return son5(n).map(r => ({ r: r.r, t: (r.H ? n + ' ' + r.f + '-' + r.c + ' ' + r.o : r.o + ' ' + r.c + '-' + r.f + ' ' + n) }));
+      let l = [];
+      if (c === 'CL' && typeof CLR !== 'undefined') l = CLR.filter(r => r.h === n || r.a === n).map(r => ({ h: r.h, a: r.a, x: +r.x, y: +r.y }));
+      else if (typeof EUR !== 'undefined' && EUR[c]) l = String(EUR[c]).split('\n').map(z => { const [h, a, x, y] = z.split('|'); return { h, a, x: +x, y: +y }; }).filter(r => r.h === n || r.a === n);
+      return l.slice(-5).map(r => ({ r: r.h === n ? ren(r.x, r.y) : ren(r.y, r.x), t: r.h + ' ' + r.x + '-' + r.y + ' ' + r.a }));
+    } catch (e) { return []; }
+  }
+  function tabloLig(c, vurgu) {
+    const rows = tabloSatir(c), hl = new Set(vurgu || []);
+    if (!rows.length) return '';
+    const satir = v => {
+      const k = v.n, f = formYar(c, k), nx = R.filter(x => x.c === c && (x.h === k || x.a === k) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0] || siradaki(k), op = nx ? (nx.h === k ? nx.a : nx.h) : '';
+      const nxh = nx ? `<td class="nx" data-kmm="${E(key(nx))}" title="${E(nx.h + ' – ' + nx.a)} · ${E(uzunTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}">${bd(op)}</td>` : '<td class="nx"></td>';
+      return `<tr class="${hl.has(k) ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.l}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
+        <td class="fm">${f.map(r => `<i class="kmkare ${sonuc(r.r)}" title="${E(r.t)}">${r.r}</i>`).join('')}</td>${nxh}</tr>`;
     };
-    return card('kmtablo', `<h3 class="kmb">${E(ligAd(t.l))}</h3><table><thead><tr><th>#</th><th class="tk"></th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${ts.map(satir).join('')}</tbody></table>`);
+    return card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><table><thead><tr><th>#</th><th class="tk"></th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${rows.map(satir).join('')}</tbody></table>`);
+  }
+  function tabloKutusu(n, vurgu) {
+    const t = TM[n];
+    const h = t && t.l ? tabloLig(t.l, vurgu || [n]) : '';
+    return h || card('kmtablo', `<h3 class="kmb">Puan durumu</h3><p class="kmbos">Bu takım için lig puan durumu verisi yok.</p>`);
   }
   function oyuncuKutusu(n) {
     const t = TM[n] || {}, ps = (typeof PS !== 'undefined') && (PS[(t.l || '') + '|' + n]);
@@ -326,8 +352,11 @@
     const oy = []; let kay = '';
     Object.keys(PS).filter(k => k.startsWith(c + '|')).forEach(k => { const t = k.slice(c.length + 1), v = PS[k]; if (!v || !Array.isArray(v.p)) return; if (!kay && v.src) kay = v.src; v.p.forEach(p => oy.push({ n: p[0], t, g: +p[3] || 0, a: +p[4] || 0 })); });
     if (!oy.length) return '';
+    const genel = /tüm yarışmalar|lig ve kupa/i.test(kay);
+    if (genel && !Object.keys(TM).some(n => TM[n].l === c)) return '';
+    const ek = genel ? ' <small>tüm yarışmalar</small>' : '';
     const liste = (alan, ad) => { const l = oy.filter(p => p[alan] > 0).sort((x, y) => y[alan] - x[alan]).slice(0, 5); return l.length ? card('kmlyan', `<h3 class="kmb">${ad}</h3>${l.map((p, i) => `<div class="kmly"><span>${i + 1}</span>${bd(p.t)}<div><b>${E(p.n)}</b><small data-tm="${E(p.t)}">${E(p.t)}</small></div><em>${p[alan]}</em></div>`).join('')}`) : ''; };
-    const h = liste('g', 'En çok gol') + liste('a', 'En çok asist');
+    const h = liste('g', 'En çok gol' + ek) + liste('a', 'En çok asist' + ek);
     return h ? `<div class="mside">${h}${kay ? `<p class="kmkay kmlkay">Kaynak: ${E(kay)}</p>` : ''}</div>` : '';
   }
   // ================= LIG SAYFASI =================
@@ -351,9 +380,9 @@
           <div class="kmsek">${sekmeler.map(b => `<button data-lt="${E(b.dataset.lt)}" class="${b.classList.contains('on') ? 'on' : ''}">${E(b.textContent.trim())}</button>`).join('')}</div></div>`;
         if (ilk) ilk.remove();
         // puan durumu kutusu: FotMob tablosu (takim sayfasindaki ile ayni)
-        const ilkTakim = Object.keys(TM).find(n => TM[n].l === c);
         const eskiTablo = [...kok.children].find(e => e.querySelector && e.querySelector('.tb.th'));
-        if (eskiTablo && ilkTakim) eskiTablo.outerHTML = tabloKutusu(ilkTakim, []);
+        const yeniTablo = tabloLig(c, []);
+        if (eskiTablo && yeniTablo) eskiTablo.outerHTML = yeniTablo;
         return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ligYan(c);
       } catch (e) { return eski; }
     };
