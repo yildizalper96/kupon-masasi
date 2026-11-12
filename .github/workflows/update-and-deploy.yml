@@ -43,7 +43,7 @@ jobs:
 
       # Onbellek geri yuklenince depodaki YENI veri eskisiyle ezilmesin: once depodaki kopyayi sakla, sonra birlestir
       - name: Depodaki veriyi sakla
-        run: mkdir -p .repo-data && cp -r data/fixtures data/teams .repo-data/ 2>/dev/null || true
+        run: mkdir -p .repo-data/players && cp -r data/fixtures data/teams .repo-data/ 2>/dev/null || true; cp data/players/season.json .repo-data/players/ 2>/dev/null || true
 
       # Veri ve tahmin onbellegi calistirmalar arasinda korunur
       - name: Önbelleği geri yükle
@@ -52,6 +52,7 @@ jobs:
           path: |
             data/fixtures
             data/teams
+            data/players/season.json
             tools/cache
           key: fx-${{ github.run_id }}
           restore-keys: fx-

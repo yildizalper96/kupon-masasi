@@ -49,6 +49,12 @@ const wr = (p, o) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.wr
     console.log(rel + ': birlesti (' + m.length + ' bitmis mac)');
   } else console.log(rel + ': ' + (cur ? 'onbellek korundu' : 'dosya yok'));
 }
+{ // players/season.json: oyuncu sezon toplami (done listesi uzun olan = daha cok mac islenmis kopya kazanir; toplamlar toplanmaz, cift sayim olmasin)
+  const rel = 'players/season.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
+  const nd = o => ((o && o.done) || []).length;
+  if (rep && nd(rep) > nd(cur)) { wr(path.join(root, 'data', rel), rep); console.log(rel + ': depodaki daha kapsamli (' + nd(rep) + ' mac), o kullanildi'); }
+  else console.log(rel + ': ' + (cur ? 'onbellek korundu (' + nd(cur) + ' mac)' : 'dosya yok'));
+}
 for (const rel of ['fixtures/latest.json']) {
   const cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
   if (rep && (!cur || ts(rep) > ts(cur))) { wr(path.join(root, 'data', rel), rep); console.log(rel + ': depodaki daha yeni, o kullanildi'); }

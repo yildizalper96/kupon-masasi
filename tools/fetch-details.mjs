@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { normalize } from './match-phases.mjs';
+import { addMatch } from './season-agg.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
@@ -135,7 +136,7 @@ for (const m of cand) {
       const lv = normalize(f, e.hid, e.aid);
       e.live = lv; e.liveAt = new Date().toISOString();
       if (!e.luRaw && luKoy(e, f.lineups)) log.push(`${m.h}-${m.a}: ilk 11 mac verisinden alindi`);
-      if (lv.fin) { e.ftOk = true; log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
+      if (lv.fin) { e.ftOk = true; try { addMatch(root, { id: m.id, c: m.c, h: e.h, a: e.a, live: lv }); } catch (x) { log.push('sezon toplami hata: ' + x.message); } log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
       else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
       else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
     } else { if (wantFT) e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: ayrinti bos dondu`); }
