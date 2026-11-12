@@ -935,3 +935,4 @@ input,button,select,textarea{font-family:var(--f)}
 }
 /* sag sutuna tasinan kartlar da kart zemininde (Kim kazanir, lig listeleri vb.) */
 @media(min-width:1100px){#dzr .kmc{background:var(--sf);border:1px solid var(--ln);border-radius:var(--rk,8px);overflow:hidden}}
+@media(min-width:1100px){.kmkb.kmkb1{display:block;text-align:center}}

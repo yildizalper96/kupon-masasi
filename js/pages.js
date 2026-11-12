@@ -83,7 +83,7 @@
     };
     const inj = e.inj || [];
     const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(x => `<div class="kmeks"><i class="${/Cezalı/.test(nedenTr(x.r)) ? 'kmkk' : 'kmsk'}"></i><div><b>${E(x.n)}</b><small>${E(nedenTr(x.r))}</small></div></div>`).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
-    return card('kmkadro kmdavet', `<div class="kmkb"><div>${bd(m.h)}<b>${E(m.h)}</b></div><h3>Davet edilen oyuncular</h3><div><b>${E(m.a)}</b>${bd(m.a)}</div></div>
+    return card('kmkadro kmdavet', `<div class="kmkb kmkb1"><h3>Davet edilen oyuncular</h3></div>
       <p class="kmnot">Resmi ilk 11 açıklanınca (genelde maçtan 1 saat önce) burada sahada dizilişiyle görünür.</p>
       <div class="kmiki kmdl2">${kol(yan[0])}${kol(yan[1])}</div>
       <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div>
