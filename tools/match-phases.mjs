@@ -68,6 +68,13 @@ export function normalize(f, hid, aid) {
   const lineSets = {}; for (const l of f.lineups || []) lineSets[side(l.team?.id)] = new Set((l.startXI || []).map(x => x.player.name));
   const p = { h: [], a: [] }, px = { h: [], a: [] };
   const nn = v => (v === undefined || v === '' ? null : v), nr = v => { if (v == null || v === '') return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
+  // kaleci yenen gol: API bos verirse, kalecinin sahada oldugu surede rakibin attigi goller (yalnizca kaleci)
+  const gcOf = (s, pos, so, si, started) => {
+    if (pos !== 'G') return null;
+    const from = started ? 0 : (si ?? null); if (from == null) return null;
+    const to = so != null ? so : Infinity;
+    return b.out.filter(e => e.k === 'g' && e.s !== s && e.m > from && e.m <= to).length;
+  };
   for (const pl of f.players || []) {
     const s = side(pl.team?.id); if (!s) continue;
     for (const q of pl.players || []) {
@@ -76,8 +83,9 @@ export function normalize(f, hid, aid) {
       if (!started && !(mins > 0) && look(subIn, n) === undefined) continue; // oynamayan yedek
       const rt = Number(g.games?.rating); const y = g.cards?.yellow || 0, r = g.cards?.red || 0;
       const card = r ? (y ? 'YR' : 'R') : y ? 'Y' : '';
-      const so = look(subOut, n), si = look(subIn, n), sb = so !== undefined ? '▼' + so : si !== undefined ? '▲' + si : '';
-      px[s].push({ id: q.player.id ?? null, n, no: nn(g.games?.number), pos: nn(g.games?.position), cap: !!g.games?.captain, min: nn(mins), r: rt > 0 ? rt : null, g: nn(g.goals?.total), a: nn(g.goals?.assists), gc: nn(g.goals?.conceded), sv: nn(g.goals?.saves), sh: nn(g.shots?.total), sot: nn(g.shots?.on), ps: nn(g.passes?.total), kp: nn(g.passes?.key), pa: nr(g.passes?.accuracy), tk: nn(g.tackles?.total), bl: nn(g.tackles?.blocks), int: nn(g.tackles?.interceptions), du: nn(g.duels?.total), dw: nn(g.duels?.won), dra: nn(g.dribbles?.attempts), drs: nn(g.dribbles?.success), dp: nn(g.dribbles?.past), fd: nn(g.fouls?.drawn), fc: nn(g.fouls?.committed), off: nn(g.offsides), y: nn(g.cards?.yellow), rd: nn(g.cards?.red), pw: nn(g.penalty?.won), pc: nn(g.penalty?.commited), psc: nn(g.penalty?.scored), pm: nn(g.penalty?.missed), psv: nn(g.penalty?.saved) });
+      const so = look(subOut, n), si = look(subIn, n);
+      const sb = so !== undefined ? '▼' + so : si !== undefined ? '▲' + si : '';
+      px[s].push({ id: q.player.id ?? null, n, no: nn(g.games?.number), pos: nn(g.games?.position), cap: !!g.games?.captain, min: nn(mins), r: rt > 0 ? rt : null, g: nn(g.goals?.total), a: nn(g.goals?.assists), gc: g.goals?.conceded ?? gcOf(s, g.games?.position, so, si, started), sv: nn(g.goals?.saves), sh: nn(g.shots?.total), sot: nn(g.shots?.on), ps: nn(g.passes?.total), kp: nn(g.passes?.key), pa: nr(g.passes?.accuracy), tk: nn(g.tackles?.total), bl: nn(g.tackles?.blocks), int: nn(g.tackles?.interceptions), du: nn(g.duels?.total), dw: nn(g.duels?.won), dra: nn(g.dribbles?.attempts), drs: nn(g.dribbles?.success), dp: nn(g.dribbles?.past), fd: nn(g.fouls?.drawn), fc: nn(g.fouls?.committed), off: nn(g.offsides), y: nn(g.cards?.yellow), rd: nn(g.cards?.red), pw: nn(g.penalty?.won), pc: nn(g.penalty?.commited), psc: nn(g.penalty?.scored), pm: nn(g.penalty?.missed), psv: nn(g.penalty?.saved) });
       p[s].push([n, '', rt > 0 ? rt : '', mins ?? '', g.goals?.total || 0, g.goals?.assists || 0, '', '', '', card, sb]);
     }
   }
