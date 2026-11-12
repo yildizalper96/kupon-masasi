@@ -159,3 +159,7 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 ## Kupon analizi (Simülatör, 12 Kas 2026)
 - `js/kupon-analiz.js` (`window.KMA`, index.html'de pages.js'ten sonra): `kupHtml`'i sarar, taslak kuponun altına "Kupon analizi" kartı koyar. Hesap uygulamanın `kpTot/kgrp/kjp/ksp` fonksiyonlarıyla (ekrandaki ihtimalle aynı): hepsinin tutma ihtimali, "kaç seçim yatar" dağılımı, zayıf halka (çıkarılırsa ihtimal/oran), risk etiketi, Türkçe öneriler, seçim başına dayanak (piyasa beklentisi, form, karşılıklı maç, kadro, modelin geçmiş isabeti `LGR`; veri yoksa "veri yok"). "Çıkar" düğmeleri `data-krm`. Bahis tavsiyesi değil, "risksiz" denmez.
 - Test: gerçek maçlarla 375 ve masaüstü, hata yok, çıkar düğmesi çalışıyor. Kayıtlı bekleyen kuponlar için kısa özet kartı da var (`savedHtml`).
+
+## Oyuncu kimliği ve fotoğraf verisi (12 Kas 2026, tasarım oturumunun isteği)
+- `details.json` `sq[takımId].p[]` öğelerine `id` (API oyuncu kimliği) ve `ph` (fotoğraf adresi) eklendi (`fetch-details.mjs`; kimliksiz eski kadro kayıtları 72 saat beklenmeden yeniden çekilir). `m[fid].luRaw = {h:{f, xi:[{id,n,no,pos,grid}], bn:[...]}, a:{...}}` yalnızca API'nin resmi ilk 11'i (muhtemel 11 üretilmez); eski `lu` (isim listesi) aynen duruyor.
+- `KMX.luRaw(m)` ham ilk 11 | null; `KMX.photo(takımAdı, oyuncuAdı)` kadro listesinden fotoğraf adresi | null (yoksa null, uydurma yok). Veri, zamanlanmış çekimlerde kota elverdikçe dolar.

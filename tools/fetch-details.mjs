@@ -143,7 +143,13 @@ for (const m of cand) {
           const xi = t.startXI.slice().sort((p, q) => { const [a1, a2] = String(p.player.grid || '9:9').split(':').map(Number), [b1, b2] = String(q.player.grid || '9:9').split(':').map(Number); return a1 - b1 || a2 - b2; });
           return { f: t.formation || '', xi: xi.map(p => p.player.name), bn: t.substitutes.map(p => p.player.name), co: t.coach && t.coach.name || '' };
         };
+        // paralel ham yapi (tasarim oturumu icin): oyuncu kimligi, numara, mevki, grid ("satir:sutun")
+        const raw = t => {
+          const o = p => ({ id: p.player.id || null, n: p.player.name, no: p.player.number || null, pos: p.player.pos || '', grid: p.player.grid || '' });
+          return { f: t.formation || '', xi: t.startXI.map(o), bn: t.substitutes.map(o) };
+        };
         const hs = j.response.find(t => t.team.id === e.hid) || j.response[0], as = j.response.find(t => t.team.id === e.aid) || j.response[1];
+        e.luRaw = { h: raw(hs), a: raw(as) };
         e.lu = { h: side(hs), a: side(as) }; e.luOk = true; e.luAt = new Date().toISOString();
         log.push(`${m.h}-${m.a}: ilk 11 alindi (${e.lu.h.f} / ${e.lu.a.f})`);
       } else log.push(`${m.h}-${m.a}: ilk 11 henuz yok`);
@@ -155,11 +161,11 @@ for (const m of cand) {
     for (const [tid, nm] of [[e.hid, e.h], [e.aid, e.a]]) {
       if (!canSpend()) break;
       const s = D.sq[tid];
-      if (s && age(s.at) < HRS(72)) continue;
+      if (s && age(s.at) < HRS(72) && (!s.p.length || s.p[0].id)) continue; // eski kayitlarda oyuncu kimligi yoksa yeniden cek
       try {
         const j = await api('/players/squads?team=' + tid);
         const pl = j.response?.[0]?.players || [];
-        D.sq[tid] = { n: nm, at: new Date().toISOString(), p: pl.map(p => ({ n: p.name, p: POS[p.position] || '', no: p.number || null, a: p.age || null })) };
+        D.sq[tid] = { n: nm, at: new Date().toISOString(), p: pl.map(p => ({ id: p.id || null, n: p.name, p: POS[p.position] || '', no: p.number || null, a: p.age || null, ph: p.photo || null })) };
         log.push(`${nm}: kadro listesi ${pl.length} oyuncu`);
       } catch (er) { log.push('kadro hata: ' + String(er.message).slice(0, 80)); }
     }

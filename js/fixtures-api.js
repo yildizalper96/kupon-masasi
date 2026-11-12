@@ -120,6 +120,22 @@
     return ch;
   }
 
+  // Tasarim icin: API'nin ham ilk 11'i {h:{f,xi:[{id,n,no,pos,grid}],bn:[...]},a:{...}} | null (yalnizca resmi veri)
+  KMX.luRaw = function (m) { var e = KMX.byKey[[m.c, m.h, m.a].join('|')]; return (e && e.luRaw) || null; };
+  // Oyuncu fotografi: kadro listesinde (KMX.sq) takim+oyuncu adiyla bulunan kimlikten url | null
+  KMX.photo = function (team, player) {
+    try {
+      var norm = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(); };
+      var pn = norm(player);
+      for (var tid in KMX.sq) {
+        var sq = KMX.sq[tid]; if (!sq || norm(sq.n) !== norm(team)) continue;
+        var f = (sq.p || []).filter(function (x) { return x.id && (norm(x.n) === pn || (pn.split(' ').pop() === norm(x.n).split(' ').pop() && norm(x.n).split(' ')[0][0] === pn[0])); })[0];
+        if (f) return f.ph || ('https://media.api-sports.io/football/players/' + f.id + '.png');
+      }
+    } catch (e) {}
+    return null;
+  };
+
   var GRP = [['K', 'Kaleciler'], ['D', 'Defans'], ['O', 'Orta saha'], ['F', 'Forvet'], ['', 'Diğer']];
   // Kadro sekmesi: ilk 11 yoksa, milli takimlarda davet edilen oyuncular (+ eksikler)
   KMX.squadBox = function (m) {
