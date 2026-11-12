@@ -21,6 +21,27 @@
     return c;
   }
   function ligRenk(c) { try { return C[c] || '#8a94a3'; } catch (e) { return '#8a94a3'; } }
+  // yuvarlak bayraklar (basitlestirilmis, 24x24 icinde daire)
+  const yatay = (...r) => r.map((c, i) => `<rect y="${i * 24 / r.length}" width="24" height="${24 / r.length + .5}" fill="${c}"/>`).join('');
+  const dikey = (...r) => r.map((c, i) => `<rect x="${i * 24 / r.length}" width="${24 / r.length + .5}" height="24" fill="${c}"/>`).join('');
+  const AB = '<rect width="24" height="24" fill="#2b4fa8"/>' + Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return `<circle cx="${(12 + 6.5 * Math.cos(a)).toFixed(2)}" cy="${(12 + 6.5 * Math.sin(a)).toFixed(2)}" r="1.1" fill="#f5c400"/>`; }).join('');
+  const BAYRAK = {
+    TR: '<rect width="24" height="24" fill="#d8232a"/><circle cx="10" cy="12" r="5.2" fill="#fff"/><circle cx="11.4" cy="12" r="4.2" fill="#d8232a"/><circle cx="16.3" cy="12" r="1.7" fill="#fff"/>',
+    ENG: '<rect width="24" height="24" fill="#fff"/><rect x="9.6" width="4.8" height="24" fill="#cf1f2e"/><rect y="9.6" width="24" height="4.8" fill="#cf1f2e"/>',
+    ESP: yatay('#c60b1e', '#ffc400', '#ffc400', '#c60b1e'), ITA: dikey('#009246', '#fff', '#ce2b37'), GER: yatay('#111', '#dd0000', '#ffce00'),
+    FRA: dikey('#002395', '#fff', '#ed2939'), POR: '<rect width="24" height="24" fill="#d52b1e"/><rect width="10" height="24" fill="#046a38"/>',
+    NED: yatay('#ae1c28', '#fff', '#21468b'), BEL: dikey('#111', '#fdda24', '#ef3340'),
+    SCO: '<rect width="24" height="24" fill="#0065bd"/><path d="M0 0L24 24M24 0L0 24" stroke="#fff" stroke-width="4"/>',
+    KSA: '<rect width="24" height="24" fill="#006c35"/><rect x="5" y="14" width="14" height="1.8" rx=".9" fill="#fff"/>', EU: AB,
+  };
+  const ULKE = { SL: 'TR', PL: 'ENG', LL: 'ESP', SA: 'ITA', BL: 'GER', L1: 'FRA', POR: 'POR', ERE: 'NED', BEL: 'BEL', SCO: 'SCO', KSA: 'KSA', CL: 'EU', EL: 'EU', ECL: 'EU', UNL: 'EU' };
+  let bid = 0;
+  function bayrak(c) {
+    const b = BAYRAK[ULKE[c]];
+    if (!b) return `<i class="dznok" style="background:${esc(ligRenk(c))}"></i>`;
+    const id = 'dzb' + (bid++);
+    return `<svg class="dzbay" viewBox="0 0 24 24" aria-hidden="true"><clipPath id="${id}"><circle cx="12" cy="12" r="12"/></clipPath><g clip-path="url(#${id})">${b}</g></svg>`;
+  }
   function ligAc(c) {
     // Ligler sekmesine gec, ligi ac (uygulamanin kendi [data-lg] davranisiyla ayni)
     const nb = document.querySelector('nav button[data-t="l"]');
@@ -31,7 +52,7 @@
     let kodlar = ONE;
     try { kodlar = ONE.filter(c => LGNM[c]); } catch (e) { }
     sol.innerHTML = `<section class="dzk"><h3>Öne çıkan ligler</h3><ul class="dzlig">${kodlar.map(c =>
-      `<li><button data-dzlg="${esc(c)}"><i style="background:${esc(ligRenk(c))}"></i>${esc(ligAdi(c))}</button></li>`).join('')}</ul></section>
+      `<li><button data-dzlg="${esc(c)}">${bayrak(c)}${esc(ligAdi(c))}</button></li>`).join('')}</ul></section>
       <section class="dzk"><button class="dztum" data-dztum>Tüm ligler<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button></section>`;
     sol.querySelectorAll('[data-dzlg]').forEach(b => b.onclick = () => ligAc(b.dataset.dzlg));
     const t = sol.querySelector('[data-dztum]');

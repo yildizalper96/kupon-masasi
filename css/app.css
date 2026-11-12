@@ -351,3 +351,52 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   #dz .pch .sh{width:38px;height:38px;box-shadow:none!important}
   #dz .prt{box-shadow:none;border-radius:999px;font:700 11.5px var(--f)}
 }
+
+/* ==== Tasarim v2 duzeltme 1 (kullanici geri bildirimi): ferahlik, bayraklar, filtre haplari, notr kupon ==== */
+:root{--pill:#eceef1}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--pill:#33363b}}
+:root[data-theme="dark"]{--pill:#33363b}
+.fpl{display:none}
+@media(min-width:1100px){
+  /* kolonlar arasi nefes payi */
+  #dz{gap:36px;padding-top:32px}
+  #dzl,#dzr{gap:24px}
+  #app>.box,#app>details.box,#app>.stk{margin:0 0 24px!important}
+  #app>.box{padding:20px 22px!important}
+  #app>.box>.lg2{margin-bottom:8px}
+  /* mac satirlari: daha ferah */
+  #dz .mr{padding:16px 10px!important;gap:14px}
+  #dz .mr .sct{color:var(--ink);font:800 16px var(--f)}
+  #dz .mr .sc{font:800 18px var(--f)!important}
+  #dz .mr .pr{background:var(--pill);border:0!important;color:var(--ink);padding:5px 12px;font:700 12.5px var(--f)!important}
+  #dz .mr .pr.ok{color:var(--ok)}
+  #dz .mr .pr.miss{color:var(--hot)}
+  #dz .mr .pr.mid{color:var(--warn)}
+  /* sol kolon: bayraklar, belirgin baslik */
+  .dzk h3{font:700 18px var(--f);padding:20px 22px 10px;letter-spacing:-.01em}
+  .dzlig button{gap:14px;padding:11px 12px}
+  .dzbay{width:22px;height:22px;flex:none;border-radius:50%;box-shadow:0 0 0 1px var(--ln)}
+  .dznok{width:22px;height:22px;border-radius:50%;flex:none}
+  /* filtre cubugu: hap butonlar */
+  #dz .stk{background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:14px 16px}
+  #dz .fpl{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  #dz .fpl button{border:0;border-radius:999px;background:var(--sf2);color:var(--ink);font:700 14px var(--f);padding:9px 18px;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  #dz .fpl button.on{background:var(--ink);color:var(--sf)}
+  #dz .fpl #lv i{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+  #dz .fpl #lv.on i{background:var(--hot)}
+  /* sag kolon: notr kupon kutusu, renk yalnizca yazida */
+  #dzr .cpn{background:var(--sf)!important;border:1px solid var(--ln)!important;border-radius:20px!important;padding:20px 22px!important}
+  #dzr .cpn .cps h3{font:700 17px var(--f)!important;color:var(--ink)}
+  #dzr .cpn>summary.cps::after{color:var(--mut)}
+  #dzr .cpn .pk{padding:14px 0!important;border-top:1px solid var(--ln)}
+  #dzr .cpn .co small{color:var(--ok);font-weight:700}
+  #dzr .cpn .pk.cr summary{color:var(--mut)}
+  #dzr .cpn .kpb{background:var(--ink)!important;color:var(--sf)!important;border:0!important;border-radius:999px!important;box-shadow:none!important}
+  #dzr .cpn .cs{background:none!important;color:var(--mut);padding:0;font-weight:600}
+  #dzr .cpn .cs[style*="--ok"]{color:var(--ok)}
+  #dzr .cpn .cs[style*="--hot"]{color:var(--hot)}
+  #dzr .note{background:var(--sf)!important;border:1px solid var(--ln)!important;border-radius:20px;color:var(--ink);padding:16px 22px;margin:0}
+  #dzr .note summary{color:var(--ink)!important;font:700 15px var(--f);cursor:pointer}
+  #dzr .note .why{color:var(--mut)}
+}
+@media(min-width:1500px){#dz{gap:40px}}
