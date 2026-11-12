@@ -46,7 +46,7 @@
     const sek = [['p', 'Bilgiler'], ['k', 'Kadro'], ['i', 'İstatistik'], ['z', 'Tablo'], ['m', 'Maçlar'], ['s', 'Seriler']];
     return `<div class="kmc kmh">
       <div class="kmh-ust"><button class="kmgeri" data-bk="1">${ic.geri}<span>Maçlar</span></button>
-        <div class="kmh-lig"><span class="kmlnok" style="background:${(typeof C !== 'undefined' && C[m.c]) || 'var(--mut)'}"></span>${E(ligAd(m.c))}${x.round || m.rd ? ' · ' + E(x.round || m.rd) : ''}</div><span></span></div>
+        <div class="kmh-lig">${ligLg(m.c, 'orta')}${E(ligAd(m.c))}${x.round || m.rd ? ' · ' + E(x.round || m.rd) : ''}</div><span></span></div>
       <div class="kmh-bilgi">${bilgi.join('')}</div>
       <div class="kmh-skor">
         <div class="kmtk ev"><div><b data-tm="${E(m.h)}">${E(m.h)}</b><small>${alt(m.h)}</small></div>${bd(m.h, 1)}</div>
@@ -428,7 +428,7 @@
     return `<div class="kmc kmth">
       <div class="kmth-u">${bd(n, 1)}<div><h2>${E(n)}</h2><small>${E(ul)}</small></div>
         <button class="kmtakip${FAV.has(n) ? ' on' : ''}" data-kmfav="${E(n)}">${FAV.has(n) ? '★ Favoride' : '☆ Favorilere ekle'}</button></div>
-      <div class="kmsek"><button data-kmtt="o" class="${TT === 'o' ? 'on' : ''}">Genel bakış</button><button data-kmtt="m" class="${TT === 'm' ? 'on' : ''}">Maçlar ve tahminler</button></div>
+      <div class="kmsek">${[['o', 'Genel bakış'], ['t', 'Tablo'], ['m', 'Maçlar'], ['k', 'Kadro'], ['i', 'Oyuncu istatistikleri']].map(([k, l]) => `<button data-kmtt="${k}" class="${TT === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     </div>`;
   }
   function formKutusu(n) {
@@ -513,6 +513,69 @@
     return card('kmmaclar', `<div class="kmmh">${ok('bit', MKS === 'gel' && bit.length)}<div><h3>Maçlar</h3><small>${MKS === 'gel' ? 'Gelecek' : 'Oynanan'}</small></div>${ok('gel', MKS === 'bit' && gel.length)}</div>
       ${l.length ? l.map(x => macSatiri(x, n)).join('') : `<p class="kmbos">${MKS === 'gel' ? 'Takvimde sıradaki maç yok.' : 'Oynanan maç yok.'}</p>`}`);
   }
+  // ---- takim sayfasi ek kartlari (FotMob) ----
+  function takimOyunculari(n) { return oyuncuIndeksi().L.filter(e => e.team === n); }
+  // puan ortalamasi: yalniz secilen yarisma (c) ya da milli takim maclari haric tum kulup yarismalari
+  const MILLI_YAR = new Set(['UNL', 'WCQ', 'EURO', 'WC', 'FRI', 'NAT']);
+  function sezonPuani(e, c) { const s = sezonKaydi(e, e.team); if (!s || !s.c) return null; let rs = 0, rn = 0; Object.entries(s.c).forEach(([k, v]) => { if (c ? k !== c : MILLI_YAR.has(k)) return; rs += +v.rs || 0; rn += +v.rn || 0; }); return rn ? { o: rs / rn, n: rn } : null; }
+  // Son ilk 11: once API resmi 11 (luRaw), yoksa takimin son kayitli macindaki ilk 11 (PS m.x) ve mevkileri
+  function sonIlk11(n) {
+    const X = window.KMX, L = takimOyunculari(n);
+    const tekAd = (x, y) => { const p = adN(x), q = adN(y); return (p.length === 1 || q.length === 1) && p.length && q.length && p[p.length - 1] === q[q.length - 1]; };
+    const bul = ad => L.find(e => ayniAd(e.n, ad) || ayniAd(e.ad, ad)) || L.find(e => adN(e.n).join(' ') === adN(ad).join(' ')) || (L.filter(e => tekAd(e.n, ad)).length === 1 ? L.find(e => tekAd(e.n, ad)) : null);
+    let son = null;
+    if (X && X.byKey) Object.values(X.byKey).forEach(m => { if (!m || !m.luRaw) return; const s = m.h === n ? 'h' : m.a === n ? 'a' : null; if (!s || !m.luRaw[s]) return; const t = Date.parse(m.t) || 0; if (!son || t > son.t) son = { t, raw: m.luRaw[s], m, s }; });
+    if (son && (son.raw.xi || []).length >= 10) {
+      const satir = {}; son.raw.xi.forEach(p => { const r = +String(p.grid || '0:0').split(':')[0] || 0; (satir[r] = satir[r] || []).push(p); });
+      const px = son.m.live && son.m.live.px && son.m.live.px[son.s] || [];
+      return { kay: 'API-Football (resmi ilk 11, ' + kisaTarih(son.t) + ')', satirlar: Object.keys(satir).map(Number).sort((a, b) => b - a).map(r => satir[r].sort((a, b) => (+String(b.grid).split(':')[1]) - (+String(a.grid).split(':')[1])).map(p => { const e = bul(p.n); const q = px.find(z => (p.id && z.id === p.id) || ayniAd(z.n, p.n)); return { n: e ? e.n : p.n, e: e || { team: n, n: p.n, ad: p.n, id: p.id }, no: p.no, r: q && q.r }; })) };
+    }
+    const ps = typeof PS !== 'undefined' ? Object.keys(PS).filter(k => k.endsWith('|' + n)).map(k => PS[k]) : [];
+    let ms = null; ps.forEach(T => (T.m || []).forEach(m => { if ((m.x || []).length >= 11 && !ms) ms = { m, T }; }));
+    if (!ms) return null;
+    const grp = { F: [], O: [], D: [], K: [] };
+    ms.m.x.slice(0, 11).forEach(ad => { const e = bul(ad); const pr = e && e.ps && e.ps.p; const pos = (pr && pr[6]) || (e && e.pos) || 'O'; (grp[pos] || grp.O).push({ n: e ? e.n : ad, e: e || { team: n, n: ad, ad } }); });
+    return { kay: (ms.T.src || 'kayıtlı maç') + ' · ' + (ms.m.d || '') + ' ' + (ms.m.t || ''), satirlar: ['F', 'O', 'D', 'K'].map(k => grp[k]).filter(l => l.length) };
+  }
+  function ilk11Karti(n) {
+    const s = sonIlk11(n); if (!s) return '';
+    const [a, b] = renk(n);
+    const kisi = o => { const e = o.e, pr = e.ps && e.ps.p, g = pr ? +pr[3] || 0 : 0, as = pr ? +pr[4] || 0 : 0, sp = !o.r ? sezonPuani(e) : null, pu = o.r || (sp && sp.o);
+      return `<div class="kmi1p" ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + (e.ad || e.n))}"`}>${pu ? puanHap((+pu).toFixed(1)) : ''}<span class="kmav buyuk" style="--ka:${a};--kb:${b}"><i>${E(o.no || basH(o.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad || e.n }))}</span>${g || as ? `<span class="kmi1s">${as ? `<em>🅰${as}</em>` : ''}${g ? `<em>⚽${g}</em>` : ''}</span>` : ''}<b>${o.no ? `<i>${E(o.no)}</i> ` : ''}${E(String(o.n).split(' ').pop())}</b></div>`; };
+    return card('kmi1', `<div class="kmb2"><h3 class="kmb">Sezon istatistikleri</h3><small>Son ilk 11</small></div><div class="kmi1s-saha"><i class="kmi1-ceza"></i>${s.satirlar.map(r => `<div class="kmi1r">${r.map(kisi).join('')}</div>`).join('')}</div><p class="kmkay">Kaynak: ${E(s.kay)}. Gol/asist sezon toplamı.</p>`);
+  }
+  // en cok puan / gol / asist (FotMob uc sutun)
+  function enCoklarKarti(n) {
+    const L = takimOyunculari(n).filter(e => e.ps);
+    if (!L.length) return '';
+    const sat = (e, v) => `<div class="kmec" data-pl="${E(e.key)}"><span class="kmav" style="--ka:${renk(n)[0]};--kb:${renk(n)[1]}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><div><b>${E(e.n)}</b><small>${bd(n)}${E(n)}</small></div><em>${v}</em></div>`;
+    const kol = (ad, l) => `<div><h4>${ad}</h4>${l.length ? l.map(([e, v]) => sat(e, v)).join('') : '<p class="kmbos">Veri yok.</p>'}</div>`;
+    const top = (f, k) => L.map(e => [e, f(e)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, k || 3);
+    const pu = L.map(e => [e, sezonPuani(e)]).filter(x => x[1]).sort((a, b) => b[1].o - a[1].o).slice(0, 3).map(([e, p]) => [e, puanHap(p.o.toFixed(2))]);
+    return card('kmec3', `<div class="kmuc">${pu.length ? kol('En çok puan alan', pu) : kol('En çok süre alan', top(e => +e.ps.p[2]))}${kol('En çok gol atan', top(e => +e.ps.p[3]))}${kol('En çok asist yapan', top(e => +e.ps.p[4]))}</div>
+      <p class="kmkay">Gol/asist: ${E(((PS[L[0].ps.tk] || {}).src) || 'kayıtlı veri')}${pu.length ? '; puan: sitede biriken maçlar' : ''}.</p>`);
+  }
+  // Kadro sekmesi: mevkiye gore gruplu, fotografli
+  function kadroSekmesi(n) {
+    const L = takimOyunculari(n);
+    if (!L.length) return card('kmkdr', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu takım için oyuncu verisi yok.</p>`);
+    const pos = e => (e.ps && e.ps.p[6]) || e.pos || '';
+    const GR = [['K', 'Kaleciler'], ['D', 'Defans'], ['O', 'Orta saha'], ['F', 'Forvet'], ['', 'Mevkisi bilinmeyen']];
+    const [a, b] = renk(n);
+    const kisi = e => { const p = e.ps && e.ps.p; return `<div class="kmkd" ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + e.ad)}"`}><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><div><b>${E(e.n)}</b><small>${[e.no ? '#' + e.no : '', e.a ? e.a + ' yaş' : '', e.milli && e.milli !== n ? e.milli : ''].filter(Boolean).map(E).join(' · ')}</small></div>${p ? `<span class="kmkd-s"><em title="Maç">${p[1]}</em><em title="Gol">${p[3]}</em><em title="Asist">${p[4]}</em></span>` : ''}</div>`; };
+    return GR.map(([k, ad]) => { const l = L.filter(e => pos(e) === k); return l.length ? card('kmkdr', `<div class="kmb2"><h3 class="kmb">${ad}</h3><small>Maç · Gol · Asist</small></div><div class="kmkdg">${l.map(kisi).join('')}</div>`) : ''; }).join('');
+  }
+  // Oyuncu istatistikleri sekmesi
+  function oyuncuIstatSekmesi(n) {
+    const L = takimOyunculari(n).filter(e => e.ps);
+    if (!L.length) return card('kmois3', `<h3 class="kmb">Oyuncu istatistikleri</h3><p class="kmbos">Bu takım için oyuncu istatistiği yok.</p>`);
+    const sat = (e, v) => `<div class="kmec" data-pl="${E(e.key)}"><span class="kmav" style="--ka:${renk(n)[0]};--kb:${renk(n)[1]}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><div><b>${E(e.n)}</b></div><em>${v}</em></div>`;
+    const kol = (ad, f) => { const l = L.map(e => [e, f(e)]).filter(x => +x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5); return card('kmois3', `<h3 class="kmb">${ad}</h3>${l.length ? l.map(([e, v]) => sat(e, v)).join('') : '<p class="kmbos">Veri yok.</p>'}`); };
+    const pu = L.map(e => [e, sezonPuani(e)]).filter(x => x[1]).sort((a, b) => b[1].o - a[1].o).slice(0, 5);
+    return `<div class="kmois3g">${kol('Goller', e => +e.ps.p[3])}${kol('Asistler', e => +e.ps.p[4])}${kol('Gol + asist', e => (+e.ps.p[3]) + (+e.ps.p[4]))}${kol('Oyun süresi', e => +e.ps.p[2])}${kol('Maçlar', e => +e.ps.p[1])}${kol('Sarı kartlar', e => +e.ps.p[5])}
+      ${pu.length ? card('kmois3', `<h3 class="kmb">Ortalama puan <small>sitede biriken maçlar</small></h3>${pu.map(([e, p]) => sat(e, puanHap(p.o.toFixed(2)))).join('')}`) : ''}</div>
+      <p class="kmkay">Kaynak: ${E(((PS[L[0].ps.tk] || {}).src) || 'kayıtlı veri')}.</p>`;
+  }
   let MKS = 'gel', MKSn = '';
   const eskiTeamView = teamView;
   // arama sonucunda oyuncular: birlesik dizinden (tam ad, kisaltma, milli takim oyunculari dahil)
@@ -522,7 +585,7 @@
     const eski = [...app.querySelectorAll('.box')].find(b => { const h = b.querySelector('h3'); return h && h.textContent.trim() === 'Oyuncular'; });
     if (!l.length) return;
     const h = '<div class="box kmoyara"><h3>Oyuncular</h3><div class="chips wrap">' + l.map(e => '<button ' + (e.ps ? 'data-pl="' + E(e.key) + '"' : 'data-pn="' + E(e.team + '|' + e.ad) + '"') + '>' + E(e.n) + ' · ' + E(e.team) + (e.milli && e.milli !== e.team ? ' · ' + E(e.milli) : '') + '</button>').join('') + '</div></div>';
-    if (eski) eski.outerHTML = h; else { const ilk = app.querySelector('.box'); if (ilk) ilk.insertAdjacentHTML('beforebegin', h); else app.insertAdjacentHTML('beforeend', h); }
+    if (eski) eski.outerHTML = h; else app.insertAdjacentHTML('beforeend', h);
   }
   // oyuncu tiklamalari: hangi listeden gelirse gelsin ayni (birlesik) oyuncu sayfasi acilir
   window.addEventListener('click', ev => {
@@ -542,10 +605,13 @@
     } else {
       document.getElementById('app').classList.remove('kmeskitv');
       const x = xt(n);
-      document.getElementById('app').innerHTML = takimBaslik(n)
-        + `<div class="kmiki2">${formKutusu(n)}${sonrakiKutusu(n)}</div>`
-        + tabloKutusu(n) + hocaKutusu(n) + oyuncuKutusu(n)
-        + `<div class="mside">${sezonKutusu(n)}${maclarKutusu(n)}${stadKarti(x.venue)}</div>`;
+      let ic;
+      if (TT === 't') ic = tabloKutusu(n) + `<div class="mside">${sezonKutusu(n)}</div>`;
+      else if (TT === 'k') ic = kadroSekmesi(n) + `<div class="mside">${ilk11Karti(n)}</div>`;
+      else if (TT === 'i') ic = oyuncuIstatSekmesi(n);
+      else ic = `<div class="kmiki2">${formKutusu(n)}${sonrakiKutusu(n)}</div>` + tabloKutusu(n) + hocaKutusu(n) + enCoklarKarti(n)
+        + `<div class="mside">${ilk11Karti(n)}${maclarKutusu(n)}${stadKarti(x.venue)}${sezonKutusu(n)}</div>`;
+      document.getElementById('app').innerHTML = takimBaslik(n) + ic;
     }
   };
 
@@ -755,6 +821,31 @@
     const h = liste('g', 'En çok gol' + ek) + liste('a', 'En çok asist' + ek);
     return h ? `<div class="mside">${h}${kay ? `<p class="kmkay kmlkay">Kaynak: ${E(kay)}</p>` : ''}</div>` : '';
   }
+  // ---- lig sayfasi: en coklar (uc sutun) ve gunluk fikstur ----
+  function ligEnCoklar(c) {
+    const L = oyuncuIndeksi().L.filter(e => e.ps && e.c === c);
+    if (!L.length) return '';
+    const kay = (PS[L[0].ps.tk] || {}).src || '';
+    const genel = /tüm yarışmalar|lig ve kupa/i.test(kay);
+    if (genel && !Object.keys(TM).some(n => TM[n].l === c)) return '';
+    const sat = (e, v) => { const [a, b] = renk(e.team); return `<div class="kmec" data-pl="${E(e.key)}"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(e.team, { id: e.id, ph: e.ph, n: e.ad }))}</span><div><b>${E(e.n)}</b><small>${bd(e.team)}${E(e.team)}</small></div><em>${v}</em></div>`; };
+    const kol = (ad, l) => `<div><h4>${ad}</h4>${l.length ? l.map(([e, v]) => sat(e, v)).join('') : '<p class="kmbos">Veri yok.</p>'}</div>`;
+    const top = f => L.map(e => [e, f(e)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const pu = L.map(e => [e, sezonPuani(e, c)]).filter(x => x[1] && x[1].n >= 1).sort((a, b) => b[1].o - a[1].o).slice(0, 3).map(([e, p]) => [e, puanHap(p.o.toFixed(2))]);
+    return card('kmec3', `<div class="kmuc">${pu.length ? kol('En çok puan alan', pu) : kol('En çok süre alan', top(e => +e.ps.p[2]))}${kol('En çok gol atan', top(e => +e.ps.p[3]))}${kol('En çok asist yapan', top(e => +e.ps.p[4]))}</div>
+      <p class="kmkay">Kaynak: ${E(kay || 'kayıtlı veri')}${genel ? ' (tüm yarışmalar)' : ''}${pu.length ? '; puan: sitede biriken maçlar' : ''}.</p>`);
+  }
+  let LFX = { c: '', i: -1 };
+  function ligFikstur(c) {
+    const ms = R.filter(m => m.c === c).sort((a, b) => a.t - b.t);
+    if (!ms.length) return '';
+    const gun = []; ms.forEach(m => { const d = dk(m.t); let g = gun[gun.length - 1]; if (!g || g.d !== d) { g = { d, t: m.t, l: [] }; gun.push(g); } g.l.push(m); });
+    if (LFX.c !== c || LFX.i < 0 || LFX.i >= gun.length) { const bug = Date.now() - 3 * 3600e3; let i = gun.findIndex(g => g.l.some(m => m.t >= bug || stt(m).k === 'wait' || stt(m).k === 'live')); if (i < 0) i = gun.length - 1; LFX = { c, i }; }
+    const g = gun[LFX.i];
+    const sat = m => { const s = stt(m); return `<div class="kmlf" data-kmm="${E(key(m))}"><span class="b">${E(m.h)}${bd(m.h)}</span><em>${s.sc ? `${E(s.sc[0])} - ${E(s.sc[1])}` : hm(m.t)}</em><span>${bd(m.a)}${E(m.a)}</span></div>`; };
+    return card('kmlfk', `<div class="kmmh"><button class="kmok" data-kmlfx="-1" ${LFX.i > 0 ? '' : 'disabled'} aria-label="Önceki gün">‹</button><div><h3>${E(uzunTarih(g.t))}</h3><small>${E(ligAd(c))}${m0rd(g.l)}</small></div><button class="kmok" data-kmlfx="1" ${LFX.i < gun.length - 1 ? '' : 'disabled'} aria-label="Sonraki gün">›</button></div>${g.l.map(sat).join('')}`);
+  }
+  const m0rd = l => { const r = l.find(m => m.rd); return r ? ' · ' + E(r.rd) : ''; };
   // ================= LIG SAYFASI =================
   // uygulamanin leagueView(c) ciktisini masaustunde FotMob duzenine cevirir; sekme dugmeleri (data-lt) uygulamaninkiler
   if (typeof leagueView === 'function') {
@@ -772,23 +863,97 @@
         const bilgi = ilk ? (ilk.querySelector('.lg2 small') || {}).textContent || '' : '';
         const renk = (typeof C !== 'undefined' && C[c]) || 'var(--mut)';
         const kisa = (ligAd(c) || c).replace(/[^A-Za-zÇĞİÖŞÜçğıöşü ]/g, '').split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 3).toUpperCase();
-        const baslik = `<div class="kmc kmth kmlh"><div class="kmth-u"><span class="kmlrz" style="background:${renk}">${E(kisa)}</span><div><h2>${E(ligAd(c))}</h2><small>${E(ulke(c) || bilgi)}</small></div></div>
+        const baslik = `<div class="kmc kmth kmlh"><div class="kmth-u">${typeof window.kmLigLogo === 'function' ? window.kmLigLogo(c, `<span class="kmlrz" style="background:${renk}">${E(kisa)}</span>`, 'buyuk') : `<span class="kmlrz" style="background:${renk}">${E(kisa)}</span>`}<div><h2>${E(ligAd(c))}</h2><small>${E(ulke(c) || bilgi)}</small></div></div>
           <div class="kmsek">${sekmeler.map(b => `<button data-lt="${E(b.dataset.lt)}" class="${b.classList.contains('on') ? 'on' : ''}">${E(b.textContent.trim())}</button>`).join('')}</div></div>`;
         if (ilk) ilk.remove();
         // puan durumu kutusu: FotMob tablosu (takim sayfasindaki ile ayni)
         const eskiTablo = [...kok.children].find(e => e.querySelector && e.querySelector('.tb.th'));
         const yeniTablo = tabloLig(c, []);
         if (eskiTablo && yeniTablo) eskiTablo.outerHTML = yeniTablo;
-        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ligYan(c);
+        const fx = ligFikstur(c), ec = (eskiTablo && yeniTablo) ? ligEnCoklar(c) : '';
+        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ec + ((fx || ec) ? `<div class="mside">${fx}</div>` : ligYan(c));
       } catch (e) { return eski; }
     };
   }
 
+  // ================= ARAMA ACILIR LISTESI (FotMob: Tumu / Takimlar / Ligler / Oyuncular / Maclar) =================
+  // Masaustunde yazarken sayfa degismez; liste acilir. Enter: eski tam sonuc sayfasi. Esc ya da disari tiklama: kapanir.
+  const ligLg = (c, cls) => (typeof window.kmLigLogo === 'function' ? window.kmLigLogo(c, `<i class="kmlnok" style="background:${(typeof C !== 'undefined' && C[c]) || 'var(--mut)'}"></i>`, cls) : '');
+  let ARS = 'tum';
+  const gunAy = t => new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+  function aramaVeri(q) {
+    const qn = adN(q).join(' '); if (qn.length < 2) return null;
+    const has = s => adN(s).join(' ').includes(qn);
+    const takim = new Map();
+    R.forEach(m => [m.h, m.a].forEach(n => { if (!takim.has(n)) takim.set(n, {}); const o = takim.get(n); o[m.c] = (o[m.c] || 0) + 1; }));
+    Object.keys(TM).forEach(n => { if (!takim.has(n)) takim.set(n, {}); });
+    const tl = [...takim.keys()].filter(has).map(n => { const t = TM[n]; const c = t && t.l ? t.l : Object.entries(takim.get(n)).sort((a, b) => b[1] - a[1]).map(x => x[0])[0]; return { n, c }; })
+      .sort((a, b) => (adN(a.n).join(' ').startsWith(qn) ? 0 : 1) - (adN(b.n).join(' ').startsWith(qn) ? 0 : 1) || a.n.length - b.n.length).slice(0, 12);
+    const ll = Object.keys(typeof LGNM !== 'undefined' ? LGNM : {}).filter(c => has(ligAd(c)) || has(LN[c] || '') || has(c) || ((typeof LGAN !== 'undefined' && LGAN[c]) || []).some(has)).slice(0, 8);
+    const ol = oyuncuArama(q);
+    const now = Date.now(), ad = new Set(tl.map(x => x.n));
+    const ml = R.filter(m => ad.has(m.h) || ad.has(m.a)).sort((a, b) => Math.abs(a.t - now) - Math.abs(b.t - now)).slice(0, 10).sort((a, b) => a.t - b.t);
+    return { tl, ll, ol, ml };
+  }
+  function aramaListe(q) {
+    const v = aramaVeri(q);
+    if (!v) return '';
+    const tak = x => `<button class="kmar-s" data-tm="${E(x.n)}">${bd(x.n, 1)}<div><b>${E(x.n)}</b><small>${x.c ? E(ligAd(x.c)) : ''}</small></div></button>`;
+    const lig = c => `<button class="kmar-s" data-kmlg="${E(c)}">${ligLg(c, 'orta')}<div><b>${E(ligAd(c))}</b><small>${E(ulke(c))}</small></div></button>`;
+    const oyu = e => { const [a, b] = renk(e.team); return `<button class="kmar-s" ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(e.team + '|' + e.ad)}"`}><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(e.team, { id: e.id, ph: e.ph, n: e.ad }))}</span><div><b>${E(e.n)}</b><small>${E(e.team)}${e.milli && e.milli !== e.team ? ' · ' + E(e.milli) : ''}</small></div></button>`; };
+    const mac = m => { const s = stt(m), sc = s.sc; return `<button class="kmar-m" data-kmm="${E(key(m))}"><small class="kmar-l">${ligLg(m.c, 'kucuk')}${E(ligAd(m.c))}</small><div class="kmar-mt"><span>${bd(m.h)}<b>${E(m.h)}</b><em>${sc ? E(sc[0]) : ''}</em></span><span>${bd(m.a)}<b>${E(m.a)}</b><em>${sc ? E(sc[1]) : ''}</em></span></div><div class="kmar-mz">${sc ? `<span>${E(gunAy(m.t))}</span><small>${s.k === 'ft' ? 'MS' : 'Canlı'}</small>` : `<span>${E(gunEtiket(m.t) || gunAy(m.t))}</span><small>${hm(m.t)}</small>`}</div></button>`; };
+    const bol = (ad, html) => html ? `<div class="kmar-b"><h5>${ad}</h5>${html}</div>` : '';
+    let ic = '';
+    if (ARS === 'tum') ic = bol('Takımlar', v.tl.slice(0, 3).map(tak).join('')) + bol('Ligler', v.ll.slice(0, 2).map(lig).join('')) + bol('Oyuncular', v.ol.slice(0, 4).map(oyu).join('')) + bol('Maçlar', v.ml.slice(0, 4).map(mac).join(''));
+    else if (ARS === 'tak') ic = v.tl.map(tak).join('');
+    else if (ARS === 'lig') ic = v.ll.map(lig).join('');
+    else if (ARS === 'oyu') ic = v.ol.map(oyu).join('');
+    else ic = v.ml.map(mac).join('');
+    const sek = [['tum', 'Tümü'], ['tak', 'Takımlar'], ['lig', 'Ligler'], ['oyu', 'Oyuncular'], ['mac', 'Maçlar']];
+    return `<div class="kmar-sek">${sek.map(([k, l]) => `<button data-kmars="${k}" class="${ARS === k ? 'on' : ''}">${l}</button>`).join('')}</div><div class="kmar-ic">${ic || '<p class="kmbos">Sonuç yok.</p>'}</div>`;
+  }
+  function aramaKutu() {
+    let k = document.getElementById('kmar');
+    if (!k) { k = document.createElement('div'); k.id = 'kmar'; k.hidden = true; document.body.appendChild(k); }
+    const q = document.getElementById('q'); if (q) { const r = q.getBoundingClientRect(); k.style.left = r.left + 'px'; k.style.top = (r.bottom + 8) + 'px'; }
+    return k;
+  }
+  function aramaGoster() {
+    const q = document.getElementById('q'), k = aramaKutu(); if (!q) return;
+    const h = aramaListe(q.value.trim());
+    if (!h) { k.hidden = true; return; }
+    k.innerHTML = h; k.hidden = false;
+  }
+  const aramaKapat = () => { const k = document.getElementById('kmar'); if (k) k.hidden = true; };
+  window.addEventListener('input', e => {
+    if (!MQ.matches || !e.target || e.target.id !== 'q') return;
+    e.stopPropagation();
+    if (!e.target.value.trim()) { aramaKapat(); try { Q = ''; QX = ''; render(); } catch (x) { } return; }
+    aramaGoster();
+  }, true);
+  window.addEventListener('keydown', e => {
+    if (!MQ.matches || !e.target || e.target.id !== 'q') return;
+    if (e.key === 'Escape') { aramaKapat(); return; }
+    if (e.key === 'Enter') { aramaKapat(); try { push(); det = null; PMV = null; tab = 'k'; Q = e.target.value; QX = ''; render(); } catch (x) { } }
+  }, true);
+  window.addEventListener('focusin', e => { if (MQ.matches && e.target && e.target.id === 'q' && e.target.value.trim()) aramaGoster(); });
+  document.addEventListener('click', e => {
+    const k = document.getElementById('kmar'); if (!k || k.hidden) return;
+    const s = e.target.closest && e.target.closest('[data-kmars]');
+    if (s) { e.preventDefault(); e.stopPropagation(); ARS = s.dataset.kmars; aramaGoster(); return; }
+    const lg = e.target.closest && e.target.closest('[data-kmlg]');
+    if (lg) { e.preventDefault(); e.stopPropagation(); aramaKapat(); const c = lg.dataset.kmlg; try { const nb = document.querySelector('nav button[data-t="l"]'); if (nb && tab !== 'l') nb.click(); Q = LGNM[c]; QX = ''; const q = document.getElementById('q'); if (q) q.value = Q; render(); } catch (x) { } return; }
+    if (e.target.closest && e.target.closest('#kmar')) { setTimeout(aramaKapat, 0); return; }
+    if (!(e.target.closest && e.target.closest('#q'))) aramaKapat();
+  }, true);
+  addEventListener('resize', () => { const k = document.getElementById('kmar'); if (k && !k.hidden) aramaKutu(); });
   // ortak tiklamalar (yakalama asamasinda, uygulamanin belge dinleyicisinden once)
   document.addEventListener('click', e => {
     const mm = e.target.closest && e.target.closest('[data-kmm]');
     if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = 'p'; PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
     if (e.target.closest && e.target.closest('[data-kmpgeri]')) { e.preventDefault(); try { if (!back()) { Q = ''; QX = ''; render(); } } catch (x) { } return; }
+    const lf = e.target.closest && e.target.closest('[data-kmlfx]');
+    if (lf) { if (!lf.disabled) { LFX.i += +lf.dataset.kmlfx; render(); } return; }
     const dv = e.target.closest && e.target.closest('[data-kmdv]');
     if (dv) { DV = dv.dataset.kmdv; render(); return; }
     const oi = e.target.closest && e.target.closest('[data-kmois]');

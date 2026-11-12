@@ -36,7 +36,8 @@
   };
   const ULKE = { SL: 'TR', PL: 'ENG', LL: 'ESP', SA: 'ITA', BL: 'GER', L1: 'FRA', POR: 'POR', ERE: 'NED', BEL: 'BEL', SCO: 'SCO', KSA: 'KSA', CL: 'EU', EL: 'EU', ECL: 'EU', UNL: 'EU', USC: 'EU', FAC: 'ENG', EFL: 'ENG', CDR: 'ESP', CIT: 'ITA', DFB: 'GER', CDF: 'FRA', TUK: 'TR', KNV: 'NED', TDP: 'POR', BCP: 'BEL', SFA: 'SCO' };
   let bid = 0;
-  function bayrak(c) {
+  function bayrak(c) { const y = bayrak0(c); return typeof window.kmLigLogo === 'function' ? window.kmLigLogo(c, y) : y; }
+  function bayrak0(c) {
     const b = BAYRAK[ULKE[c]];
     if (!b) return `<i class="dznok" style="background:${esc(ligRenk(c))}"></i>`;
     const id = 'dzb' + (bid++);
@@ -162,7 +163,7 @@
     app.querySelectorAll(':scope > .box > .lg2').forEach(h => {
       if (h.dataset.dzb) return; h.dataset.dzb = '1';
       const c = ad2kod[kartAd(h.parentElement)], rz = h.querySelector(':scope > .bd');
-      if (!c || !rz || !BAYRAK[ULKE[c]]) return;
+      if (!c || !rz || !(BAYRAK[ULKE[c]] || (window.kmLigId && window.kmLigId(c)))) return;
       rz.insertAdjacentHTML('beforebegin', bayrak(c).replace('class="dzbay"', 'class="dzbay dzlgb"')); rz.remove();
     });
   };
