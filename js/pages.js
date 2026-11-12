@@ -249,7 +249,15 @@
   }
   function sonrakiKutusu(n) {
     const x = siradaki(n);
-    if (!x) return card('kmsonraki', `<h3 class="kmb">Sonraki maç</h3><p class="kmbos">Takvimde sıradaki maç yok.</p>`);
+    if (!x) {
+      // gelecek mac yoksa son oynanan mac (gercek skor)
+      const son = R.filter(m => (m.h === n || m.a === n) && stt(m).k === 'ft').sort((p, q) => q.t - p.t)[0];
+      if (!son) return card('kmsonraki', `<h3 class="kmb">Sonraki maç</h3><p class="kmbos">Takvimde sıradaki maç yok.</p>`);
+      const sc = stt(son).sc || ['-', '-'];
+      return card('kmsonraki', `<div class="kmb2"><h3 class="kmb">Son maç</h3><small>${E(ligAd(son.c))}</small></div>
+        <div class="kmsm" data-kmm="${E(key(son))}"><div>${bd(son.h, 1)}<b>${E(son.h)}</b></div><div class="kmsm-o"><b>${sc[0]} - ${sc[1]}</b><small>${E(kisaTarih(son.t))}</small></div><div>${bd(son.a, 1)}<b>${E(son.a)}</b></div></div>
+        <p class="kmkay">Takvimde sıradaki maç yok; son oynanan maç gösteriliyor.</p>`);
+    }
     return card('kmsonraki', `<div class="kmb2"><h3 class="kmb">Sonraki maç</h3><small>${E(ligAd(x.c))}</small></div>
       <div class="kmsm" data-kmm="${E(key(x))}"><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>`);
   }
