@@ -223,9 +223,30 @@
   window.loadDetails = loadDetails;
   window.mergeDetails = mergeDetails;
 
+  // Veri bayatsa kullaniciya acikca soyle: baslama saati gecmis (son 8 saat) ama durumu hala "bekliyor" olan mac
+  // varsa ve veri 40 dk'dan eskiyse (ornegin API gunluk kotasi dolmussa) kucuk bir uyari goster.
+  function staleNote() {
+    try {
+      var now = Date.now(), at = Date.parse(FXAT) || 0, bad = 0;
+      if (at && now - at > 40 * 60e3) {
+        R.forEach(function (m) { if (m.t < now - 5 * 60e3 && m.t > now - 8 * 3600e3 && (stt(m).k === 'wait' || stt(m).k === 'unk')) bad++; });
+      }
+      var el = document.getElementById('kmstale');
+      if (!bad) { if (el) el.remove(); return; }
+      if (!el) {
+        el = document.createElement('div'); el.id = 'kmstale';
+        el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:50;max-width:420px;margin:0 auto;background:var(--sf2,#222);color:var(--ink,#eee);border:1px solid var(--ln,#444);border-radius:10px;padding:9px 12px;font:400 12.5px/1.4 var(--f,system-ui);box-shadow:0 4px 18px rgba(0,0,0,.35)';
+        document.body.appendChild(el);
+      }
+      var d = new Date(at), hh = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      el.textContent = 'Başlamış ' + bad + ' maçın skoru şu an güncellenemiyor (veri son ' + hh + ' itibarıyla). Kaynak günlük kotası dolmuş olabilir; skorlar ve kadrolar kota yenilenince gelir.';
+    } catch (e) {}
+  }
+
   async function boot() {
     var n = await loadFixtures(true);
     var dl = await loadDetails(); var mg = mergeDetails();
+    staleNote();
     if (n || dl || mg) {
       try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {}
       try { var y = window.scrollY; render(); window.scrollTo(0, y); } catch (e) {}
@@ -236,6 +257,7 @@
       if (ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;
       var n2 = await loadFixtures(false);
       var d2 = await loadDetails(); var m2 = mergeDetails();
+      staleNote();
       if (n2 || d2 || m2) { try { R.sort(function (a, b) { return a.t - b.t; }); var y2 = window.scrollY; render(); window.scrollTo(0, y2); } catch (e) {} }
     }, 60000);
   }

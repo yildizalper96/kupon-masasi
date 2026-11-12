@@ -81,11 +81,13 @@ jobs:
           # Ucretsiz plan gunluk 100 istek: once maclar/canli skor, sonra ayrintilar (kadro listesi, ilk 11, oran, eksik, karsilikli)
           if [ "$MODE" = "full" ]; then
             node tools/fetch-fixtures.mjs --max-pred=4
-            node tools/fetch-details.mjs --max=14 --hours=24 || true
+            # --reserve: kalan kota bunun altina inerse ayrintilar (kadro listesi, oran, karsilikli) durur;
+            # yalnizca ilk 11 yedek kotaya girebilir. Boylece mac gunu canli skor ve ilk 11 icin kota kalir.
+            node tools/fetch-details.mjs --max=14 --hours=24 --reserve=45 || true
           fi
           if [ "$MODE" = "live" ]; then
             node tools/fetch-fixtures.mjs --live
-            node tools/fetch-details.mjs --max=6 --hours=24 || true
+            node tools/fetch-details.mjs --max=6 --hours=24 --reserve=45 || true
           fi
 
       # Supabase ucretsiz projesi 1 hafta islem olmazsa durur: zamanli calistirmalarda hafif bir okuma yap
