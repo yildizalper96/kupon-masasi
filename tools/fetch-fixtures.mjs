@@ -154,6 +154,23 @@ const TID = fs.existsSync(tidPath) ? (JSON.parse(fs.readFileSync(tidPath, 'utf8'
 let tidNew = 0;
 const tidAdd = (name, id) => { if (!name || !Number.isFinite(id)) return; if (TID[name] !== id) { TID[name] = id; tidNew++; } };
 const TID_SYN = { 'STVV': 'Sint-Truidense', 'Sint-Truidense': 'STVV' };
+// Biten maclari kalici biriktir (takim formu icin: ucretsiz planda gecmis mac sorgusu yok). data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}
+const FIN_OK = new Set(['FT', 'AET', 'PEN']);
+const finAdd = list => {
+  if (DRY) return;
+  try {
+    const p = path.join(root, 'data', 'fixtures', 'finished.json');
+    const cur = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : { m: [] };
+    const byId = new Map((cur.m || []).map(r => [r.id, r]));
+    let n = 0;
+    for (const m of list) if (FIN_OK.has(m.st) && m.sc && m.sc[0] != null && !byId.has(m.id)) { byId.set(m.id, { id: m.id, c: m.c, t: m.t, h: m.h, a: m.a, x: m.sc[0], y: m.sc[1] }); n++; }
+    if (!n) return;
+    const m = [...byId.values()].sort((a, b) => b.t.localeCompare(a.t)).slice(0, 600);
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify({ at: new Date().toISOString(), m }));
+    console.log('finished.json: +' + n + ' bitmis mac (toplam ' + m.length + ')');
+  } catch (e) { console.log('finished.json yazilamadi: ' + e.message); }
+};
 const tidSave = () => { for (const [a, b] of Object.entries(TID_SYN)) if (TID[a] && !TID[b]) TID[b] = TID[a]; if (DRY) return; fs.mkdirSync(path.dirname(tidPath), { recursive: true }); fs.writeFileSync(tidPath, JSON.stringify({ at: new Date().toISOString(), t: TID })); };
 
 const DOMESTIC_CUPS = new Set(['FAC', 'EFL', 'CDR', 'CIT', 'DFB', 'CDF', 'TUK', 'KNV', 'TDP', 'BCP', 'SFA']);
@@ -233,6 +250,7 @@ if (process.argv.includes('--live')) {
   prev.m.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c));
   prev.at = new Date().toISOString();
   fs.writeFileSync(latestPath, JSON.stringify(prev));
+  finAdd(prev.m);
   tidSave();
   console.log(`Canli: dunya ${j.response.length} canli mac, hedef liglerde guncellenen ${upd}, eklenen ${add}, bayat kontrol ${stale.length}. Harcanan istek: ${used}, kalan gunluk: ${remaining}`);
   process.exit(0);
@@ -298,6 +316,7 @@ const LG_ALIASES = {
 const meta = Object.fromEntries(Object.entries(LEAGUES).map(([c, v]) => [c, { id: v[0], n: v[1], ln: v[2], col: v[3], al: LG_ALIASES[c] || [] }]));
 const out = { at: new Date().toISOString(), from: dates[0], to: dates[dates.length - 1], lg: meta, m: matches };
 if (!DRY) fs.writeFileSync(path.join(outDir, 'latest.json'), JSON.stringify(out));
+finAdd(matches);
 tidSave();
 
 // ---------- rapor ----------
