@@ -879,3 +879,18 @@ input,button,select,textarea{font-family:var(--f)}
   #app>.kmeski .sr b{font-weight:600}
   #app>.kmeski .mut{color:var(--mut);font-size:13px}
 }
+
+/* ==== Simulator, Gecmis, Profil: FotMob dili (masaustu) ==== */
+@media(min-width:1100px){
+  #app>h2.vt,#app>h2{font:600 22px var(--f)!important;margin:4px 0 6px!important;letter-spacing:-.01em}
+  #app>p.mut{font-size:13.5px;line-height:1.55;color:var(--mut);margin:0 0 22px}
+  #app>.box>h3{font:600 15px var(--f);margin:0 0 12px}
+  #app>.box .sr{padding:11px 0;border-top:1px solid var(--ln);font-size:13.5px}
+  #app>.box>h3+.sr{border-top:0}
+  #app>.box input:not([type=checkbox]):not([type=radio]),#app>.box select{background:var(--sf2)!important;border:1px solid var(--ln)!important;border-radius:var(--rb,6px)!important;color:var(--ink)!important;font:400 14px var(--f)!important;padding:10px 12px!important}
+  #app>.box button:not(.kmok):not([data-krm]):not(.fav){border-radius:var(--rb,6px)!important;font:600 13.5px var(--f)!important}
+  #app>details.ac,#app>details.box{background:var(--sf);border:1px solid var(--ln);border-radius:var(--rk,8px);padding:16px 22px;margin:0 0 28px}
+  #app>details.ac>summary{font:600 14.5px var(--f);cursor:pointer}
+  #app>.box .chips button{border-radius:999px!important;background:var(--sf2)!important;border:0!important;font:500 12.5px var(--f)!important;padding:6px 12px!important}
+  #app>.box .chips button.on{background:var(--ink)!important;color:var(--sf)!important}
+}
