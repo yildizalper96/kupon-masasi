@@ -140,6 +140,16 @@
     }).join('') || '<p class="kmbos">Kayıtlı lig maçı yok.</p>';
     return card('kmform', `<h3 class="kmb orta">Takım formu</h3><div class="kmiki"><div>${sat(m.h)}</div><div>${sat(m.a)}</div></div>`);
   }
+  // Karsilasmalar (FotMob H2H): galibiyet/beraberlik ozeti + son maclar
+  function h2hKarti(m) {
+    let l = null; try { l = HH[[m.h, m.a].sort().join('|')]; } catch (e) { }
+    if (!Array.isArray(l) || !l.length) return '';
+    const kaz = n => l.filter(r => (r.h === n && r.x > r.y) || (r.a === n && r.y > r.x)).length, ber = l.filter(r => r.x === r.y).length;
+    const sat = r => `<div class="kmh2s"><small>${E(r.d || '')}</small><span class="${r.x > r.y ? 'b' : ''}">${E(r.h)}${bd(r.h)}</span><i class="kmh2sk">${r.x} - ${r.y}</i><span class="${r.y > r.x ? 'b' : ''}">${bd(r.a)}${E(r.a)}</span></div>`;
+    return card('kmh2h', `<h3 class="kmb orta">Karşılaşmalar <small>son ${l.length} maç</small></h3>
+      <div class="kmh2o"><div>${bd(m.h, 1)}<b>${kaz(m.h)}</b><small>Galibiyet</small></div><div><span class="kmx">B</span><b>${ber}</b><small>Beraberlik</small></div><div>${bd(m.a, 1)}<b>${kaz(m.a)}</b><small>Galibiyet</small></div></div>
+      ${l.slice(0, 6).map(sat).join('')}`);
+  }
   function olaylarKarti(m) {
     const v = LVD[key(m)];
     if (!v || !(v.ev || []).length) return '';
@@ -187,7 +197,7 @@
     const p = eskiParcalar(m, eski), x = xm(m);
     const yan = `<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
-    if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
+    if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else ana = `<div class="kmeski">${p.kalan}</div>`;
     return sahaFoto(macBaslik(m) + ana + yan);
   };

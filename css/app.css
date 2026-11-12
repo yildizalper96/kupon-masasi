@@ -801,3 +801,21 @@ input,button,select,textarea{font-family:var(--f)}
   .kmsaha .kmpp>span:last-child{font:500 12.5px var(--f);color:var(--ink);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .kmsaha .kmpp em{font-style:normal;color:var(--mut)}
 }
+
+/* ==== FotMob turu 5: Karsilasmalar (H2H) karti ==== */
+@media(min-width:1100px){
+  .kmh2o{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;padding:10px 24px 18px;border-bottom:1px solid var(--ln)}
+  .kmh2o>div{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .kmh2o .bd{width:40px!important;height:40px!important;line-height:40px!important;font-size:11px!important}
+  .kmh2o .kmx{width:40px;height:40px;font-size:15px}
+  .kmh2o b{font:600 24px var(--f)}
+  .kmh2o small{color:var(--mut);font-size:12px}
+  .kmh2s{display:grid;grid-template-columns:86px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;padding:12px 24px;border-top:1px solid var(--ln);font-size:13.5px}
+  .kmh2o+.kmh2s{border-top:0}
+  .kmh2s small{color:var(--mut);font-size:12px}
+  .kmh2s span{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden}
+  .kmh2s span:nth-of-type(1){justify-content:flex-end}
+  .kmh2s span.b{font-weight:600}
+  .kmh2s .bd{width:20px!important;height:20px!important;line-height:20px!important;font-size:6px!important;flex:none}
+  .kmh2sk{font-style:normal;font:600 13px var(--f);background:var(--sf2);padding:4px 10px;border-radius:var(--rb,6px);min-width:52px;text-align:center}
+}
