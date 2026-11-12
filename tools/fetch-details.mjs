@@ -59,7 +59,7 @@ const age = at => (at ? now - Date.parse(at) : Infinity);
 
 // aday maclar: baslamasina HOURS saat kala ile baslamasindan 3 saat sonrasi arasi
 const cand = latest.m
-  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(10) && t < now + HRS(HOURS); })
+  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(30) && t < now + HRS(HOURS); })
   .sort((a, b) => a.t.localeCompare(b.t));
 console.log(`Aday mac: ${cand.length}`);
 
