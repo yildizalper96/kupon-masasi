@@ -31,6 +31,8 @@ async function api(p) {
 }
 const left = () => (remaining === null ? 99 : remaining) - used;
 const canSpend = () => used < MAX && left() > RESERVE;
+// ilk 11 en degerli veri: yedek kotanin icine girebilir (en az 3 istek kalsin)
+const canSpendLineup = () => used < MAX && left() > 3;
 
 // ---- kota korumasi ----
 {
@@ -38,7 +40,8 @@ const canSpend = () => used < MAX && left() > RESERVE;
   const rq = st?.response?.requests;
   if (rq && Number.isFinite(rq.limit_day)) remaining = rq.limit_day - rq.current;
   console.log(`Kota: ${remaining === null ? '?' : remaining} kaldi, bu calistirmada en cok ${MAX} istek, ${RESERVE} yedek.`);
-  if (remaining !== null && remaining <= RESERVE) { console.log('Kota dolmak uzere, istek yapilmadi.'); process.exit(0); }
+  // yedek kotaya girildiyse yalnizca ilk 11 cekilebilir (canSpendLineup); kota neredeyse bittiyse hic istek yapma
+  if (remaining !== null && remaining <= 3) { console.log('Kota dolmak uzere, istek yapilmadi.'); process.exit(0); }
 }
 
 const latestPath = path.join(root, 'data', 'fixtures', 'latest.json');
@@ -131,8 +134,8 @@ for (const m of cand) {
     } catch (er) { log.push('eksik hata: ' + String(er.message).slice(0, 80)); }
   }
 
-  // ilk 11 + yedekler: baslamasina 100 dk kala ile baslamasindan 15 dk sonrasi
-  if (!e.luOk && canSpend() && ko < now + HRS(100 / 60) && ko > now - 15 * 60e3) {
+  // ilk 11 + yedekler: baslamasina 75 dk kala ile baslamasindan 15 dk sonrasi (API genelde ~60 dk once yayinlar)
+  if (!e.luOk && canSpendLineup() && ko < now + HRS(75 / 60) && ko > now - 15 * 60e3) {
     try {
       const j = await api('/fixtures/lineups?fixture=' + m.id);
       if (j.response.length === 2) {
