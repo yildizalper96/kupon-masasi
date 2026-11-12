@@ -57,9 +57,41 @@
       <div class="kmsek">${sek.map(([k, l]) => `<button data-dt="${k}" class="${dt === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     </div>`;
   }
+  // ---- oyuncu fotografi (API-Football): kimlik ya da adres varsa; yuklenmezse bas harf dairesi kalir ----
+  const fotoUrl = (takim, p) => {
+    if (p && p.ph) return p.ph;
+    if (p && Number.isFinite(+p.id) && +p.id > 0) return `https://media.api-sports.io/football/players/${+p.id}.png`;
+    try { if (window.KMX && typeof KMX.photo === 'function') return KMX.photo(takim, p && (p.n || p)) || ''; } catch (e) { }
+    return '';
+  };
+  const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hf')" onerror="this.remove()">` : '';
+  const basH = n => String(n || '').replace(/[^A-Za-zÇĞİÖŞÜçğıöşü. ]/g, '').trim().split(' ').pop().replace('.', '').slice(0, 2).toUpperCase();
+  const renk = n => { try { const c = TC[n]; if (c) return c; } catch (e) { } return ['#4a5a68', '#cbd5dc']; };
+  const nedenTr = r => { const s = String(r || ''); if (/suspen|card|ceza/i.test(s)) return 'Cezalı'; if (/injur|muscle|knee|ankle|hamstring|sakat/i.test(s)) return 'Sakat'; if (/doubt|şüphe/i.test(s)) return 'Şüpheli'; return s || 'Eksik'; };
+  // davet listesi: FotMob kadro sekmesi duzeni (iki takim yan yana, mevkiye gore gruplu, fotografli)
+  function davetListesi(m) {
+    const X = window.KMX; if (!X || !X.byKey || !X.sq) return '';
+    const e = X.byKey[key(m)]; if (!e) return '';
+    const yan = [[m.h, e.hid, 'h'], [m.a, e.aid, 'a']];
+    if (!yan.some(s => X.sq[s[1]] && X.sq[s[1]].p && X.sq[s[1]].p.length)) return '';
+    const GR = [['K', 'Kaleciler'], ['D', 'Defans'], ['O', 'Orta saha'], ['F', 'Forvet']];
+    const kol = ([n, id]) => {
+      const sq = X.sq[id]; const [a, b] = renk(n);
+      if (!sq || !sq.p || !sq.p.length) return `<div class="kmdl"><div class="kmdl-b">${bd(n)}<b>${E(n)}</b></div><p class="kmbos">Kadro listesi yok.</p></div>`;
+      const sat = p => `<div class="kmoyr"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(p.n))}</i>${fotoImg(fotoUrl(n, p))}</span><div><b>${E(p.n)}</b><small>${p.no ? '#' + E(p.no) : ''}${p.no && p.a ? ' · ' : ''}${p.a ? E(p.a) + ' yaş' : ''}</small></div></div>`;
+      return `<div class="kmdl"><div class="kmdl-b">${bd(n)}<b>${E(n)}</b><span>${sq.p.length} oyuncu</span></div>${GR.map(([k, l]) => { const ps = sq.p.filter(p => (p.p || '') === k); return ps.length ? `<h5>${l}</h5>${ps.map(sat).join('')}` : ''; }).join('')}</div>`;
+    };
+    const inj = e.inj || [];
+    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(x => `<div class="kmeks"><i class="${/Cezalı/.test(nedenTr(x.r)) ? 'kmkk' : 'kmsk'}"></i><div><b>${E(x.n)}</b><small>${E(nedenTr(x.r))}</small></div></div>`).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
+    return card('kmkadro kmdavet', `<div class="kmkb"><div>${bd(m.h)}<b>${E(m.h)}</b></div><h3>Davet edilen oyuncular</h3><div><b>${E(m.a)}</b>${bd(m.a)}</div></div>
+      <p class="kmnot">Resmi ilk 11 açıklanınca (genelde maçtan 1 saat önce) burada sahada dizilişiyle görünür.</p>
+      <div class="kmiki kmdl2">${kol(yan[0])}${kol(yan[1])}</div>
+      <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div>
+      <p class="kmkay">Davet listesidir, maç kadrosu değildir. Kaynak: API-Football.</p>`);
+  }
   function kadroKarti(m) {
     const lu = LU[key(m)];
-    if (!lu) return (window.KMX && KMX.squadCard && KMX.squadCard(m)) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
+    if (!lu) return davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
@@ -134,8 +166,18 @@
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else ana = `<div class="kmeski">${p.kalan}</div>`;
-    return macBaslik(m) + ana + yan;
+    return sahaFoto(macBaslik(m) + ana + yan);
   };
+  // sahadaki oyunculara fotograf (adres varsa); yuklenince forma dairesinin yerini alir
+  function sahaFoto(html) {
+    if (!(window.KMX && typeof KMX.photo === 'function')) return html;
+    const t = document.createElement('template'); t.innerHTML = html;
+    t.content.querySelectorAll('.kmsaha .pp[data-pn]').forEach(pp => {
+      const [tm, nm] = pp.dataset.pn.split('|'), u = fotoUrl(tm, { n: nm }), sh = pp.querySelector('.sh');
+      if (u && sh) sh.insertAdjacentHTML('beforeend', fotoImg(u));
+    });
+    return t.innerHTML;
+  }
 
   // ================= TAKIM SAYFASI =================
   let TT = 'o', TTn = '';
