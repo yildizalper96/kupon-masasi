@@ -85,7 +85,7 @@
   let ilkCocuk = null;
   function sagCiz() {
     if (!MQ.matches) return;
-    const kutular = [app.querySelector(':scope > .mside'), app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note'), app.querySelector(':scope > .tbx'), app.querySelector(':scope > .nwb')].filter(Boolean);
+    const kutular = [app.querySelector(':scope > .mside'), app.querySelector(':scope > #kmka'), ...app.querySelectorAll(':scope > .box.ka:not(#kmka)'), app.querySelector(':scope > #cpd'), app.querySelector(':scope > details.note'), app.querySelector(':scope > .tbx'), app.querySelector(':scope > .nwb')].filter(Boolean);
     // uygulama sayfayi yeniden cizmediyse (yalnizca kucuk bir ekleme) ve tasinacak kutu yoksa sag sutuna dokunma
     if (!kutular.length && app.firstElementChild === ilkCocuk) return;
     ilkCocuk = app.firstElementChild;
