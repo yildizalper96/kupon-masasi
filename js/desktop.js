@@ -53,10 +53,32 @@
     try { kodlar = ONE.filter(c => LGNM[c]); } catch (e) { }
     sol.innerHTML = `<section class="dzk"><h3>Öne çıkan ligler</h3><ul class="dzlig">${kodlar.map(c =>
       `<li><button data-dzlg="${esc(c)}">${bayrak(c)}${esc(ligAdi(c))}</button></li>`).join('')}</ul></section>
-      <section class="dzk"><button class="dztum" data-dztum>Tüm ligler<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button></section>`;
+      <section class="dzk dztumk"><button class="dztum" data-dztum aria-expanded="false">Tüm ligler<i class="dzok"></i></button><div class="dztumic" hidden></div></section>`;
     sol.querySelectorAll('[data-dzlg]').forEach(b => b.onclick = () => ligAc(b.dataset.dzlg));
-    const t = sol.querySelector('[data-dztum]');
-    if (t) t.onclick = () => { const nb = document.querySelector('nav button[data-t="l"]'); try { Q = ''; QX = ''; const e = document.getElementById('q'); if (e) e.value = ''; } catch (e) { } if (nb) nb.click(); window.scrollTo(0, 0); };
+    const t = sol.querySelector('[data-dztum]'), ic = sol.querySelector('.dztumic');
+    if (t && ic) t.onclick = () => {
+      const acik = ic.hidden; ic.hidden = !acik; t.setAttribute('aria-expanded', String(acik)); t.parentElement.classList.toggle('acik', acik);
+      if (acik) tumListe(ic);
+    };
+  }
+  // Tum ligler: ulkeye gore gruplu, filtrelenebilir liste (FotMob gibi yerinde acilir)
+  function tumListe(ic) {
+    let kodlar = []; try { kodlar = (typeof LORD !== 'undefined' ? LORD : Object.keys(LN)).filter(c => LGNM[c] || LN[c]); } catch (e) { }
+    const grup = new Map();
+    kodlar.forEach(c => { let u = ''; try { u = LN[c] ? LN[c].split(' – ')[0] : ''; } catch (e) { } u = u || 'Diğer'; if (!grup.has(u)) grup.set(u, []); grup.get(u).push(c); });
+    const ciz = q => {
+      const n = s => String(s).toLocaleLowerCase('tr');
+      const html = [...grup].map(([u, cs]) => {
+        const l = cs.filter(c => !q || n(ligAdi(c)).includes(q) || n(u).includes(q));
+        return l.length ? `<div class="dzgrup"><small>${esc(u)}</small>${l.map(c => `<button data-dzlg="${esc(c)}">${bayrak(c)}${esc(ligAdi(c))}</button>`).join('')}</div>` : '';
+      }).join('');
+      liste.innerHTML = html || '<p class="dzbos">Eşleşen lig yok.</p>';
+      liste.querySelectorAll('[data-dzlg]').forEach(b => b.onclick = () => ligAc(b.dataset.dzlg));
+    };
+    ic.innerHTML = `<label class="dzfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg><input placeholder="Filtre" aria-label="Lig filtrele"></label><div class="dzliste"></div>`;
+    const liste = ic.querySelector('.dzliste'), inp = ic.querySelector('input');
+    inp.oninput = () => ciz(inp.value.trim().toLocaleLowerCase('tr'));
+    ciz('');
   }
 
   // sag sutun: Maclar sekmesindeki "Gunun dusuk riskli kuponu" ve "Veri kaynagi" kutularini tasi
@@ -106,7 +128,7 @@
     if (!MQ.matches) return;
     const h = e.target.closest && e.target.closest('#app > .box > .lg2');
     if (!h || e.target.closest('[data-tm],[data-fav],button,a')) return;
-    const b = h.parentElement, ad = kartAd(b); if (!ad) return;
+    const b = h.parentElement, ad = kartAd(b); if (!ad || !b.querySelector(':scope > .mr')) return;
     kapali.has(ad) ? kapali.delete(ad) : kapali.add(ad);
     try { sessionStorage.setItem('dzKapali', JSON.stringify([...kapali])); } catch (x) { }
     b.classList.toggle('dzkapali', kapali.has(ad));

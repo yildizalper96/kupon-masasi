@@ -738,3 +738,24 @@ input,button,select,textarea{font-family:var(--f)}
   #app>.box>.lg2~.mr{padding:18px 22px!important}
   #app>.box>.lg2+.mr{border-top:0!important}
 }
+
+/* ==== FotMob turu 3: Tum ligler acilir listesi ==== */
+@media(min-width:1100px){
+  .dztum .dzok{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .15s}
+  .dztumk.acik .dztum .dzok{transform:rotate(-135deg);margin-top:4px}
+  .dztumic{padding:0 12px 14px}
+  .dzfil{display:flex;align-items:center;gap:10px;margin:0 8px 10px;padding:0 14px;height:36px;border-radius:var(--rb,6px);background:var(--sf2);color:var(--mut)}
+  .dzfil svg{width:16px;height:16px;flex:none}
+  .dzfil input{border:0;background:none;outline:0;color:var(--ink);font:400 13.5px var(--f)!important;width:100%}
+  .dzgrup{padding:6px 0}
+  .dzgrup small{display:block;padding:8px 12px 4px;color:var(--mut);font:500 12px var(--f)}
+  .dzgrup button{width:100%;display:flex;align-items:center;gap:12px;padding:9px 12px;border:0;background:none;color:var(--ink);font:500 14px var(--f);border-radius:var(--rb,6px);cursor:pointer;text-align:left}
+  .dzgrup button:hover{background:var(--sf2)}
+  .dzbos{color:var(--mut);font-size:13px;padding:8px 12px;margin:0}
+}
+/* lig basligi seridi ve ac/kapa yalnizca mac satiri olan kutularda */
+@media(min-width:1100px){
+  #app>.box:has(>.lg2):not(:has(>.mr)){padding:24px 26px!important}
+  #app>.box:not(:has(>.mr))>.lg2{background:none;border-bottom:0;padding:0!important;margin:0 0 10px!important;cursor:default}
+  #app>.box:not(:has(>.mr))>.lg2::after{display:none}
+}
