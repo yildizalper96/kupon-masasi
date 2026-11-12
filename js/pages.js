@@ -150,6 +150,18 @@
       <div class="kmh2o"><div>${bd(m.h, 1)}<b>${kaz(m.h)}</b><small>Galibiyet</small></div><div><span class="kmx">B</span><b>${ber}</b><small>Beraberlik</small></div><div>${bd(m.a, 1)}<b>${kaz(m.a)}</b><small>Galibiyet</small></div></div>
       ${l.slice(0, 6).map(sat).join('')}`);
   }
+  // Maclar sekmesi: iki takimin son lig maclari (FotMob form listesi gibi), ev/deplasman suzgeci
+  let SMF = 'tum';
+  function sonMaclarKarti(m) {
+    const kol = (n, H) => {
+      let l = son5(n).length ? (SLG[n] || []).slice().reverse() : [];
+      if (SMF === 'yer') l = l.filter(r => r.H === H);
+      l = l.slice(0, 10);
+      const sat = r => { const ev = r.H ? n : r.o, dep = r.H ? r.o : n, sk = r.H ? `${r.f} - ${r.c}` : `${r.c} - ${r.f}`; return `<div class="kmsm2"><small>${r.w ? E(r.w) + '. hafta' : ''}</small><span class="${ev === n ? 'b' : ''}" data-tm="${E(ev)}">${E(ev)}${bd(ev)}</span><i class="kmhap ${sonuc(r.r)}">${sk}</i><span class="${dep === n ? 'b' : ''}" data-tm="${E(dep)}">${bd(dep)}${E(dep)}</span></div>`; };
+      return `<div><div class="kmdl-b">${bd(n)}<b>${E(n)}</b><span>${SMF === 'yer' ? (H ? 'evinde' : 'deplasmanda') : 'son lig maçları'}</span></div>${l.length ? l.map(sat).join('') : '<p class="kmbos">Kayıtlı lig maçı yok.</p>'}</div>`;
+    };
+    return card('kmsonm', `<div class="kmb2"><h3 class="kmb">Son maçlar</h3><div class="kmsuz"><button data-kmsmf="tum" class="${SMF === 'tum' ? 'on' : ''}">Tümü</button><button data-kmsmf="yer" class="${SMF === 'yer' ? 'on' : ''}">${E(m.h)} evinde · ${E(m.a)} deplasmanda</button></div></div><div class="kmiki">${kol(m.h, 1)}${kol(m.a, 0)}</div>`);
+  }
   function olaylarKarti(m) {
     const v = LVD[key(m)];
     if (!v || !(v.ev || []).length) return '';
@@ -199,6 +211,8 @@
     let ana;
     if (dt === 'p') ana = kadroKarti(m) + olaylarKarti(m) + formKarti(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else if (dt === 'z' && TM[m.h] && TM[m.h].l === m.c) ana = tabloKutusu(m.h, [m.h, m.a]);
+    else if (dt === 'k') ana = kadroKarti(m);
+    else if (dt === 'm') ana = sonMaclarKarti(m) + h2hKarti(m);
     else ana = `<div class="kmeski">${p.kalan}</div>`;
     return sahaFoto(macBaslik(m) + ana + yan);
   };
@@ -333,6 +347,8 @@
     if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = 'p'; PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
     const tt = e.target.closest && e.target.closest('[data-kmtt]');
     if (tt) { TT = tt.dataset.kmtt; render(); return; }
+    const sf = e.target.closest && e.target.closest('[data-kmsmf]');
+    if (sf) { SMF = sf.dataset.kmsmf; render(); return; }
     const ms = e.target.closest && e.target.closest('[data-kmms]');
     if (ms) { if (!ms.disabled) { MKS = ms.dataset.kmms; render(); } return; }
     const fv = e.target.closest && e.target.closest('[data-kmfav]');

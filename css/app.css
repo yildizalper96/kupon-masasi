@@ -855,3 +855,27 @@ input,button,select,textarea{font-family:var(--f)}
   #app>.kmeski>h3{margin:24px 0 10px;font:600 15px var(--f)}
   #app>.kmeski>h3+.box:has(>.mr){border-top:1px solid var(--ln)!important;border-radius:var(--rk,8px) var(--rk,8px) 0 0!important}
 }
+
+/* ==== Mac sayfasi Maclar sekmesi: son maclar listesi ==== */
+@media(min-width:1100px){
+  .kmsuz{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .kmsuz button{border:0;background:var(--sf2);color:var(--ink);font:500 12.5px var(--f);padding:6px 12px;border-radius:var(--rb,6px);cursor:pointer}
+  .kmsuz button.on{background:var(--ink);color:var(--sf)}
+  .kmsm2{display:grid;grid-template-columns:62px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--ln);font-size:13px}
+  .kmsm2 small{color:var(--mut);font-size:11.5px}
+  .kmsm2 span{display:flex;align-items:center;gap:7px;min-width:0;white-space:nowrap;overflow:hidden;cursor:pointer}
+  .kmsm2 span:nth-of-type(1){justify-content:flex-end}
+  .kmsm2 span.b{font-weight:600}
+  .kmsm2 .bd{width:18px!important;height:18px!important;line-height:18px!important;font-size:6px!important;flex:none}
+  .kmsm2 .kmhap{min-width:44px;padding:3px 6px;font-size:12px}
+  .kmsonm .kmiki{padding-bottom:16px}
+}
+/* eski icerikli sekmeler (Seriler vb.) masaustunde kart dilinde */
+@media(min-width:1100px){
+  #app>.kmeski>.box{background:var(--sf);border:1px solid var(--ln)!important;border-radius:var(--rk,8px)!important;padding:20px 24px!important}
+  #app>.kmeski>.box>h3{margin:0 0 10px;font:600 15px var(--f)}
+  #app>.kmeski .sr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--ln);font-size:13.5px}
+  #app>.kmeski .box>h3+.sr{border-top:0}
+  #app>.kmeski .sr b{font-weight:600}
+  #app>.kmeski .mut{color:var(--mut);font-size:13px}
+}
