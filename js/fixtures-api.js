@@ -112,6 +112,23 @@
             a: { f: e.lu.a.f, xi: e.lu.a.xi, bn: e.lu.a.bn, out: outOf('a') }, f: [1, 1] };
           ch++;
         }
+        // ilk yari / mac sonu verisi (tools/match-phases.mjs): olaylar, istatistik, oyuncu puanlari, skor
+        if (e.live && e.live.ev) {
+          var lv = e.live, hm = '';
+          try { var dt = new Date(e.liveAt); hm = ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2); } catch (x) {}
+          if (typeof LVD !== 'undefined' && (!LVD[k] || LVD[k].src === 'API-Football' || !(LVD[k].ev && LVD[k].ev.length))) {
+            LVD[k] = { m: lv.fin ? 'MS' : 'İlk yarı', at: hm, s: e.h + ' ' + lv.g[0] + '-' + lv.g[1] + ' ' + e.a, src: 'API-Football', ev: lv.ev, st: lv.sx };
+            ch++;
+          }
+          if (typeof STX !== 'undefined' && (lv.t.length || lv.p.h.length) && (!STX[k] || STX[k].src === 'API-Football')) {
+            STX[k] = { p: lv.p, t: lv.t, src: 'API-Football', at: hm }; ch++;
+          }
+          if (typeof RES !== 'undefined') {
+            var cur = RES[k];
+            if (lv.fin) { if (cur == null || /^L/.test(String(cur))) { RES[k] = lv.g[0] + '-' + lv.g[1]; ch++; } }
+            else if (cur == null && Date.now() - Date.parse(e.liveAt) < 25 * 60e3) { RES[k] = 'L' + lv.g[0] + '-' + lv.g[1]; ch++; }
+          }
+        }
         if (e.h2h && e.h2h.length) {
           var hk = [e.h, e.a].sort().join('|');
           if (typeof HH !== 'undefined' && !HH[hk]) { HH[hk] = e.h2h.map(function (r) { return { d: r.d, h: r.h, a: r.a, x: r.x, y: r.y }; }); ch++; }

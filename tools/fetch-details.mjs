@@ -6,6 +6,7 @@
 // Not   : bahisci adi ve ham oran SAKLANMAZ; yalnizca bahiscilerin ortalama, marji cikarilmis olasiliklari.
 import fs from 'node:fs';
 import path from 'node:path';
+import { normalize } from './match-phases.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
@@ -58,7 +59,7 @@ const age = at => (at ? now - Date.parse(at) : Infinity);
 
 // aday maclar: baslamasina HOURS saat kala ile baslamasindan 3 saat sonrasi arasi
 const cand = latest.m
-  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(3) && t < now + HRS(HOURS); })
+  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(10) && t < now + HRS(HOURS); })
   .sort((a, b) => a.t.localeCompare(b.t));
 console.log(`Aday mac: ${cand.length}`);
 
@@ -98,9 +99,32 @@ const ddmmyyyy = iso => { const d = new Date(iso); return String(d.getUTCDate())
 const POS = { Goalkeeper: 'K', Defender: 'D', Midfielder: 'O', Attacker: 'F' };
 const log = [];
 
+// ---- 1. oncelik: mac verisi. Ilk yari (baslamasindan 50-120 dk sonra, bir kez) ve mac sonu (125 dk sonra, bitene kadar en cok 4 deneme).
+// Tek istek /fixtures?id= -> olaylar (gol, asist, kart, degisiklik), istatistik, oyuncu puanlari, skor. Ilk 11 gibi yedek kotaya girebilir;
+// diger ayrintilardan ONCE yapilir ki maks. istek siniri bunlari yemesin.
+for (const m of cand) {
+  const e = D.m[m.id]; if (!e || !e.hid) continue;
+  const mk = (now - Date.parse(m.t)) / 60000;
+  const wantHT = mk >= 50 && mk < 120 && !e.htOk && !e.ftOk;
+  const wantFT = mk >= 125 && !e.ftOk && (e.ftTry || 0) < 4;
+  if (!(wantHT || wantFT) || !canSpendLineup()) continue;
+  try {
+    const j = await api('/fixtures?id=' + m.id);
+    const f = j.response && j.response[0];
+    if (f) {
+      const lv = normalize(f, e.hid, e.aid);
+      e.live = lv; e.liveAt = new Date().toISOString();
+      if (lv.fin) { e.ftOk = true; log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
+      else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
+      else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
+    } else { if (wantFT) e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: ayrinti bos dondu`); }
+  } catch (er) { log.push('mac verisi hata: ' + String(er.message).slice(0, 80)); }
+}
+
 for (const m of cand) {
   const e = D.m[m.id]; if (!e || !e.hid) continue;
   const ko = Date.parse(m.t);
+  if (ko < now - 20 * 60e3) continue; // baslamis maca oran/karsilikli/eksik/kadro icin istek harcama
   const soon = ko < now + HRS(HOURS);
 
   // karsilikli maclar (haftada bir)
