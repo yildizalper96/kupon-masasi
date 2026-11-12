@@ -34,7 +34,7 @@
     SCO: '<rect width="24" height="24" fill="#0065bd"/><path d="M0 0L24 24M24 0L0 24" stroke="#fff" stroke-width="4"/>',
     KSA: '<rect width="24" height="24" fill="#006c35"/><rect x="5" y="14" width="14" height="1.8" rx=".9" fill="#fff"/>', EU: AB,
   };
-  const ULKE = { SL: 'TR', PL: 'ENG', LL: 'ESP', SA: 'ITA', BL: 'GER', L1: 'FRA', POR: 'POR', ERE: 'NED', BEL: 'BEL', SCO: 'SCO', KSA: 'KSA', CL: 'EU', EL: 'EU', ECL: 'EU', UNL: 'EU' };
+  const ULKE = { SL: 'TR', PL: 'ENG', LL: 'ESP', SA: 'ITA', BL: 'GER', L1: 'FRA', POR: 'POR', ERE: 'NED', BEL: 'BEL', SCO: 'SCO', KSA: 'KSA', CL: 'EU', EL: 'EU', ECL: 'EU', UNL: 'EU', USC: 'EU', FAC: 'ENG', EFL: 'ENG', CDR: 'ESP', CIT: 'ITA', DFB: 'GER', CDF: 'FRA', TUK: 'TR', KNV: 'NED', TDP: 'POR', BCP: 'BEL', SFA: 'SCO' };
   let bid = 0;
   function bayrak(c) {
     const b = BAYRAK[ULKE[c]];
@@ -147,6 +147,18 @@
     b.classList.toggle('dzkapali', kapali.has(ad));
   });
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); } }).observe(app, { childList: true });
+  // lig karti basliklarinda harf rozeti yerine yuvarlak bayrak (lig adindan kod bulunur; bayragi yoksa rozet kalir)
+  const bayrakUygula = () => {
+    if (!MQ.matches) return;
+    let ad2kod = {}; try { Object.keys(LN).forEach(c => { const n = LN[c].split(' – ').pop(); if (n) ad2kod[n] = c; }); } catch (e) { return; }
+    app.querySelectorAll(':scope > .box > .lg2').forEach(h => {
+      if (h.dataset.dzb) return; h.dataset.dzb = '1';
+      const c = ad2kod[kartAd(h.parentElement)], rz = h.querySelector(':scope > .bd');
+      if (!c || !rz || !BAYRAK[ULKE[c]]) return;
+      rz.insertAdjacentHTML('beforebegin', bayrak(c).replace('class="dzbay"', 'class="dzbay dzlgb"')); rz.remove();
+    });
+  };
+
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); } }).observe(app, { childList: true });
   solCiz(); sagCiz();
 })();
