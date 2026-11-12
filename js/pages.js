@@ -320,6 +320,16 @@
     }
   };
 
+  // lig sag sutunu: en cok gol / asist (uygulamanin oyuncu istatistiklerinden, PS["lig|takim"])
+  function ligYan(c) {
+    if (typeof PS === 'undefined') return '';
+    const oy = []; let kay = '';
+    Object.keys(PS).filter(k => k.startsWith(c + '|')).forEach(k => { const t = k.slice(c.length + 1), v = PS[k]; if (!v || !Array.isArray(v.p)) return; if (!kay && v.src) kay = v.src; v.p.forEach(p => oy.push({ n: p[0], t, g: +p[3] || 0, a: +p[4] || 0 })); });
+    if (!oy.length) return '';
+    const liste = (alan, ad) => { const l = oy.filter(p => p[alan] > 0).sort((x, y) => y[alan] - x[alan]).slice(0, 5); return l.length ? card('kmlyan', `<h3 class="kmb">${ad}</h3>${l.map((p, i) => `<div class="kmly"><span>${i + 1}</span>${bd(p.t)}<div><b>${E(p.n)}</b><small data-tm="${E(p.t)}">${E(p.t)}</small></div><em>${p[alan]}</em></div>`).join('')}`) : ''; };
+    const h = liste('g', 'En çok gol') + liste('a', 'En çok asist');
+    return h ? `<div class="mside">${h}${kay ? `<p class="kmkay kmlkay">Kaynak: ${E(kay)}</p>` : ''}</div>` : '';
+  }
   // ================= LIG SAYFASI =================
   // uygulamanin leagueView(c) ciktisini masaustunde FotMob duzenine cevirir; sekme dugmeleri (data-lt) uygulamaninkiler
   if (typeof leagueView === 'function') {
@@ -344,7 +354,7 @@
         const ilkTakim = Object.keys(TM).find(n => TM[n].l === c);
         const eskiTablo = [...kok.children].find(e => e.querySelector && e.querySelector('.tb.th'));
         if (eskiTablo && ilkTakim) eskiTablo.outerHTML = tabloKutusu(ilkTakim, []);
-        return baslik + `<div class="kmeski">${t.innerHTML}</div>`;
+        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ligYan(c);
       } catch (e) { return eski; }
     };
   }
