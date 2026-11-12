@@ -905,3 +905,5 @@ input,button,select,textarea{font-family:var(--f)}
   #app>.dn{margin:0 0 18px}
   #app>.dn .fl{background:var(--sf2)!important;border:0!important;border-radius:999px!important;padding:7px 14px!important;font:500 13px var(--f)!important;color:var(--ink)!important}
 }
+/* Maclar sekmesi: dar masaustunde iki takim alt alta (adlar kesilmesin) */
+@media(min-width:1100px) and (max-width:1499px){.kmsonm .kmiki{grid-template-columns:1fr}.kmsonm .kmiki>div+div{margin-top:12px}}
