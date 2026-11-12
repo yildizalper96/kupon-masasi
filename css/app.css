@@ -759,3 +759,13 @@ input,button,select,textarea{font-family:var(--f)}
   #app>.box:not(:has(>.mr))>.lg2{background:none;border-bottom:0;padding:0!important;margin:0 0 10px!important;cursor:default}
   #app>.box:not(:has(>.mr))>.lg2::after{display:none}
 }
+
+/* ==== FotMob turu 4: mac ve takim sayfalarinda sol menu yok (FotMob gibi iki genis sutun) ==== */
+@media(min-width:1100px){
+  #dz:has(#app>.kmh),#dz:has(#app>.kmth){grid-template-columns:minmax(0,1fr) 360px!important}
+  #dz:has(#app>.kmh) #dzl,#dz:has(#app>.kmth) #dzl{display:none!important}
+  .kmtf>div{width:auto;flex:1}
+  .kmtf .kmhap{min-width:0;padding:4px 8px;font-size:12px}
+  .kmtablo td,.kmtablo th{white-space:nowrap}
+}
+@media(min-width:1500px){#dz:has(#app>.kmh),#dz:has(#app>.kmth){grid-template-columns:minmax(0,1fr) 400px!important}}
