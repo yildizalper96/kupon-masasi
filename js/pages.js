@@ -611,7 +611,7 @@
       else if (TT === 'k') ic = kadroSekmesi(n) + `<div class="mside">${ilk11Karti(n)}</div>`;
       else if (TT === 'i') ic = oyuncuIstatSekmesi(n);
       else ic = `<div class="kmiki2">${formKutusu(n)}${sonrakiKutusu(n)}</div>` + tabloKutusu(n) + hocaKutusu(n) + enCoklarKarti(n)
-        + `<div class="mside">${ilk11Karti(n)}${maclarKutusu(n)}${stadKarti(x.venue)}${sezonKutusu(n)}</div>`;
+        + `<div class="mside">${takimNotlari(new Set([n]))}${ilk11Karti(n)}${maclarKutusu(n)}${stadKarti(x.venue)}${sezonKutusu(n)}</div>`;
       document.getElementById('app').innerHTML = takimBaslik(n) + ic;
     }
   };
@@ -855,6 +855,36 @@
       <div class="kmkn kmkn-b"><span></span><em>Tahmin</em><em>Tuttu</em><b>Oran</b></div>${B.map((x, i) => sat(x[0], b[i])).join('')}
       <p class="kmkay">Toplam ${t.tot} model tahmini; oran yalnızca sonuçlanan maçlardan. Bahis tavsiyesi değildir.</p>`);
   }
+  // ---- takim notlari (NW): yalnizca takim ve lig sayfasinda; durumu bitmis notlar gizlenir ----
+  // Kural: metindeki en gec tarih (6 Aralik, Ocak-Subat, "2026'da") gelecekteyse surer, gectiyse biter.
+  // Tarih yoksa: uzun sakatlik/ameliyat 30 gun surer; diger notlar takim not tarihinden sonra mac oynayinca biter. En fazla 45 gun.
+  const AYLAR = ['ocak', 'subat', 'mart', 'nisan', 'mayis', 'haziran', 'temmuz', 'agustos', 'eylul', 'ekim', 'kasim', 'aralik'];
+  const AYK3 = AYLAR.map(a => a.slice(0, 3));
+  function notBitis(x) {
+    const t0 = Date.parse(x.d) || 0, d0 = new Date(t0), metin = adN(x.x).join(' ');
+    const yil = ay => d0.getFullYear() + (ay < d0.getMonth() - 2 ? 1 : 0);
+    let son = 0;
+    for (const m of metin.matchAll(/(\d{1,2}) ([a-z]+)/g)) { const k = m[2].slice(0, 3), ay = AYK3.indexOf(k); if (ay >= 0 && (m[2].length === 3 || AYLAR[ay].startsWith(m[2].slice(0, 4)))) son = Math.max(son, Date.UTC(yil(ay), ay, +m[1], 23)); }
+    for (const m of metin.matchAll(/\b(ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik)\b/g)) { const ay = AYLAR.indexOf(m[1]); son = Math.max(son, Date.UTC(yil(ay), ay + 1, 0, 23)); }
+    for (const m of metin.matchAll(/\b(20\d\d) ?(da|de|ta|te|yilinda)? oynamayacak/g)) son = Math.max(son, Date.UTC(+m[1], 11, 31, 23));
+    return { t0, son, uzun: /ameliyat|kopma|lezyon|kirik|uzun sure|sezonu kapat|iyilesme suresi|haftalarca|aylarca/.test(metin) };
+  }
+  function notSuruyor(x) {
+    const now = Date.now(), b = notBitis(x);
+    if (!b.t0 || now - b.t0 > 45 * 864e5) return false;
+    if (b.son && b.son >= now) return true;
+    if (b.uzun) return now - b.t0 <= 30 * 864e5;
+    if (b.son) return false;
+    return !R.some(m => (m.h === x.tm || m.a === x.tm) && m.t > b.t0 + 6 * 3600e3 && stt(m).k === 'ft');
+  }
+  function takimNotlari(takimlar, baslik) {
+    let l = []; try { l = (typeof NW !== 'undefined' && Array.isArray(NW)) ? NW.filter(x => x && takimlar.has(x.tm) && notSuruyor(x)) : []; } catch (e) { }
+    if (!l.length) return '';
+    l.sort((a, b) => String(b.d || '').localeCompare(String(a.d || '')));
+    const tarih = d => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(d || ''); return m ? `${m[3]}.${m[2]}` : E(d || ''); };
+    return `<section class="kmc dzhaber kmnot"><h3>${E(baslik || 'Takım notları')}</h3>${l.slice(0, 6).map(x => `<div class="dzhb"><div class="dzhb-u"><b data-tm="${E(x.tm)}">${E(x.tm)}</b><small>${tarih(x.d)}</small></div><p>${E(x.x)}</p><small>Kaynak: ${E(x.src || '')}</small></div>`).join('')}</section>`;
+  }
+  function ligTakimlari(c) { const s = new Set(Object.keys(TM).filter(n => TM[n].l === c)); R.forEach(m => { if (m.c === c) { s.add(m.h); s.add(m.a); } }); return s; }
   let LFX = { c: '', i: -1 };
   function ligFikstur(c) {
     const ms = R.filter(m => m.c === c).sort((a, b) => a.t - b.t);
@@ -891,7 +921,7 @@
         const yeniTablo = tabloLig(c, []);
         if (eskiTablo && yeniTablo) eskiTablo.outerHTML = yeniTablo;
         const fx = ligFikstur(c), ec = (eskiTablo && yeniTablo) ? ligEnCoklar(c) : '';
-        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ec + `<div class="mside">${fx}${ligTahminKarti(c)}</div>`;
+        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ec + `<div class="mside">${fx}${ligTahminKarti(c)}${takimNotlari(ligTakimlari(c))}</div>`;
       } catch (e) { return eski; }
     };
   }
@@ -962,7 +992,7 @@
     const s = e.target.closest && e.target.closest('[data-kmars]');
     if (s) { e.preventDefault(); e.stopPropagation(); ARS = s.dataset.kmars; aramaGoster(); return; }
     const lg = e.target.closest && e.target.closest('[data-kmlg]');
-    if (lg) { e.preventDefault(); e.stopPropagation(); aramaKapat(); const c = lg.dataset.kmlg; try { const nb = document.querySelector('nav button[data-t="l"]'); if (nb && tab !== 'l') nb.click(); Q = LGNM[c]; QX = ''; const q = document.getElementById('q'); if (q) q.value = Q; render(); } catch (x) { } return; }
+    if (lg) { e.preventDefault(); e.stopPropagation(); aramaKapat(); const c = lg.dataset.kmlg; try { const nb = document.querySelector('nav button[data-t="l"]'); if (nb && tab !== 'l') nb.click(); Q = (window.kmLigQ ? window.kmLigQ(c) : LGNM[c]); QX = ''; const q = document.getElementById('q'); render(); if (q) q.value = LGNM[c] || Q; } catch (x) { } return; }
     if (e.target.closest && e.target.closest('#kmar')) { setTimeout(aramaKapat, 0); return; }
     if (!(e.target.closest && e.target.closest('#q'))) aramaKapat();
   }, true);

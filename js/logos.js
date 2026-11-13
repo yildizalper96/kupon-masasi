@@ -27,3 +27,7 @@
     return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
   };
 })();
+// Lig sayfasini acmak icin arama metni: yalnizca bu lige eslesen ad (or. "Serie A" Brezilya Serie A ile de eslesir)
+window.kmLigQ = function (c) {
+  try { const l = [LGNM[c]].concat(LGAN[c] || []); const tk = new Set(); R.forEach(m => { tk.add(nzq(m.h)); tk.add(nzq(m.a)); }); const ok = a => { const r = lgm(a); return r.length === 1 && r[0] === c; }; return l.find(a => ok(a) && !tk.has(nzq(a))) || l.find(ok) || LGNM[c]; } catch (e) { return (typeof LGNM !== 'undefined' && LGNM[c]) || c; }
+};

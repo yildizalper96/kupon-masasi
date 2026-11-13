@@ -47,7 +47,7 @@
     // Ligler sekmesine gec, ligi ac (uygulamanin kendi [data-lg] davranisiyla ayni)
     const nb = document.querySelector('nav button[data-t="l"]');
     if (nb && typeof tab !== 'undefined' && tab !== 'l') nb.click();
-    try { Q = LGNM[c]; QX = ''; const e = document.getElementById('q'); if (e) e.value = Q; render(); window.scrollTo(0, 0); } catch (e) { }
+    try { Q = (window.kmLigQ ? window.kmLigQ(c) : LGNM[c]); QX = ''; const e = document.getElementById('q'); render(); if (e) e.value = LGNM[c] || Q; window.scrollTo(0, 0); } catch (e) { }
   }
   function solCiz() {
     let kodlar = ONE;
@@ -93,7 +93,7 @@
     sag.innerHTML = '';
     kutular.forEach(k => sag.appendChild(k));
     const cp = sag.querySelector('#cpd'); if (cp && !cp.dataset.dzAcik) { cp.open = true; cp.dataset.dzAcik = '1'; }
-    if (cp) haberEkle();
+    // takim notlari artik yalnizca takim ve lig sayfasinda (pages.js takimNotlari)
   }
   // ana sayfa sag sutun: FotMob "Haberler" karsiligi = uygulamadaki kaynakli takim notlari (NW), son 4; fotograf yok
   function haberEkle() {
