@@ -114,6 +114,7 @@
     gol: '<svg class="kmic-g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#111" stroke-width="1.6"/><path d="M12 7.2l3.3 2.4-1.3 3.9h-4l-1.3-3.9z" fill="#111"/></svg>',
     cik: '<svg class="kmic-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#e5534b"/><path d="M14 7l-5 5 5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     gir: '<svg class="kmic-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#2f9e63"/><path d="M10 7l5 5-5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    krampon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 15.5c0-1.2.8-2 2-2.2l5.5-.8 2.2-4.8c.3-.7 1.2-.9 1.8-.4l2.3 1.9 3.2.6c1 .2 1.7 1 1.7 2v2.7c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2z"/><path d="M6 19h2v1.6H6zM10.5 19h2v1.6h-2zM15 19h2v1.6h-2z"/></svg>',
     deg: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3-3" stroke="#2f9e63"/><path d="M20 15H7l3 3" stroke="#e5534b"/></svg>',
   };
   // 1) Onemli istatistik (topa sahip olma cubugu + secili satirlar)
@@ -541,7 +542,7 @@
     const s = sonIlk11(n); if (!s) return '';
     const [a, b] = renk(n);
     const kisi = o => { const e = o.e, pr = e.ps && e.ps.p, g = pr ? +pr[3] || 0 : 0, as = pr ? +pr[4] || 0 : 0, sp = !o.r ? sezonPuani(e) : null, pu = o.r || (sp && sp.o);
-      return `<div class="kmi1p" ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + (e.ad || e.n))}"`}>${pu ? puanHap((+pu).toFixed(1)) : ''}<span class="kmav buyuk" style="--ka:${a};--kb:${b}"><i>${E(o.no || basH(o.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad || e.n }))}</span>${g || as ? `<span class="kmi1s">${as ? `<em>🅰${as}</em>` : ''}${g ? `<em>⚽${g}</em>` : ''}</span>` : ''}<b>${o.no ? `<i>${E(o.no)}</i> ` : ''}${E(String(o.n).split(' ').pop())}</b></div>`; };
+      return `<div class="kmi1p" ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + (e.ad || e.n))}"`}>${pu ? puanHap((+pu).toFixed(1)) : ''}<span class="kmav buyuk" style="--ka:${a};--kb:${b}"><i>${E(o.no || basH(o.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad || e.n }))}</span>${g || as ? `<span class="kmi1s">${as ? `<em title="Asist">${icon.krampon}${as}</em>` : ''}${g ? `<em title="Gol">${icon.gol}${g}</em>` : ''}</span>` : ''}<b>${o.no ? `<i>${E(o.no)}</i> ` : ''}${E(String(o.n).split(' ').pop())}</b></div>`; };
     return card('kmi1', `<div class="kmb2"><h3 class="kmb">Sezon istatistikleri</h3><small>Son ilk 11</small></div><div class="kmi1s-saha"><i class="kmi1-ceza"></i>${s.satirlar.map(r => `<div class="kmi1r">${r.map(kisi).join('')}</div>`).join('')}</div><p class="kmkay">Kaynak: ${E(s.kay)}. Gol/asist sezon toplamı.</p>`);
   }
   // en cok puan / gol / asist (FotMob uc sutun)
@@ -835,6 +836,25 @@
     return card('kmec3', `<div class="kmuc">${pu.length ? kol('En çok puan alan', pu) : kol('En çok süre alan', top(e => +e.ps.p[2]))}${kol('En çok gol atan', top(e => +e.ps.p[3]))}${kol('En çok asist yapan', top(e => +e.ps.p[4]))}</div>
       <p class="kmkay">Kaynak: ${E(kay || 'kayıtlı veri')}${genel ? ' (tüm yarışmalar)' : ''}${pu.length ? '; puan: sitede biriken maçlar' : ''}.</p>`);
   }
+  // lig tahmin karnesi: uygulamanin lgStats hesabiyla ayni (LGR kayitlari + pso sonucu), risk bandina gore
+  function ligTahminKarti(c) {
+    if (typeof LGR === 'undefined' || typeof pso !== 'function') return '';
+    const B = [['Düşük riskli', p => p >= 0.7], ['Dengeli', p => p >= 0.45 && p < 0.7], ['Yüksek oran', p => p < 0.45]];
+    const t = { tot: 0, h: 0, m: 0, w: 0 }, b = B.map(() => ({ tot: 0, h: 0, m: 0 }));
+    R.filter(x => x.c === c).forEach(mm => { const k = [mm.c, mm.h, mm.a].join('|'); LGR.filter(r => r.mk === k).forEach(r => {
+      t.tot++; const z = pso(mm, { k: r.k, p: r.p }); const i = B.findIndex(x => x[1](+r.p || 0));
+      if (i >= 0) b[i].tot++;
+      if (z === 'hit') { t.h++; if (i >= 0) b[i].h++; } else if (z === 'miss') { t.m++; if (i >= 0) b[i].m++; } else t.w++;
+    }); });
+    if (!t.tot) return card('kmkarne', `<div class="kmmh kmmh1"><div><h3>Tahmin karnesi</h3><small>${E(ligAd(c))}</small></div></div><p class="kmbos">Bu lig için kayıtlı tahmin yok.</p>`);
+    const bit = t.h + t.m, yz = bit ? Math.round(t.h / bit * 100) : null;
+    const sat = (ad, x) => { const s = x.h + x.m; return `<div class="kmkn"><span>${ad}</span><em>${x.tot}</em><em>${s ? `${x.h}/${s}` : '–'}</em><b class="${s ? (x.h / s >= 0.7 ? 'g' : x.h / s >= 0.5 ? 'o' : 'k') : ''}">${s ? '%' + Math.round(x.h / s * 100) : '–'}</b></div>`; };
+    return card('kmkarne', `<div class="kmmh kmmh1"><div><h3>Tahmin karnesi</h3><small>${E(ligAd(c))}</small></div></div>
+      <div class="kmkn-o"><b>${yz == null ? '–' : '%' + yz}</b><small>${bit ? `${t.h} / ${bit} tahmin tuttu` : 'Henüz sonuçlanan tahmin yok'}</small></div>
+      ${bit ? `<div class="kmkn-bar"><i style="flex:${t.h}"></i><i style="flex:${t.m}"></i>${t.w ? `<i style="flex:${t.w}"></i>` : ''}</div><div class="kmkn-l"><span><i class="g"></i>Tuttu ${t.h}</span><span><i class="k"></i>Tutmadı ${t.m}</span>${t.w ? `<span><i></i>Bekliyor ${t.w}</span>` : ''}</div>` : ''}
+      <div class="kmkn kmkn-b"><span></span><em>Tahmin</em><em>Tuttu</em><b>Oran</b></div>${B.map((x, i) => sat(x[0], b[i])).join('')}
+      <p class="kmkay">Toplam ${t.tot} model tahmini; oran yalnızca sonuçlanan maçlardan. Bahis tavsiyesi değildir.</p>`);
+  }
   let LFX = { c: '', i: -1 };
   function ligFikstur(c) {
     const ms = R.filter(m => m.c === c).sort((a, b) => a.t - b.t);
@@ -871,7 +891,7 @@
         const yeniTablo = tabloLig(c, []);
         if (eskiTablo && yeniTablo) eskiTablo.outerHTML = yeniTablo;
         const fx = ligFikstur(c), ec = (eskiTablo && yeniTablo) ? ligEnCoklar(c) : '';
-        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ec + ((fx || ec) ? `<div class="mside">${fx}</div>` : ligYan(c));
+        return baslik + `<div class="kmeski">${t.innerHTML}</div>` + ec + `<div class="mside">${fx}${ligTahminKarti(c)}</div>`;
       } catch (e) { return eski; }
     };
   }

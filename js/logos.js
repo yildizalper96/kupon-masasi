@@ -24,6 +24,6 @@
   window.kmLigLogo = function (c, yedek, cls) {
     const id = window.kmLigId(c);
     if (!id) return yedek || '';
-    return `<span class="kmlgl ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
+    return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
   };
 })();

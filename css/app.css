@@ -1121,15 +1121,15 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmdvs button.on{background:var(--ink);color:var(--sf)}
 }
 /* Lig logolari (logos.js kmLigLogo): yuklenince yedek (bayrak) gizlenir; koyu logolar icin beyaz daire zemin */
-.kmlgl{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%}
-.kmlgl>img{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);object-fit:contain;opacity:0}
-.kmlgl.ok{background:#fff;box-shadow:0 0 0 1px var(--ln)}
-.kmlgl.ok>img{opacity:1}
-.kmlgl.ok>:not(img){visibility:hidden}
-.kmlgl>svg,.kmlgl>i{width:100%;height:100%}
-.kmlgl.buyuk{width:56px;height:56px}
-.kmlgl.orta{width:28px;height:28px}
-.kmlgl.kucuk{width:16px;height:16px}
+.kmlo{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;overflow:hidden}
+.kmlo>img{position:absolute;inset:16%;width:68%;height:68%;object-fit:contain;opacity:0}
+.kmlo.ok{background:#fff;box-shadow:0 0 0 1px var(--ln)}
+.kmlo.ok>img{opacity:1}
+.kmlo.ok>:not(img){visibility:hidden}
+.kmlo>svg,.kmlo>i{width:100%;height:100%}
+.kmlo.buyuk{width:56px;height:56px}
+.kmlo.orta{width:28px;height:28px}
+.kmlo.kucuk{width:16px;height:16px}
 /* Arama acilir listesi (pages.js) */
 #kmar{position:fixed;z-index:200;width:600px;max-height:min(70vh,640px);display:flex;flex-direction:column;background:var(--sf);border:1px solid var(--ln);border-radius:var(--rk,8px);box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden}
 #kmar[hidden]{display:none}
@@ -1197,6 +1197,32 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmlf span.b{justify-content:flex-end}
   .kmlf em{font-style:normal;text-align:center;font-weight:600}
   .kmlf .bd{width:20px!important;height:20px!important;line-height:20px!important;font-size:6px!important;flex:none}
-  .kmlh .kmlgl.buyuk{width:56px;height:56px}
-  .kmh-lig .kmlgl{margin-right:4px}
+  .kmlh .kmlo.buyuk{width:56px;height:56px}
+  .kmh-lig .kmlo{margin-right:4px}
+}
+/* Lig sayfasi: tahmin karnesi (fikstur kartiyla ayni dil) */
+@media(min-width:1100px){
+  .kmmh1{grid-template-columns:1fr!important}
+  .kmkn-o{text-align:center;padding:6px 18px 12px}
+  .kmkn-o b{display:block;font:600 30px var(--f);color:var(--ok)}
+  .kmkn-o small{color:var(--mut);font-size:13px}
+  .kmkn-bar{display:flex;gap:3px;height:8px;margin:4px 18px 8px;border-radius:999px;overflow:hidden}
+  .kmkn-bar i{background:var(--sf2)}
+  .kmkn-bar i:first-child{background:#2f9e63}
+  .kmkn-bar i:nth-child(2){background:#D63630}
+  .kmkn-l{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--mut);padding:0 18px 12px}
+  .kmkn-l i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sf2);margin-right:5px}
+  .kmkn-l i.g{background:#2f9e63}.kmkn-l i.k{background:#D63630}
+  .kmkn{display:grid;grid-template-columns:1fr 56px 56px 52px;align-items:center;gap:6px;padding:11px 18px;border-top:1px solid var(--ln);font-size:13.5px}
+  .kmkn em{font-style:normal;text-align:center}
+  .kmkn b{text-align:right;font-weight:600}
+  .kmkn b.g{color:#2f9e63}.kmkn b.o{color:var(--warn)}.kmkn b.k{color:#D63630}
+  .kmkn-b{color:var(--mut);font-size:12px;padding:8px 18px}
+  .kmkn-b b{font-weight:500}
+}
+@media(min-width:1100px){
+  .kmi1s em{display:inline-flex;align-items:center;gap:3px;background:rgba(0,0,0,.6);color:#fff;font:600 10.5px var(--f);padding:1px 6px 1px 4px}
+  .kmi1s em svg{width:11px;height:11px}
+  .kmi1s em .kmic-g circle{stroke:#fff}
+  .kmi1p>b{font:600 12px var(--f)}
 }

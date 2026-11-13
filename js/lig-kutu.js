@@ -32,7 +32,7 @@
       boxes[0].parentNode.insertBefore(grid, boxes[0]);
       boxes.forEach(function (b) {
         grid.appendChild(b);
-        var id = window.KMX && KMX.lgId && KMX.lgId[b.getAttribute('data-lg2')], bd = b.querySelector('.bd');
+        var kod = b.getAttribute('data-lg2'), id = (window.KMX && KMX.lgId && KMX.lgId[kod]) || (window.kmLigId && window.kmLigId(kod)), bd = b.querySelector('.bd');
         if (!id || !bd) return;
         var tile = document.createElement('span'); tile.className = 'kmlgl';
         var img = new Image(); img.alt = ''; img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
