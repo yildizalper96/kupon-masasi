@@ -91,3 +91,20 @@ export function normalize(f, hid, aid) {
   }
   return { st, fin: FIN.has(st), min: el, g: [gh, ga], ht: htg, ev, t, sx, p, px };
 }
+
+// /fixtures/statistics?fixture=<id>&half=true cevabi -> { "1": [[etiket,ev,dep]...], "2": [...] } (ayni STAT etiketleri; live.t ile ayni bicim).
+// Cevapta her takim icin statistics (tum mac), statistics_1h, statistics_2h bulunur. Bos ise null doner (uydurma yok).
+export function halves(resp, hid, aid) {
+  const sh = (resp || []).find(x => x.team?.id === hid) || (resp || [])[0], sa = (resp || []).find(x => x.team?.id === aid) || (resp || [])[1];
+  if (!sh || !sa) return null;
+  const out = {};
+  for (const [key, h] of [['statistics_1h', '1'], ['statistics_2h', '2']]) {
+    const rows = [];
+    if (Array.isArray(sh[key]) && Array.isArray(sa[key])) for (const [ty, lb] of STAT) {
+      const vh = NUM(sh[key].find(x => x.type === ty)?.value), va = NUM(sa[key].find(x => x.type === ty)?.value);
+      if (vh != null && va != null) rows.push([lb, vh, va]);
+    }
+    if (rows.length) out[h] = rows;
+  }
+  return Object.keys(out).length ? out : null;
+}

@@ -6,7 +6,7 @@
 // Not   : bahisci adi ve ham oran SAKLANMAZ; yalnizca bahiscilerin ortalama, marji cikarilmis olasiliklari.
 import fs from 'node:fs';
 import path from 'node:path';
-import { normalize } from './match-phases.mjs';
+import { normalize, halves } from './match-phases.mjs';
 import { addMatch } from './season-agg.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -136,6 +136,16 @@ for (const m of cand) {
       const lv = normalize(f, e.hid, e.aid);
       e.live = lv; e.liveAt = new Date().toISOString();
       if (!e.luRaw && luKoy(e, f.lineups)) log.push(`${m.h}-${m.a}: ilk 11 mac verisinden alindi`);
+      if (lv.fin) {
+        // devre bazli istatistik (1. / 2. yari): 1 ek istek, kota azsa atlanir (bir sonraki calistirmada thTry<2 ise tekrar denenir)
+        if (canSpend() && !e.th && (e.thTry || 0) < 2) {
+          try {
+            const hj = await api('/fixtures/statistics?fixture=' + m.id + '&half=true');
+            const th = halves(hj.response, e.hid, e.aid); e.thTry = (e.thTry || 0) + 1;
+            if (th) { lv.th = th; e.th = true; }
+          } catch (x) { log.push('devre istatistigi hata: ' + String(x.message).slice(0, 80)); }
+        } else if (e.live && e.live.th) lv.th = e.live.th;
+      }
       if (lv.fin) { e.ftOk = true; try { addMatch(root, { id: m.id, c: m.c, h: e.h, a: e.a, live: lv }); } catch (x) { log.push('sezon toplami hata: ' + x.message); } log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
       else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
       else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
