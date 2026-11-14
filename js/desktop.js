@@ -166,6 +166,65 @@
     });
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); } }).observe(app, { childList: true });
+  // ===== TELEFON (<=1099px): ust bar (Canli + takvim + filtre), gun seridi, alttaki arama dugmesi =====
+  const DAR = matchMedia('(max-width:1099px)');
+  const SV = (d, w) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const anaSayfa = () => {
+    try { det = null; PMV = null; Q = ''; QX = ''; const e = document.getElementById('q'); if (e) e.value = ''; } catch (e) { }
+    const nb = document.querySelector('nav button[data-t="k"]');
+    try { if (typeof tab !== 'undefined' && tab === 'k') render(); else if (nb) nb.click(); } catch (e) { if (nb) nb.click(); }
+  };
+  const hr = document.querySelector('header .hr');
+  let canliB = null, filB = null;
+  if (hr && !hr.querySelector('.kmust')) {
+    const u = document.createElement('div'); u.className = 'kmust';
+    u.innerHTML = `<div class="kmust-p"><button class="kmcanli" type="button"><i></i>Canlı</button><button class="kmtakvim" type="button" aria-label="Bugüne dön">${SV('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4"/>', 1.8)}<b>${new Date().getDate()}</b></button></div><button class="kmfil" type="button" aria-label="Filtre">${SV('<path d="M4 6h16M7 12h10M10 18h4"/>', 2.2)}</button>`;
+    hr.appendChild(u);
+    const kapa = document.createElement('button'); kapa.className = 'kmarakapa'; kapa.type = 'button'; kapa.textContent = 'Vazgeç';
+    hr.appendChild(kapa);
+    canliB = u.querySelector('.kmcanli'); filB = u.querySelector('.kmfil');
+    canliB.onclick = () => { if (!document.getElementById('lv')) anaSayfa(); const b = document.getElementById('lv'); if (b) b.click(); };
+    u.querySelector('.kmtakvim').onclick = () => { try { day = dk(new Date()); } catch (e) { } anaSayfa(); window.scrollTo(0, 0); };
+    filB.onclick = () => { if (!document.getElementById('flt')) anaSayfa(); const b = document.getElementById('flt'); if (b) b.click(); };
+    kapa.onclick = () => { document.body.classList.remove('kmaraac'); const q = document.getElementById('q'); if (q && q.value) { q.value = ''; q.dispatchEvent(new Event('input', { bubbles: true })); } };
+  }
+  if (!document.getElementById('kmara')) {
+    const a = document.createElement('button'); a.id = 'kmara'; a.type = 'button'; a.setAttribute('aria-label', 'Ara');
+    a.innerHTML = SV('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>', 2.2);
+    a.onclick = () => { document.body.classList.add('kmaraac'); window.scrollTo(0, 0); const q = document.getElementById('q'); if (q) setTimeout(() => q.focus(), 30); };
+    document.body.appendChild(a);
+  }
+  const AY = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+  const gunEt = d => {
+    const g = n => dk(new Date(Date.now() + n * 864e5));
+    if (d === g(0)) return 'Bugün'; if (d === g(1)) return 'Yarın'; if (d === g(-1)) return 'Dün';
+    const x = new Date(d + 'T12:00'); return x.toLocaleDateString('tr-TR', { weekday: 'short' }) + ' ' + x.getDate() + ' ' + AY[x.getMonth()];
+  };
+  function gunler() {
+    try {
+      const t = dk(new Date()), LDS = new Set((typeof LGR !== 'undefined' ? LGR : []).map(r => dk(new Date(r.t))));
+      return [...new Set(R.filter(m => dk(m.t) >= t || LDS.has(dk(m.t))).map(m => dk(m.t)))].sort();
+    } catch (e) { return []; }
+  }
+  function gunSeridi() {
+    if (!DAR.matches) return;
+    const stk = app.querySelector(':scope > .stk');
+    if (!stk || app.querySelector(':scope > .kmgun')) return;
+    const ds = gunler(); if (!ds.length) return;
+    const t = dk(new Date()), cur = typeof day !== 'undefined' ? day : '';
+    let l = [...ds.filter(d => d < t).slice(-7), ...ds.filter(d => d >= t)];
+    if (cur && !l.includes(cur) && ds.includes(cur)) l = [...l, cur].sort();
+    const el = document.createElement('div'); el.className = 'kmgun';
+    el.innerHTML = l.map(d => `<button type="button" data-kmgun="${esc(d)}" class="${d === cur ? 'on' : ''}">${esc(gunEt(d))}</button>`).join('');
+    stk.before(el);
+    el.querySelectorAll('[data-kmgun]').forEach(b => b.onclick = () => { try { day = b.dataset.kmgun; render(); } catch (e) { } });
+    const on = el.querySelector('.on'); if (on) el.scrollLeft = on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2;
+  }
+  const durumEsle = () => {
+    try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
+  };
+
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); durumEsle(); } }).observe(app, { childList: true });
+  gunSeridi(); durumEsle();
   solCiz(); sagCiz();
 })();

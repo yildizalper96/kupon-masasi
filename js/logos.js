@@ -4,10 +4,13 @@
 // Not: logolar ilgili kuluplerin markasidir; yayin hakki API sartlarina gore kullanicinin sorumlulugundadir.
 (function () {
   let T = {};
+  // milli takim (Uluslar Ligi) logolari bayraktir: telefonda yuvarlak kesilir (class mf)
+  let MS = null, MN = -1;
+  const milli = n => { try { if (MN !== R.length) { MS = new Set(); R.forEach(m => { if (m.c === 'UNL') { MS.add(m.h); MS.add(m.a); } }); MN = R.length; } return MS.has(n); } catch (e) { return false; } };
   window.kmLogo = function (n) {
     const id = T[n];
     if (!id) return '';
-    return `<img class='tlg' src='https://media.api-sports.io/football/teams/${id}.png' alt='' loading='lazy' decoding='async' referrerpolicy='no-referrer' onload='this.parentNode.classList.add("hl")' onerror='this.remove()'>`;
+    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' loading='lazy' decoding='async' referrerpolicy='no-referrer' onload='this.parentNode.classList.add("hl")' onerror='this.remove()'>`;
   };
   fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.t) return;

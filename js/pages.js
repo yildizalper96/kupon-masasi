@@ -57,6 +57,43 @@
       <div class="kmsek">${sek.map(([k, l]) => `<button data-dt="${k}" class="${dt === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     </div>`;
   }
+  // ---- TELEFON (<=1099px) mac basligi: geri dugmesi, buyuk logolar alt alta ad, skor, golculer; ayri yapiskan serit (kucuk skor + sekmeler) ----
+  const DAR = matchMedia('(max-width:1099px)');
+  function macBaslikMobil(m) {
+    const s = stt(m), x = xm(m), gun = gunEtiket(m.t), canli = s.k === 'live' || s.k === 'on';
+    const alt = n => { const r = x.rank && (n === m.h ? x.rank.h : x.rank.a); if (r) return E(r); const t = TM[n]; return t && t.r && t.l === m.c ? `${t.r}. sırada` : ''; };
+    const durum = s.k === 'ft' ? 'Maç sonu' : canli ? 'Canlı' : 'Son skor';
+    const orta = s.sc ? `<b class="kmskor">${s.sc[0]} - ${s.sc[1]}</b><span class="${canli ? 'cn' : ''}">${durum}</span>`
+      : `<b class="kmskor saat">${hm(m.t)}</b><span>${E(gun || kisaTarih(m.t))}</span>`;
+    const tk = (n, c) => { const a = alt(n); return `<div class="kmtk ${c}">${bd(n, 1)}<b data-tm="${E(n)}">${E(n)}</b>${a ? `<small>${a}</small>` : ''}</div>`; };
+    const sek = [['p', 'Bilgiler'], ['k', 'Kadro'], ['i', 'İstatistik'], ['z', 'Tablo'], ['m', 'Maçlar'], ['s', 'Seriler']];
+    const tur = x.round || m.rd;
+    return `<div class="kmc kmh kmhm">
+      <div class="kmhm-ust"><button class="kmgeri" data-bk="1" aria-label="Geri">${ic.geri}</button><div class="kmhm-lig">${ligLg(m.c, 'orta')}<span>${E(ligAd(m.c))}${tur ? ' · ' + E(tur) : ''}</span></div><span class="kmhm-bos"></span></div>
+      <div class="kmh-skor">${tk(m.h, 'ev')}<div class="kmorta">${orta}</div>${tk(m.a, 'dep')}</div>
+      ${typeof dgl === 'function' ? dgl(m) : ''}
+    </div>
+    <div class="kmyap"><div class="kmmini"><button class="kmgeri" data-bk="1" aria-label="Geri">${ic.geri}</button><div class="kmmini-s">${bd(m.h, 1)}<b>${s.sc ? s.sc[0] + ' - ' + s.sc[1] : hm(m.t)}</b>${bd(m.a, 1)}</div><span class="kmhm-bos"></span></div>
+      <div class="kmsek">${sek.map(([k, l]) => `<button data-dt="${k}" class="${dt === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+  }
+  // telefon Bilgiler sekmesi: lig/tur ve tarih karti (veri yoksa satir yok)
+  function macBilgiKarti(m) {
+    const x = xm(m), tur = x.round || m.rd, gun = gunEtiket(m.t);
+    return card('kmmbilgi', `<div class="kmmb-r">${ligLg(m.c, 'orta')}<b>${E(ligAd(m.c))}</b>${tur ? `<span>· ${E(tur)}</span>` : ''}</div>
+      <div class="kmmb-r"><i class="kmmb-i">${ic.tarih}</i><b>${E(gun || uzunTarih(m.t))}</b><span>${hm(m.t)}</span></div>
+      ${x.tv ? `<div class="kmmb-r"><i class="kmmb-i">${ic.tv}</i><b>${E(x.tv)}</b></div>` : ''}`);
+  }
+  // yapiskan seritte kucuk skor: buyuk baslik ekrandan cikinca gorunur
+  addEventListener('scroll', () => {
+    const y = document.querySelector('#app > .kmyap'), s = document.querySelector('#app > .kmhm .kmh-skor');
+    if (y && s) y.classList.toggle('mini', s.getBoundingClientRect().bottom < 8);
+  }, { passive: true });
+  // puan tablosu gorunumu (telefon): Kisa / Tam / Form
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-kmtv]'); if (!b) return;
+    const k = b.closest('.kmtablo'); if (!k) return;
+    k.dataset.v = b.dataset.kmtv; k.querySelectorAll('[data-kmtv]').forEach(x => x.classList.toggle('on', x === b));
+  });
   // ---- oyuncu fotografi (API-Football): kimlik ya da adres varsa; yuklenmezse bas harf dairesi kalir ----
   const fotoUrl = (takim, p) => {
     if (p && p.ph) return p.ph;
@@ -239,7 +276,7 @@
     return l.sort((p, q) => q.t - p.t).slice(0, 5);
   }
   function formKarti(m) {
-    const sat = n => formListesi(n, m).map(r => `<div class="kmfs"><span data-tm="${E(r.ev)}">${E(r.ev)}</span><i class="kmhap ${sonuc(r.r)}">${r.sk}</i><span data-tm="${E(r.dep)}">${E(r.dep)}</span></div>`).join('') || '<p class="kmbos">Form verisi yok.</p>';
+    const sat = n => formListesi(n, m).map(r => `<div class="kmfs"><span data-tm="${E(r.ev)}" title="${E(r.ev)}">${bd(r.ev)}<em>${E(r.ev)}</em></span><i class="kmhap ${sonuc(r.r)}">${r.sk}</i><span data-tm="${E(r.dep)}" title="${E(r.dep)}">${bd(r.dep)}<em>${E(r.dep)}</em></span></div>`).join('') || '<p class="kmbos">Form verisi yok.</p>';
     return card('kmform', `<h3 class="kmb orta">Takım formu</h3><div class="kmiki"><div>${sat(m.h)}</div><div>${sat(m.a)}</div></div>`);
   }
   // Karsilasmalar (FotMob H2H): galibiyet/beraberlik ozeti + son maclar
@@ -395,7 +432,18 @@
     const eski = eskiDetail(m);
     if (!MQ.matches) return eski;
     const p = eskiParcalar(m, eski), x = xm(m);
-    const yan = `<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
+    if (DAR.matches) {
+      // telefon: tek akis (FotMob mobil sirasi); sag sutun kartlari Bilgiler sekmesinin icinde
+      let ana;
+      if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + macBilgiKarti(m) + stadKarti(x.venue) + hakemKarti(x.ref) + tabloLig(m.c, [m.h, m.a]) + sonrakiMac(m) + formKarti(m) + kimKazanir(m) + h2hKarti(m) + p.tbx + (typeof kpBox === 'function' ? kpBox(m) : '') + bilgiKarti(m) + p.nwb;
+      else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
+      else if (dt === 'k') ana = kadroKarti(m);
+      else if (dt === 'i') ana = istatistikSekmesi(m);
+      else if (dt === 'm') ana = sonMaclarKarti(m) + h2hKarti(m);
+      else ana = `<div class="kmeski">${p.kalan}</div>`;
+      return sahaFoto(macBaslikMobil(m) + ana);
+    }
+    const yan =`<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + kadroKarti(m) + formKarti(m) + sonrakiMac(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
@@ -480,7 +528,8 @@
       return `<tr class="${hl.has(k) ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.l}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
         <td class="fm">${f.map(r => `<i class="kmkare ${sonuc(r.r)}" title="${E(r.t)}">${r.r}</i>`).join('')}</td>${nxh}</tr>`;
     };
-    return card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><table><thead><tr><th>#</th><th class="tk"></th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${rows.map(satir).join('')}</tbody></table>`);
+    const tv = DAR.matches ? `<div class="kmtv"><button data-kmtv="k" class="on">Kısa</button><button data-kmtv="t">Tam</button><button data-kmtv="f">Form</button></div>` : '';
+    return card('kmtablo', `${tv}<h3 class="kmb">${DAR.matches ? ligLg(c, 'orta') : ''}${E(ligAd(c))}</h3><table><thead><tr><th>#</th><th class="tk">Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${rows.map(satir).join('')}</tbody></table>`);
   }
   function tabloKutusu(n, vurgu) {
     const t = TM[n];
@@ -1020,4 +1069,5 @@
     if (fv) { try { favTgl(fv.dataset.kmfav); } catch (x) { } render(); }
   }, true);
   MQ.addEventListener('change', () => { try { render(); } catch (e) { } });
+  DAR.addEventListener('change', () => { try { render(); } catch (e) { } });
 })();
