@@ -131,6 +131,9 @@ async function api(p) {
 {
   const st = await fetch(HOST + '/status', { headers: { 'x-apisports-key': KEY } }).then(r => r.json()).catch(() => null);
   const rq = st?.response?.requests;
+  if (st?.errors && (st.errors.requests || (Array.isArray(st.errors) && st.errors.length))) {
+    console.log('Gunluk istek siniri dolmus, istek yapilmadi.'); process.exit(0);
+  }
   if (rq && Number.isFinite(rq.limit_day) && rq.limit_day - rq.current < 10) {
     console.log(`Kota dolmak uzere (${rq.current}/${rq.limit_day}), istek yapilmadi.`);
     process.exit(0);
