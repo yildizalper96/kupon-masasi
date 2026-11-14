@@ -145,9 +145,8 @@
   // lig kartlarini ac/kapa (FotMob gibi baslikta ok); durum oturum boyunca lig adina gore hatirlanir
   const kapali = new Set((() => { try { return JSON.parse(sessionStorage.getItem('dzKapali') || '[]'); } catch (e) { return []; } })());
   const kartAd = b => (b.querySelector(':scope > .lg2 > div') || {}).childNodes?.[0]?.textContent?.trim() || '';
-  const kapaliUygula = () => { if (!MQ.matches) return; app.querySelectorAll(':scope > .box').forEach(b => { if (b.querySelector(':scope > .lg2')) b.classList.toggle('dzkapali', kapali.has(kartAd(b))); }); };
+  const kapaliUygula = () => { app.querySelectorAll(':scope > .box').forEach(b => { if (b.querySelector(':scope > .lg2')) b.classList.toggle('dzkapali', kapali.has(kartAd(b))); }); };
   app.addEventListener('click', e => {
-    if (!MQ.matches) return;
     const h = e.target.closest && e.target.closest('#app > .box > .lg2');
     if (!h || e.target.closest('[data-tm],[data-fav],button,a')) return;
     const b = h.parentElement, ad = kartAd(b); if (!ad || !b.querySelector(':scope > .mr')) return;
@@ -158,7 +157,6 @@
 
   // lig karti basliklarinda harf rozeti yerine yuvarlak bayrak (lig adindan kod bulunur; bayragi yoksa rozet kalir)
   const bayrakUygula = () => {
-    if (!MQ.matches) return;
     let ad2kod = {}; try { Object.keys(LN).forEach(c => { const n = LN[c].split(' – ').pop(); if (n) ad2kod[n] = c; }); } catch (e) { return; }
     app.querySelectorAll(':scope > .box > .lg2').forEach(h => {
       if (h.dataset.dzb) return; h.dataset.dzb = '1';

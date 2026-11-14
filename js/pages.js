@@ -5,7 +5,7 @@
 // Ek veri yoksa ilgili kart HIC gosterilmez; veri uydurulmaz.
 (function () {
   if (typeof detail !== 'function' || typeof teamView !== 'function') return;
-  const MQ = matchMedia('(min-width:1100px)');
+  const MQ = matchMedia('(min-width:0px)'); // masaustu tasarimi her genislikte (telefon: tek sutun, css/app.css 'Mobil' blogu)
   let X = { matches: {}, teams: {} };
   fetch('data/extra/latest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (j && typeof j === 'object') { X = { matches: j.matches || {}, teams: j.teams || {}, at: j.at }; try { render(); } catch (e) { } }
