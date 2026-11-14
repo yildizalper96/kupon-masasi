@@ -54,6 +54,7 @@ const D = fs.existsSync(detPath) ? JSON.parse(fs.readFileSync(detPath, 'utf8')) 
 D.m = D.m || {}; D.sq = D.sq || {};
 
 const now = Date.now();
+const EURO = new Set(['CL', 'EL', 'ECL', 'USC']); // Avrupa kulup maclari: resmi 11 daha erken aciklanir (80 dk), digerlerinde 58 dk
 const NATIONAL = new Set(['UNL']); // kadro listesi yalnizca milli takim maclari icin (kulupte ilk 11 yeterli)
 const HRS = h => h * 3600e3;
 const age = at => (at ? now - Date.parse(at) : Infinity);
@@ -190,8 +191,8 @@ for (const m of cand) {
     } catch (er) { log.push('eksik hata: ' + String(er.message).slice(0, 80)); }
   }
 
-  // ilk 11 + yedekler: baslamasina 75 dk kala ile baslamasindan 15 dk sonrasi (API genelde ~60 dk once yayinlar)
-  if (!e.luOk && canSpendLineup() && ko < now + HRS(75 / 60) && ko > now - 15 * 60e3) {
+  // ilk 11 + yedekler (kullanici istegi 14 Kas): baslamasina 58 dk kala (Avrupa kulup maclari CL/EL/ECL/USC icin 80 dk kala) ile baslamasindan 15 dk sonrasi
+  if (!e.luOk && canSpendLineup() && ko < now + (EURO.has(m.c) ? 80 : 58) * 60e3 && ko > now - 15 * 60e3) {
     try {
       const j = await api('/fixtures/lineups?fixture=' + m.id);
       if (j.response.length === 2 && luKoy(e, j.response)) {

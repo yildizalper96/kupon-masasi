@@ -192,3 +192,6 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - HÂLÂ LOGOSUZ (32): Al Hazem, Abha, Diriyah, Neom, Al Faisaly (Suudi 1. lig 308), Zulte Waregem, Beveren, Lommel SK, La Louvière (Belçika 2. lig 145), Le Mans (Ligue 2'de adı farklı olabilir), Torreense, Académico Viseu, Alverca, Marítimo (Portekiz 2. lig 95), Excelsior (Eerste 89), Falkirk (İskoçya Championship 180), Viking, Ferencváros, Lillestrøm, Levski Sofia, Aarhus, Kairat Almaty, Thun, Mjällby, OFI Crete, Lech Poznań, Nordsjælland, CSKA Sofia, Jablonec, Olympiacos, Kauno Žalgiris, Riga (Avrupa kupaları: /teams?search=), İrlanda Cumhuriyeti, Bosna-Hersek (UNL'de adları farklı). Kullanıcı logosuz/fotoğrafsız hiçbir şey istemiyor.
 - Oyuncu fotoğrafları kulüp kadrolarına bağlı (`fetch-details --squads`). Kullanıcı tüm oyuncularda fotoğraf istiyor: önce SL, PL, LL, SA, BL, L1 takımları çekilmeli.
 - Lig tablolarındaki boş "Sonraki" hücreleri: R'de o ligin gelecek maçları yok (ücretsiz plan yalnızca yarına kadar veriyor); maçlar geldikçe dolar, uydurma yok.
+
+## Resmi 11 çekim zamanı (14 Kas 2026, kullanıcı istedi)
+- Resmi 11 maça 58 dk kala (Avrupa kulüp maçları CL/EL/ECL/USC için 80 dk kala) çekilmeye başlanır, başladıktan 15 dk sonrasına kadar her çalıştırmada denenir (`fetch-details.mjs`, `EURO` kümesi). İlk yarı (50-120 dk) ve maç sonu (125 dk) zamanları aynı kaldı.
