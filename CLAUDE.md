@@ -195,3 +195,7 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 
 ## Resmi 11 çekim zamanı (14 Kas 2026, kullanıcı istedi)
 - Resmi 11 maça 58 dk kala (Avrupa kulüp maçları CL/EL/ECL/USC için 80 dk kala) çekilmeye başlanır, başladıktan 15 dk sonrasına kadar her çalıştırmada denenir (`fetch-details.mjs`, `EURO` kümesi). İlk yarı (50-120 dk) ve maç sonu (125 dk) zamanları aynı kaldı.
+
+## Milli takım adı kopyası hatası (14 Kas 2026, düzeltildi)
+- Belirti: aynı maç iki kez görünüyordu (İskoçya–Kuzey Makedonya ve İskoçya–FYR Macedonia; İsveç–Bosna-Hersek ve İsveç–Bosnia & Herzegovina). Sebep: API adları ("FYR Macedonia", "Bosnia & Herzegovina", "Rep. Of Ireland") `NATIONS` tablosunda yoktu, Türkçeye çevrilmeyip API adıyla kaldı; elle yazılı Türkçe adlı kayıtla anahtar eşleşmedi.
+- Düzeltme (3 katman): (1) `fetch-fixtures.mjs` `NATIONS` genişletildi ve aramada noktalama/büyük-küçük harf yok sayılır (`NATIONS_N`); (2) çevrilemeyen milli takım adı artık `::warning::` ile bildirilir (workflow günlüğünde görünür); (3) `js/fixtures-api.js`: aynı yarışmada ±1 saat içinde bir takımı ortak başka kayıt varsa yeni kayıt eklenmez (adlandırma farkı kopya üretmez); (4) `fetch-details.mjs` her çalıştırmada kayıtların ad/anahtarını latest.json ile eşitler. Eski veri dosyalarındaki adlar toplu yeniden adlandırıldı (latest, details, finished, season, ids).

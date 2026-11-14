@@ -53,6 +53,9 @@ const NATIONS = {
   Norway: 'Norveç', Poland: 'Polonya', Portugal: 'Portekiz', Romania: 'Romanya', Slovakia: 'Slovakya', Slovenia: 'Slovenya', Serbia: 'Sırbistan',
   Ukraine: 'Ukrayna', Greece: 'Yunanistan', Ireland: 'İrlanda Cumhuriyeti', 'Republic of Ireland': 'İrlanda Cumhuriyeti', Scotland: 'İskoçya',
   Israel: 'İsrail', Sweden: 'İsveç', Switzerland: 'İsviçre', Iceland: 'İzlanda',
+  // API'nin kullandigi diger yazimlar (14 Kas 2026 hatasi: ayni mac hem Turkce hem Ingilizce adla iki kez gorunuyordu)
+  'FYR Macedonia': 'Kuzey Makedonya', Macedonia: 'Kuzey Makedonya', 'Bosnia & Herzegovina': 'Bosna-Hersek', 'Bosnia-Herzegovina': 'Bosna-Hersek', 'Bosnia Herzegovina': 'Bosna-Hersek',
+  'Rep. Of Ireland': 'İrlanda Cumhuriyeti', 'Republic Of Ireland': 'İrlanda Cumhuriyeti', 'Eire': 'İrlanda Cumhuriyeti', 'Czech-Republic': 'Çekya', Turkiye: 'Türkiye', 'Faroe-Islands': 'Faroe Adaları', 'Northern-Ireland': 'Kuzey İrlanda', 'North-Macedonia': 'Kuzey Makedonya',
 };
 // elle eslesme (kisaltma kullanan uygulama adlari)
 const ALIAS = {
@@ -74,12 +77,19 @@ const ALIAS = {
 };
 const STOP = new Set(['fc', 'cf', 'afc', 'sc', 'fk', 'sk', 'bk', 'ac', 'as', 'ssc', 'sv', 'fsv', 'vfb', 'vfl', 'rb', 'the', 'de', 'club', 'cd', 'ud', 'kv', 'sd', 'rc', 'if', 'ik', 'sl', '1']);
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').replace(/ø/g, 'o').replace(/[’'`.]/g, ' ').replace(/[^a-zA-Z0-9]+/g, ' ').trim().toLowerCase();
+const NATIONS_N = Object.fromEntries(Object.entries(NATIONS).map(([k, v]) => [norm(k), v]));
 const toks = s => norm(s).split(' ').filter(t => t && !STOP.has(t));
 const APP_TOKS = APP_ALL.map(n => [n, toks(n)]);
 const unmatched = new Map();
 function teamName(code, api) {
   const clean = api.replace(/-/g, ' ');
-  if (code === 'UNL' || code === 'USC' && NATIONS[clean]) return NATIONS[clean] || NATIONS[api] || clean;
+  if (code === 'UNL' || code === 'USC' && NATIONS[clean]) {
+    const tr = NATIONS[clean] || NATIONS[api] || NATIONS_N[norm(api)];
+    if (tr) return tr;
+    // bilinmeyen milli takim adi: Ingilizce adla sizdirma, raporla (workflow uyari verir)
+    unmatched.set(code + ': ' + api, (unmatched.get(code + ': ' + api) || 0) + 1);
+    return clean;
+  }
   const n = norm(clean);
   if (ALIAS[n]) return ALIAS[n];
   // tam esit
@@ -325,6 +335,7 @@ for (const m of matches) { byC[m.c] = byC[m.c] || { n: 0, hand: 0, p: 0 }; byC[m
 console.log('\nLig        mac  elle-yazili  tahminli');
 for (const [c, v] of Object.entries(byC)) console.log(c.padEnd(8), String(v.n).padStart(5), String(v.hand).padStart(10), String(v.p).padStart(9));
 console.log('\nToplam mac:', matches.length, '| yeni (elle yazili olmayan):', matches.filter(m => !m.hand).length, '| elenen kupa maci (alt lig):', skippedCup);
+for (const k of unmatched.keys()) if (/^(UNL|USC):/.test(k)) console.log('::warning::Milli takim adi Turkceye cevrilemedi: ' + k + ' (tools/fetch-fixtures.mjs NATIONS tablosuna ekle)');
 if (unmatched.size) { console.log('\nEslesmeyen takim adlari (API adiyla birakildi):'); for (const [k, v] of unmatched) console.log('  ' + k + (v > 1 ? ' x' + v : '')); }
 console.log(`\nHarcanan istek: ${used}, kalan gunluk: ${remaining}`);
 fs.mkdirSync(path.join(root, 'tools', 'out'), { recursive: true });

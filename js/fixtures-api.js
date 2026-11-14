@@ -53,6 +53,9 @@
         if (have.has(key)) { setRes(key, x); return; } // elle yazili (veya onceden eklenmis) mac: yalnizca skor/durum
         // mac listesinde yeni
         if (!(x.c in LN)) return; // bilinmeyen lig
+        // ayni yarismada ayni saatte, takimlardan biri ortak baska bir kayit varsa bu bir kopyadir (ornegin ayni takimin Ingilizce/Turkce adi): ekleme
+        var xt = +new Date(x.t);
+        if (R.some(function (r) { return r.c === x.c && Math.abs(+r.t - xt) < 3600e3 && (r.h === x.h || r.a === x.a || r.h === x.a || r.a === x.h); })) { have.add(key); return; }
         have.add(key);
         var m = { c: x.c, t: new Date(x.t), h: x.h, a: x.a, p: x.p || [1 / 3, 1 / 3, 1 / 3], np: !x.p, api: x.id };
         R.push(m);

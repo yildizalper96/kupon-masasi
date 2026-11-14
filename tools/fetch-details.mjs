@@ -118,6 +118,9 @@ function luKoy(e, L) {
   return true;
 }
 
+// takim/lig adlari latest.json ile ayni kalsin (adlandirma duzeltilirse eski kayit anahtari eski adla kalmasin)
+for (const m of cand) { const e = D.m[m.id]; if (e) Object.assign(e, { k: m.c + '|' + m.h + '|' + m.a, c: m.c, h: m.h, a: m.a }); }
+
 // ---- 1. oncelik: mac verisi. Ilk yari (baslamasindan 50-120 dk sonra, bir kez) ve mac sonu (125 dk sonra, bitene kadar en cok 4 deneme).
 // Tek istek /fixtures?id= -> olaylar (gol, asist, kart, degisiklik), istatistik, oyuncu puanlari, skor. Ilk 11 gibi yedek kotaya girebilir;
 // diger ayrintilardan ONCE yapilir ki maks. istek siniri bunlari yemesin.
