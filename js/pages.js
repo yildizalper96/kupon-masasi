@@ -152,6 +152,7 @@
     gol: '<svg class="kmic-g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#111" stroke-width="1.6"/><path d="M12 7.2l3.3 2.4-1.3 3.9h-4l-1.3-3.9z" fill="#111"/></svg>',
     cik: '<svg class="kmic-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#e5534b"/><path d="M14 7l-5 5 5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     gir: '<svg class="kmic-c" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#2f9e63"/><path d="M10 7l5 5-5 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    mac: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/><circle cx="12" cy="12" r="2.6"/></svg>',
     krampon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 15.5c0-1.2.8-2 2-2.2l5.5-.8 2.2-4.8c.3-.7 1.2-.9 1.8-.4l2.3 1.9 3.2.6c1 .2 1.7 1 1.7 2v2.7c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2z"/><path d="M6 19h2v1.6H6zM10.5 19h2v1.6h-2zM15 19h2v1.6h-2z"/></svg>',
     deg: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13l-3-3" stroke="#2f9e63"/><path d="M20 15H7l3 3" stroke="#e5534b"/></svg>',
   };
@@ -733,29 +734,110 @@
   const tarihTr = s => { const d = s ? new Date(s + 'T12:00:00Z') : null; return d && !isNaN(d) ? d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
   const SPTR = { 'Goalkeeper': 'Kaleci', 'Centre-Back': 'Stoper', 'Left-Back': 'Sol bek', 'Right-Back': 'Sağ bek', 'Defensive Midfield': 'Ön libero', 'Central Midfield': 'Merkez orta saha', 'Attacking Midfield': 'Ofansif orta saha', 'Left Midfield': 'Sol orta saha', 'Right Midfield': 'Sağ orta saha', 'Left Winger': 'Sol kanat', 'Right Winger': 'Sağ kanat', 'Centre-Forward': 'Santrfor', 'Second Striker': 'İkinci forvet' };
   function tmOyuncu(e) { const t = +kfOf(e).t; return t && window.KMTM ? tmV('p' + t, () => KMTM.player(t)) : null; }
-  // deger gecmisi grafigi (SVG alan grafigi)
-  function degerGrafik(v) {
-    const l = (v || []).filter(x => x && x[0] && +x[1] > 0); if (l.length < 2) return '';
-    const W = 640, H = 170, P = 8, t = l.map(x => Date.UTC(+x[0].slice(0, 4), +x[0].slice(5, 7) - 1)), mx = Math.max(...l.map(x => +x[1]));
-    const X = i => P + (t[i] - t[0]) / ((t[t.length - 1] - t[0]) || 1) * (W - 2 * P), Y = i => H - P - (+l[i][1] / mx) * (H - 2 * P);
-    const yol = l.map((x, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(i).toFixed(1)}`).join(' ');
-    const y0 = new Date(t[0]).getUTCFullYear(), y1 = new Date(t[t.length - 1]).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0) / 6));
-    const etk = []; for (let y = y0 + 1; y <= y1; y += adim) { const x = P + (Date.UTC(y, 0) - t[0]) / ((t[t.length - 1] - t[0]) || 1) * (W - 2 * P); etk.push(`<text x="${x.toFixed(0)}" y="${H + 14}" text-anchor="middle">${y}</text>`); }
-    const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), son = l[l.length - 1];
-    return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(son[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>
-      <svg class="kmdeg-g" viewBox="0 0 ${W} ${H + 20}" preserveAspectRatio="none"><path d="${yol} L${X(l.length - 1).toFixed(1)},${H - P} L${X(0).toFixed(1)},${H - P} Z" class="a"/><path d="${yol}" class="c"/>${etk.join('')}</svg>${TMKAY}`);
+  // ---- Transfermarkt kulup adi -> uygulama takim adi (logo, renk, baglanti icin) ----
+  const TMSTOP = new Set(['fc', 'cf', 'rcd', 'ac', 'sc', 'sk', 'fk', 'as', 'ss', 'us', 'calcio', 'club', 'de', 'cfc', 'afc', 'ssc', 'sv', 'vfl', 'vfb', 'tsg', 'rc', 'cd', 'ud', 'sd', 'ca', 'ogc', 'losc', 'aj', 'bv', 'psv', 'kf', 'ks', 'nk', 'gnk', 'hnk', 'bk', 'if', 'aik', 'sl', 'jk', 'pae', 'gfc', 'krc', 'kv', 'kaa', 'rsc', 'royal', 'spor', 'kulubu', 'c', 'd', 'f', '1', '04', '05', '07', '09', '1846', '1899', '1900', '1907', '1909', '1910', '1913']);
+  const tmTok = s => adN(s).filter(w => !TMSTOP.has(w) && !/^\d+$/.test(w));
+  const TMADC = {};
+  function tmAdApp(ad) {
+    if (!ad) return null; if (ad in TMADC) return TMADC[ad];
+    const tk = tmTok(ad); let bul = null;
+    if (tk.length) {
+      const adaylar = new Set(Object.keys(TM)); R.forEach(m => { adaylar.add(m.h); adaylar.add(m.a); });
+      const ids = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null)); if (ids && ids.t) Object.keys(ids.t).forEach(n => adaylar.add(n)); else if (ids === undefined) return null;
+      const L = [...adaylar].filter(n => { const u = tmTok(n); return u.length && (u.every(w => tk.includes(w)) || tk.every(w => u.includes(w))); });
+      bul = L.sort((a, b) => (TM[b] ? 1 : 0) - (TM[a] ? 1 : 0) || a.length - b.length)[0] || null;
+    }
+    return (TMADC[ad] = bul);
+  }
+  const PALET = ['#4668D6', '#D63630', '#2f9e63', '#e3a21c', '#8e5bd6', '#1fa3b8', '#d6589a', '#7a8b99'];
+  function kulupRenk(app, i) { try { const c = app && TC[app]; if (c) { const a = c[0], b = c[1]; const lum = h => { const x = String(h).replace('#', ''); const f = x.length === 3 ? x.split('').map(y => y + y).join('') : x; const [r, g, bb] = [0, 2, 4].map(j => parseInt(f.substr(j, 2), 16) || 0); return r * 0.3 + g * 0.59 + bb * 0.11; }; const l = lum(a); return (l < 45 || l > 225) && b && lum(b) >= 45 && lum(b) <= 225 ? b : (l > 225 ? '#9aa5b1' : a); } } catch (e) { } return PALET[i % PALET.length]; }
+  // kulup zaman cizelgesi: transferlerden (eski -> yeni) donemler; kiralik: bedelsiz ve 18 ay icinde ayni kulube donus
+  function kulupDonemleri(p, e) {
+    const tr = (p.tr || []).slice().sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+    const D = [];
+    if (tr.length) D.push({ ad: tr[0][1], bas: null, bit: tr[0][0] });
+    tr.forEach((r, i) => {
+      const donus = +r[3] === 0 && tr.slice(0, i).some(x => x[1] === r[2] && x[2] === r[1] && +x[3] === 0 && (Date.parse(r[0]) - Date.parse(x[0])) < 548 * 864e5);
+      const geri = tr.slice(i + 1).find(x => x[1] === r[2] && x[2] === r[1]);
+      const kiralik = +r[3] === 0 && geri && (Date.parse(geri[0]) - Date.parse(r[0])) < 548 * 864e5;
+      const gencten = GENC.test(String(r[1]).replace(/\./g, ' '));
+      D.push({ ad: r[2], bas: r[0], bit: tr[i + 1] ? tr[i + 1][0] : null, donus, not: donus ? 'Kiralıktan dönüş' : gencten ? '' : kiralik ? 'Kiralandı' : (+r[3] === 0 ? 'Bedelsiz Transfer' : '') });
+    });
+    // profesyonel kariyer: genclik/yedek takimlari cikar, art arda ayni kulup donemlerini birlestir
+    for (let i = D.length - 1; i >= 0; i--) if (GENC.test(String(D[i].ad).replace(/\./g, ' '))) D.splice(i, 1);
+    D.forEach(d => { d.app = tmAdApp(d.ad); });
+    for (let i = D.length - 1; i > 0; i--) { const a = D[i - 1], b = D[i]; if ((a.app || a.ad) === (b.app || b.ad) && !b.not) { a.bit = b.bit; D.splice(i, 1); } }
+    // guncel kulup (uygulama verisi): son donem degilse eklenir
+    const son = D[D.length - 1];
+    if (e && e.team && TM[e.team] && (!son || son.app !== e.team)) { if (son && !son.bit) son.bit = null; D.push({ ad: e.team, app: e.team, bas: null, bit: null, guncel: 1 }); if (son && !son.bit) son.bit = (new Date().getFullYear()) + '-06-30'; }
+    return D;
+  }
+  const GENC = /\b(u\s?\d{2}|yth|youth|jugend|primavera|juvenil|juv|reserves?|juniors?|academy|ii|b)\b/i;
+  const kulupAn = (D, t) => { let k = D[0]; for (const d of D) { if (d.bas && Date.parse(d.bas) <= t) k = d; } return k; };
+  // deger grafigi: kulup donemine gore renkli alan + cizgi, transfer noktalarinda kulup logosu, uzerine gelince deger
+  function degerGrafik(p, e) {
+    const v = p.v || [];
+    const l = v.filter(x => x && x[0] && +x[1] > 0); if (l.length < 2) return '';
+    const D = kulupDonemleri(p, e);
+    const W = 1000, H = 220, P = 6, t = l.map(x => Date.UTC(+x[0].slice(0, 4), +x[0].slice(5, 7) - 1, 15)), mx = Math.max(...l.map(x => +x[1])) * 1.08;
+    const X = tt => P + (tt - t[0]) / ((t[t.length - 1] - t[0]) || 1) * (W - 2 * P), Y = val => H - P - (val / mx) * (H - 2 * P);
+    const nk = l.map((x, i) => { const d = kulupAn(D, t[i]); return { x: X(t[i]), y: Y(+x[1]), v: +x[1], t: t[i], d }; });
+    // donemlere bol
+    const parca = []; nk.forEach(n => { const s = parca[parca.length - 1]; if (!s || s.d !== n.d) { if (s) s.n.push(n); parca.push({ d: n.d, n: [n] }); } else s.n.push(n); });
+    const renkler = new Map(); let ri = 0; parca.forEach(s => { const k = s.d && (s.d.app || s.d.ad); if (!renkler.has(k)) renkler.set(k, kulupRenk(s.d && s.d.app, ri++)); s.r = renkler.get(k); });
+    const yol = s => s.n.map((n, i) => `${i ? 'L' : 'M'}${n.x.toFixed(1)},${n.y.toFixed(1)}`).join(' ');
+    const svg = parca.map(s => `<path d="${yol(s)} L${s.n[s.n.length - 1].x.toFixed(1)},${H - P} L${s.n[0].x.toFixed(1)},${H - P} Z" fill="${s.r}" fill-opacity=".22"/><path d="${yol(s)}" fill="none" stroke="${s.r}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>`).join('');
+    const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(t[t.length - 1]).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
+    const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
+    const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
+    const logo = parca.map(s => { const n = s.n.reduce((b, x) => x.y < b.y ? x : b, s.n[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${s.d && s.d.app ? bd(s.d.app) : `<i>${E(basH(a || '?'))}</i>`}</span>`; }).join('');
+    const veri = nk.map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
+    const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), sonV = l[l.length - 1];
+    return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(sonV[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>
+      <div class="kmdeg-w"><div class="kmdeg-y">${ye.join('')}</div><div class="kmdeg-a" data-kmdeg='${E(JSON.stringify(veri))}'><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${[0.25, 0.5, 0.75, 1].map(f => `<line x1="0" x2="${W}" y1="${Y(mx / 1.08 * f).toFixed(1)}" y2="${Y(mx / 1.08 * f).toFixed(1)}" class="kz"/>`).join('')}${svg}</svg>${logo}<i class="kmdeg-cz" hidden></i><div class="kmdeg-ip" hidden></div></div></div>
+      <div class="kmdeg-x">${xe.join('')}</div>${TMKAY}`);
+  }
+  // Kariyer karti (FotMob): Kulup sekmesi (donemler, mac/gol) ve Sezon sekmesi (sezon sezon kulup, mac, gol, asist, puan)
+  let KRS = 'k';
+  function kariyerKarti(p, e) {
+    const D = kulupDonemleri(p, e), st = (p.st || []).slice();
+    const sezonKulup = y => kulupAn(D, Date.UTC(+y, 9, 1));
+    const ps = e.ps && e.ps.p, sp = sezonPuani(e);
+    const simdiY = (() => { const n = new Date(); return n.getUTCMonth() >= 6 ? n.getUTCFullYear() : n.getUTCFullYear() - 1; })();
+    const sezonlar = st.map(r => ({ y: +r[0], d: sezonKulup(r[0]), m: r[1], g: r[2], a: r[3] }));
+    if (ps && !sezonlar.some(s => s.y === simdiY)) sezonlar.push({ y: simdiY, d: D.slice().reverse().find(d => d.app === e.team) || { ad: e.team, app: e.team }, m: +ps[1] || 0, g: +ps[3] || 0, a: +ps[4] || 0, pu: sp && sp.o, simdi: 1 });
+    sezonlar.sort((a, b) => b.y - a.y);
+    // donem istatistigi: sezonun kulubu bu donemse toplanir
+    D.forEach(d => { d.m = 0; d.g = 0; d.var = false; });
+    sezonlar.forEach(s => { const d = s.d; if (d && D.includes(d)) { d.m += +s.m || 0; d.g += +s.g || 0; d.var = true; } else { const dd = D.find(x => x.app === (s.d && s.d.app)); if (dd) { dd.m += +s.m || 0; dd.g += +s.g || 0; dd.var = true; } } });
+    const ar = s => s ? new Date(s + 'T12:00:00Z').toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : '';
+    const lg = d => d && d.app ? bd(d.app) : `<span class="bd kmkr-yb">${E(basH((d && d.ad) || '?'))}</span>`;
+    const adH = d => d && d.app ? `<b data-tm="${E(d.app)}">${E(d.app)}</b>` : `<b>${E((d && d.ad) || '?')}</b>`;
+    const kul = D.slice().reverse().filter(d => (d.bas || d.bit || d.guncel) && !(d.donus && !d.var && d.bit && (Date.parse(d.bit) - Date.parse(d.bas)) < 120 * 864e5)).map(d => `<div class="kmkr-s"><span class="kmkr-l">${lg(d)}</span><div>${adH(d)}${d.not ? ` <em>(${E(d.not)})</em>` : ''}<small>${d.bas ? ar(d.bas) : (d.guncel ? `${simdiY}/${String(simdiY + 1).slice(2)}` : '')}${d.bas || d.guncel ? ' - ' : ''}${d.bit ? ar(d.bit) : 'şimdi'}</small></div><em class="kmkr-n">${d.var ? d.m : '–'}</em><em class="kmkr-n">${d.var ? d.g : '–'}</em></div>`).join('');
+    const sez = sezonlar.map(s => `<div class="kmkr-s"><span class="kmkr-l">${lg(s.d)}</span><div>${adH(s.d)}<small>${s.y}/${s.y + 1}</small></div><em class="kmkr-n">${s.m ?? '–'}</em><em class="kmkr-n">${s.g ?? '–'}</em><em class="kmkr-n">${s.a ?? '–'}</em><span class="kmkr-p">${s.pu ? puanHap(s.pu.toFixed(2)) : ''}</span></div>`).join('');
+    const ust = KRS === 'k' ? `<div class="kmkr-b"><span>Profesyonel kariyer</span><i title="Maç">${icon.mac}</i><i title="Gol">${icon.gol}</i></div>` : `<div class="kmkr-b s"><span>Profesyonel kariyer</span><i title="Maç">${icon.mac}</i><i title="Gol">${icon.gol}</i><i title="Asist">${icon.krampon}</i><i title="Puan">★</i></div>`;
+    return card('kmkr', `<h3 class="kmb">Kariyer</h3><div class="kmsek kmkr-t"><button data-kmkrs="k" class="${KRS === 'k' ? 'on' : ''}">Kulüp</button><button data-kmkrs="s" class="${KRS === 's' ? 'on' : ''}">Sezon</button></div>${ust}<div class="kmkr-ic ${KRS}">${KRS === 'k' ? kul : sez}</div>
+      <p class="kmkay">Kaynak: Transfermarkt verileri (2025/26 sezonu sonu; tüm yarışmalar). Sezonun kulübü transfer tarihlerinden; bu sezon ve puan sitenin verisinden.</p>`);
   }
   function tmOyuncuKartlari(e) {
     const p = tmOyuncu(e); if (!p) return { deg: '', sez: '', yan: '', bilgi: [] };
     const bilgi = [];
     if (p.cx) bilgi.push([tarihTr(p.cx), 'Sözleşme bitişi']);
     if (p.ic && +p.ic[0] > 0) bilgi.push([`${p.ic[0]} maç · ${p.ic[1] || 0} gol`, 'Milli takımda']);
-    const st = (p.st || []).slice().sort((a, b) => String(b[0]).localeCompare(String(a[0])));
-    const sez = st.length ? card('kmsez', `<h3 class="kmb">Sezonlar <small>tüm yarışmalar</small></h3><table class="kmsez-t"><thead><tr><th>Sezon</th><th>Maç</th><th>Gol</th><th>Asist</th><th>Dakika</th><th><i class="kmkrt s"></i></th><th><i class="kmkrt k"></i></th></tr></thead><tbody>${st.slice(0, 10).map(r => `<tr><td>${E(r[0])}</td>${[1, 2, 3, 4, 5, 6].map(i => `<td>${r[i] == null ? '–' : E(r[i])}</td>`).join('')}</tr>`).join('')}</tbody></table>${TMKAY}`) : '';
-    const tr = (p.tr || []).slice().sort((a, b) => String(b[0]).localeCompare(String(a[0])));
-    const kar = tr.length ? card('kmkar', `<h3 class="kmb">Transferler</h3>${tr.slice(0, 8).map(r => `<div class="kmkar-s"><div><b>${E(r[2])}</b><small>${E(r[1])} → ${E(r[2])}</small></div><div class="kmkar-r"><b>${r[3] == null ? '–' : +r[3] === 0 ? 'Bonservissiz' : E(binEur(r[3]))}</b><small>${E(tarihTr(r[0]))}</small></div></div>`).join('')}${TMKAY}`) : '';
-    return { deg: degerGrafik(p.v), sez, yan: kar, bilgi, sp: SPTR[p.sp] || p.sp || '' };
+    return { deg: degerGrafik(p, e), sez: '', yan: kariyerKarti(p, e), bilgi, sp: SPTR[p.sp] || p.sp || '' };
   }
+  // deger grafigi uzerine gelince: kulup, tarih, deger
+  document.addEventListener('mousemove', ev => {
+    const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); document.querySelectorAll('.kmdeg-a').forEach(x => { if (x !== a) { const c = x.querySelector('.kmdeg-cz'), ip = x.querySelector('.kmdeg-ip'); if (c) c.hidden = true; if (ip) ip.hidden = true; } });
+    if (!a) return;
+    let L; try { L = JSON.parse(a.dataset.kmdeg); } catch (x) { return; }
+    const r = a.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * 100;
+    const n = L.reduce((b, x) => Math.abs(x[0] - px) < Math.abs(b[0] - px) ? x : b, L[0]);
+    const cz = a.querySelector('.kmdeg-cz'), ip = a.querySelector('.kmdeg-ip');
+    cz.hidden = false; cz.style.left = n[0] + '%';
+    ip.hidden = false; ip.style.left = Math.min(Math.max(n[0], 14), 86) + '%';
+    ip.innerHTML = `<span>${n[4] && (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? bd(n[4]) : ''}<b style="color:${n[5]}">${E(n[4])}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`;
+  });
   // takim / milli takim bilgisi
   function tmTakimHarita() { return tmV('teammap', () => fetch('data/tm/teammap.json').then(r => r.ok ? r.json() : null)); }
   function tmKulup(n) {
@@ -1265,6 +1347,8 @@
     if (e.target.closest && e.target.closest('[data-kmpgeri]')) { e.preventDefault(); try { if (!back()) { Q = ''; QX = ''; render(); } } catch (x) { } return; }
     const tms = e.target.closest && e.target.closest('[data-kmtms]');
     if (tms) { if (!tms.disabled) { TMS.i = Math.max(0, TMS.i + 10 * (+tms.dataset.kmtms)); render(); } return; }
+    const krs = e.target.closest && e.target.closest('[data-kmkrs]');
+    if (krs) { KRS = krs.dataset.kmkrs; render(); return; }
     const lf = e.target.closest && e.target.closest('[data-kmlfx]');
     if (lf) { if (!lf.disabled) { LFX.i += +lf.dataset.kmlfx; render(); } return; }
     const dv = e.target.closest && e.target.closest('[data-kmdv]');
