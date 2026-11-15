@@ -1185,7 +1185,7 @@
     const saha = nokta ? `<div class="kmph-saha"><i class="ce"></i><i class="ku"></i><i class="ka"></i><b style="left:${nokta[0]}%;top:${nokta[1]}%">${({ Kaleci: 'KL', Defans: 'DF', 'Orta saha': 'OS', Forvet: 'FV' })[mev] || ''}</b></div>` : '';
     const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h, tk]) => `<div${tk ? ` class="kmph-lk" data-tm="${E(tk)}" title="${E(tk)} milli takımı"` : ''}><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
         <div class="kmph-m"><h4>Mevki</h4>${mev || tmk.sp ? `<b>${E(tmk.sp || mev)}</b>` : '<p class="kmbos">veri yok</p>'}${saha}</div></div>${(kf.b || kf.v || kf.n || kf.no) ? '<p class="kmkay kmph-kay">Kaynak: Transfermarkt</p>' : ''}</div>`;
-    const ml = oyuncuMaclari(o), api = ml.filter(m => m.pu !== undefined);
+    const ml = oyuncuMaclari(o), api = ml.filter(m => m.pu !== undefined && !m.ml); // mlog satirlari (Sofascore) toplam karti uretmez: sezon karti zaten var
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;
     const f2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
     let sezon;
@@ -1197,7 +1197,9 @@
         <div><b><i class="kmkrt s"></i>${p[5]}</b><small>Sarı kartlar</small></div>${ek.join('')}</div>
         <p class="kmkay">Kaynak: ${E(KY(o.t.src))}</p>`);
     } else sezon = '';
-    ((e.diger) || []).forEach(d => { const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
+    // eski takim karti: oyuncu bu sezon baslamadan (1 Tem 2026) yeni takima gectiyse eski takimda bu sezon macı olamaz, kart gosterilmez
+    const tmP = tmOyuncu(e), sonGecis = tmP && (tmP.tr || []).map(r => String(r[0])).sort().pop(), sezonOnce = sonGecis && sonGecis < '2026-07-01';
+    ((e.diger) || []).forEach(d => { if (sezonOnce) return; const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
     // sitede biriken maclar (data/players/season.json): yarisma yarisma toplam; varsa maç verisinden hesaplananin yerine gecer
     const sz = sezonKaydi(e, o.team);
     if (sz && sz.c) Object.entries(sz.c).forEach(([c, v]) => {
