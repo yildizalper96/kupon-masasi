@@ -220,11 +220,24 @@
     el.querySelectorAll('[data-kmgun]').forEach(b => b.onclick = () => { try { day = b.dataset.kmgun; render(); } catch (e) { } });
     const on = el.querySelector('.on'); if (on) el.scrollLeft = on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2;
   }
+  // Ligler sayfasi (telefon): buyuk baslik + "Lig bul" kutusu, liste ada gore suzulur
+  function ligAramasi() {
+    if (!DAR.matches) return;
+    const g = app.querySelector(':scope > .lgg'); if (!g || app.querySelector(':scope > .kmligara')) return;
+    const h = g.previousElementSibling; if (h && h.tagName === 'H3') { h.classList.add('kmligb'); h.textContent = 'Ligler'; }
+    const l = document.createElement('label'); l.className = 'kmligara';
+    l.innerHTML = `${SV('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>', 2.2)}<input type="search" placeholder="Lig bul" aria-label="Lig bul">`;
+    g.before(l);
+    const t = document.createElement('h4'); t.className = 'kmligt'; t.textContent = 'Tüm ligler'; g.before(t);
+    const n = s => String(s).toLocaleLowerCase('tr');
+    const inp = l.querySelector('input');
+    inp.oninput = () => { const q = n(inp.value.trim()); let k = 0; g.querySelectorAll('.lgc').forEach(c => { const ok = !q || n(c.textContent).includes(q); c.hidden = !ok; if (ok) k++; }); t.textContent = q ? (k ? `${k} lig` : 'Eşleşen lig yok') : 'Tüm ligler'; };
+  }
   const durumEsle = () => {
     try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); durumEsle(); } }).observe(app, { childList: true });
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); durumEsle(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
 })();
