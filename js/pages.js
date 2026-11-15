@@ -1101,6 +1101,19 @@
       const g = (m.g || []).filter(x => is(x[0])).length, a = (m.g || []).filter(x => x[2] && is(x[2])).length, y = (m.y || []).filter(x => is(x[0])).length;
       return { t: psTarih(m.d), d: m.d, c: m.c, rakip, ev, skor, r: m.r, dk, dur, g, a, y, bilinmez: !(m.x || []).length && !ui && !g && !a && !y, ki };
     }).filter(r => !r.ki || (!r.bilinmez && r.dur !== 'Oynamadı')));
+    // maci mac ayrinti dosyasi (data/players/mlog.json, Sofascore; API ucretsiz planda gecmis maclari vermiyor): yalniz verisi bilinmeyen satirlar, rakip + skor ayniysa ve oyuncu o maci kadrosunda bulunuyorsa doldurulur
+    { const ML = tmV('mlog', () => fetch('data/players/mlog.json').then(r => r.ok ? r.json() : null));
+      if (ML && ML.t) ps.forEach(r => {
+        if (!(r.bilinmez || r.dk == null)) return; const L = ML.t[kay[r.ki || 0][1]]; if (!L) return;
+        const e = L.find(x => x.s === r.skor && ayniTk(x.r, r.rakip)); if (!e) return;
+        const q = e.p.find(x => is(x[0]));
+        if (!q) { // kadro listesi tam (21) ve oyuncu baska bir maci listesinde bulunuyorsa (ad eslesmesi calisiyor) bu macta kadroda degil
+          if (e.p.length >= 21 && L.some(x => x.p.some(y => is(y[0])))) { r.dur = 'Kadroda yok'; r.dk = null; r.g = 0; r.a = 0; r.y = 0; r.pu = undefined; r.bilinmez = false; r.ml = 1; }
+          return; }
+        const oynadi = q[2] != null;
+        r.dur = q[1] === 'E' ? 'İlk 11' : oynadi ? 'Yedek' : 'Oynamadı'; r.dk = oynadi ? q[2] : null;
+        r.g = q[3] || 0; r.a = q[4] || 0; r.y = q[5] || 0; r.pu = q[7] != null ? q[7] : undefined; r.bilinmez = false; r.ml = 1;
+      }); }
     return ps.concat(apiMaclari(o.e, ps)).sort((x, y) => (y.t || 0) - (x.t || 0));
   }
   function oyuncuVeri(v) {
@@ -1187,7 +1200,7 @@
         <td><span>${E(m.d)}</span><small>${E(m.c || '')}</small></td><td class="tk"${m.rakip ? ` data-tm="${E(m.rakip)}"` : ''}>${m.rakip ? bd(m.rakip) : ''}<span>${E(m.rakip)}</span></td>
         <td class="sk">${m.r ? `<i class="kmkare ${sonuc(m.r)}">${E(m.r)}</i>` : ''}<span>${E(m.skor)}</span></td>
         <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`).join('')}</tbody></table>
-        <p class="kmkay">Kaynak: API-Football</p>`) : '';
+        <p class="kmkay">Kaynak: API-Football${ml.some(m => m.ml) ? ", Sofascore" : ""}</p>`) : '';
     const nx = o.team ? siradaki(o.team) : null;
     const takim = o.team ? card('kmpyan', `<h3 class="kmb">Takım</h3><div class="kmpy" data-tm="${E(o.team)}">${bd(o.team, 1)}<div><b>${E(kulupAd(o.team))}</b><small>${tl && tl.l ? E(ligAd(tl.l)) + ' · ' + tl.r + '. sıra' : ''}</small></div></div>
         ${nx ? `<div class="kmpy-nx" data-kmm="${E(key(nx))}"><small>Sonraki maç</small><span>${E(nx.h)} – ${E(nx.a)}</span><small>${E(kisaTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}</small></div>` : ''}`) : '';
