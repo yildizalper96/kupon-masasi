@@ -34,9 +34,15 @@ for (const r of rows('players.csv')) { const id = r.player_id; if (!want.has(id)
 for (const r of rows('transfers.csv')) { if (!want.has(r.player_id)) continue; const p = pl(r.player_id); (p.tr ||= []).push([r.transfer_date.slice(0, 10), fix(r.from_club_name), fix(r.to_club_name), r.transfer_fee === '' ? null : Math.round(+r.transfer_fee / 1000)]); }
 for (const p of Object.values(PL)) if (p.tr) p.tr.sort((a, b) => a[0] < b[0] ? 1 : -1);
 // sezon istatistigi (tum yarismalar toplami)
-{ const agg = {}; for (const r of rows('appearances.csv')) { if (!want.has(r.player_id) || !r.date) continue; const s = yr(r.date), k = r.player_id + '|' + s; const a = (agg[k] ||= [s, 0, 0, 0, 0, 0, 0]); a[1]++; a[2] += +r.goals || 0; a[3] += +r.assists || 0; a[4] += +r.minutes_played || 0; a[5] += +r.yellow_cards || 0; a[6] += +r.red_cards || 0; }
+// satir: [sezon, mac, gol, asist, dk, sari, kirmizi, kulupId]  (sezon ortasi transferde ayni sezon icin kulup basina ayri satir; kulup adi: club-names.json)
+{ const agg = {}; for (const r of rows('appearances.csv')) { if (!want.has(r.player_id) || !r.date) continue; const s = yr(r.date), k = r.player_id + '|' + s + '|' + (r.player_club_id || ''); const a = (agg[k] ||= [s, 0, 0, 0, 0, 0, 0, +r.player_club_id || null]); a[1]++; a[2] += +r.goals || 0; a[3] += +r.assists || 0; a[4] += +r.minutes_played || 0; a[5] += +r.yellow_cards || 0; a[6] += +r.red_cards || 0; }
   for (const [k, a] of Object.entries(agg)) (pl(k.split('|')[0]).st ||= []).push(a);
-  for (const p of Object.values(PL)) if (p.st) p.st.sort((a, b) => b[0] - a[0]); }
+  for (const p of Object.values(PL)) if (p.st) p.st.sort((a, b) => b[0] - a[0] || b[1] - a[1]);
+  // kulup adlari (kullanilan kimlikler): transfers.csv + clubs.csv
+  const used = new Set(); for (const p of Object.values(PL)) for (const a of p.st || []) if (a[7]) used.add(String(a[7]));
+  const names = {}; for (const r of rows('transfers.csv')) { if (used.has(r.from_club_id) && r.from_club_name) names[r.from_club_id] ||= fix(r.from_club_name); if (used.has(r.to_club_id) && r.to_club_name) names[r.to_club_id] ||= fix(r.to_club_name); }
+  for (const r of rows('clubs.csv')) if (used.has(r.club_id) && r.name) names[r.club_id] = fix(r.name);
+  w('data/tm/club-names.json', names); console.log('kulup adi', Object.keys(names).length, '/', used.size); }
 // parcalara bol
 { const sh = {}; for (const [id, p] of Object.entries(PL)) if (Object.keys(p).length) (sh[id % 100] ||= {})[id] = p;
   let n = 0; for (const [k, o] of Object.entries(sh)) { w(`data/tm/p/${k}.json`, o); n++; } console.log('oyuncu parcasi', n, 'oyuncu', Object.values(sh).reduce((s, o) => s + Object.keys(o).length, 0)); }
