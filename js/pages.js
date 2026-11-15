@@ -787,12 +787,15 @@
     return out;
   }
   // mac mac: oyuncunun dakikasi, gol, asist, kart (yalnizca kaynakta olanlar)
+  const tkSoz = x => nz(x).replace(/[^a-z0-9çğıöşüäéñ ]/g, ' ').split(' ').filter(w => w && !['fc', 'sc', 'cf', 'ac', 'afc', 'sk', 'fk', 'cd', 'sv'].includes(w));
+  function ayniTk(a, b) { if (a === b) return true; const x = tkSoz(a), y = tkSoz(b); return x.length > 0 && x.length === y.length && x.every((w, i) => w.startsWith(y[i]) || y[i].startsWith(w)); }
   function oyuncuMaclari(o) {
     const is = x => (typeof plMt === 'function' ? plMt(o.nm, x) : nz(x) === nz(o.nm));
     const kay = [[o.t, o.team]].concat(((o.e && o.e.diger) || []).map(d => [PS[d.tk] || {}, d.team]));
     const ps = kay.flatMap(([T, takim], ki) => ((T && T.m) || []).map(m => {
       const sk = String(m.t || '').match(/^(.*) (\d+)-(\d+) (.*)$/);
-      const ev = sk ? sk[1] === takim : true, rakip = sk ? (ev ? sk[4] : sk[1]) : (m.t || '');
+      // takim adi kayitta farkli yazilabilir (Man City / Manchester City): ayni takim sayilir, rakip diger taraf olur
+      const ev = sk ? (sk[1] === takim || (!ayniTk(sk[4], takim) && ayniTk(sk[1], takim))) : true, rakip = sk ? (ev ? sk[4] : sk[1]) : (m.t || '');
       const skor = sk ? sk[2] + ' - ' + sk[3] : '';
       const ux = (m.x || []).some(is), ui = (m.u || []).find(u => is(u[0])), uo = (m.u || []).find(u => is(u[1]));
       let dk = null, dur = '';

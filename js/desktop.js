@@ -216,10 +216,12 @@
   let aF = 'tum';
   const nz = s => String(s || '').toLocaleLowerCase('tr');
   const TREND = SV('<path d="M3 16l6-6 4 4 8-8M15 6h6v6"/>', 2.2);
-  function aramaAc() { ara.hidden = false; document.body.classList.add('kmaraacik'); aInp.value = ''; aCiz(); setTimeout(() => aInp.focus(), 40); }
-  function aramaKapa() { ara.hidden = true; document.body.classList.remove('kmaraacik'); aInp.blur(); }
+  // arama acikken alttaki sayfa kaymaz ve gorunmez: govde sabitlenir, ekran gorunur alana (klavye ustu) oturur
+  let aY = 0;
+  function aramaAc() { aY = window.scrollY; const b = document.body; b.style.position = 'fixed'; b.style.top = -aY + 'px'; b.style.left = '0'; b.style.right = '0'; ara.hidden = false; b.classList.add('kmaraacik'); aInp.value = ''; aCiz(); vvAyar(); setTimeout(() => aInp.focus(), 40); }
+  function aramaKapa() { const b = document.body; ara.hidden = true; b.classList.remove('kmaraacik'); aInp.blur(); b.style.position = ''; b.style.top = ''; b.style.left = ''; b.style.right = ''; window.scrollTo(0, aY); }
   function aGit(x) {
-    sonYaz(x); aramaKapa();
+    sonYaz(x); aramaKapa(); aY = 0;
     try {
       if (x.t === 'tm') { push(); det = null; PMV = null; tab = 'k'; Q = x.k; QX = Q; const q = document.getElementById('q'); if (q) q.value = Q; render(); }
       else if (x.t === 'lg') ligAc(x.k);
@@ -263,7 +265,11 @@
     const r = e.target.closest('[data-kmat]'); if (r) { e.preventDefault(); e.stopPropagation(); aGit({ t: r.dataset.kmat, k: r.dataset.kmak, n: r.dataset.kman || r.dataset.kmak }); }
   }, true);
   // klavye acilinca alttaki kutu klavyenin ustune cikar
-  if (window.visualViewport) { const kb = () => { const v = visualViewport; document.documentElement.style.setProperty('--kmkb', Math.max(0, innerHeight - v.height - v.offsetTop) + 'px'); }; visualViewport.addEventListener('resize', kb); visualViewport.addEventListener('scroll', kb); }
+  function vvAyar() { const v = window.visualViewport; if (!v) return; ara.style.top = v.offsetTop + 'px'; ara.style.height = v.height + 'px'; }
+  if (window.visualViewport) { visualViewport.addEventListener('resize', vvAyar); visualViewport.addEventListener('scroll', vvAyar); }
+  // uzun ulke adlari (ilk sozcuk ulkenin kendisiyse) mac satirlarinda kisa yazilir; bayrak zaten ulkeyi gosterir
+  const KISA = { 'İrlanda Cumhuriyeti': 'İrlanda', 'Bosna-Hersek': 'Bosna', 'Faroe Adaları': 'Faroe' };
+  function kisaAd() { if (!DAR.matches) return; app.querySelectorAll('.mr .tz [data-tm], .kmsnm b, .kmh2s span, .kmfs em').forEach(e => { const k = KISA[e.textContent.trim()]; if (k && e.children.length === 0) e.textContent = k; }); }
   const AY = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
   const gunEt = d => {
     const g = n => dk(new Date(Date.now() + n * 864e5));
@@ -318,7 +324,7 @@
     try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); durumEsle(); } }).observe(app, { childList: true });
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); kisaAd(); durumEsle(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
 })();

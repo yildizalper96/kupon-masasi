@@ -1834,3 +1834,28 @@ nav svg[fill="currentColor"]{fill:currentColor!important;stroke:none!important}
 nav svg[stroke="currentColor"]{stroke-width:2!important}
 @media(max-width:1099px){.kmpmc :is(th,td){padding:10px 4px!important}.kmpmc td:nth-child(2){max-width:92px}.kmpmc td:first-child{white-space:nowrap;font-size:12.5px!important}.kmpmc td:first-child small{display:block;max-width:84px;overflow:hidden;text-overflow:ellipsis}.kmpmc td:nth-child(2) .bd{width:22px!important;height:22px!important}}
 @media(max-width:1099px){.kmpmc td:first-child small{max-width:66px!important}.kmpmc :is(th,td):first-child{padding-left:12px!important}.kmpmc :is(th,td):last-child{padding-right:12px!important}.kmpmc td:nth-child(3) .kmkare{width:20px!important;height:20px!important;line-height:20px!important;font-size:11px!important;margin-right:4px}.kmpmc td:nth-child(2){max-width:84px}}
+
+/* ==== Mobil v7 (<=1099px): arama ekrani klavye ustune oturur, daha saydam alt menu, lig logolari daireye sigar ==== */
+@media(max-width:1099px){
+  /* arama: ekran gorunur alan kadar (JS top/height verir); kutu en altta, akista */
+  #kmarae{position:fixed;left:0;right:0;top:0;bottom:auto;height:100%;inset:auto 0 auto 0;overflow:hidden}
+  .kma-ic{flex:1 1 auto;min-height:0;padding-bottom:16px!important;overscroll-behavior:contain}
+  .kma-alt{position:static!important;flex:none;padding:10px 12px max(12px,env(safe-area-inset-bottom,0px));background:var(--bg)}
+  body.kmaraacik #kmarae .kma-alt{padding-bottom:12px}
+  /* alt menu: belirgin saydam cam (arkadaki icerik secilir) */
+  nav,#kmara{background:rgba(120,120,128,.20)!important;-webkit-backdrop-filter:blur(9px) saturate(170%) brightness(1.05)!important;backdrop-filter:blur(9px) saturate(170%) brightness(1.05)!important;
+    border:1px solid rgba(255,255,255,.16)!important;box-shadow:0 8px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.04)!important}
+  nav button{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+  nav button svg{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.4))}
+  nav button.on{background:rgba(0,0,0,.42)!important;color:#7be08f!important;text-shadow:none}
+  #kmara{color:#fff!important}
+  :root[data-theme="light"] nav,:root[data-theme="light"] #kmara{background:rgba(255,255,255,.34)!important;border-color:rgba(255,255,255,.6)!important;box-shadow:0 8px 28px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.7)!important}
+  :root[data-theme="light"] nav button{color:#16181c!important;text-shadow:0 1px 1px rgba(255,255,255,.6)}
+  :root[data-theme="light"] nav button svg{filter:none}
+  :root[data-theme="light"] nav button.on{background:rgba(0,0,0,.08)!important;color:#1f9d5c!important}
+  /* lig logolari: beyaz daire icinde ortali, tasmadan */
+  #app .kmlo>img,#kmarae .kmlo>img{position:absolute!important;inset:12%!important;width:76%!important;height:76%!important;object-fit:contain!important}
+  #app>.kmth .kmth-u>.kmlo>img{inset:14%!important;width:72%!important;height:72%!important}
+  #app>.box>.lg2 .kmlo,#app>.box>.lg2 .dzlgb{width:28px!important;height:28px!important}
+  #app>.box>.lg2 .kmlo>img{inset:9%!important;width:82%!important;height:82%!important}
+}
