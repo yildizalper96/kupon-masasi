@@ -233,11 +233,22 @@
     const inp = l.querySelector('input');
     inp.oninput = () => { const q = n(inp.value.trim()); let k = 0; g.querySelectorAll('.lgc').forEach(c => { const ok = !q || n(c.textContent).includes(q); c.hidden = !ok; if (ok) k++; }); t.textContent = q ? (k ? `${k} lig` : 'Eşleşen lig yok') : 'Tüm ligler'; };
   }
+  // takim / lig / oyuncu sayfasi (telefon): ustte geri dugmesi, sekmeler ayri yapiskan seritte (mac sayfasi gibi)
+  function mobilBaslik() {
+    if (!DAR.matches) return;
+    const k = app.querySelector(':scope > .kmth, :scope > .kmph'); if (!k || k.dataset.mb) return; k.dataset.mb = '1';
+    const r = document.createElement('div'); r.className = 'kmmb-ust';
+    const g = k.querySelector('[data-kmpgeri]');
+    if (g) r.appendChild(g); else r.innerHTML = '<button class="kmgeri" data-kmpgeri="1" aria-label="Geri"></button>';
+    k.prepend(r);
+    const s = k.querySelector(':scope > .kmsek');
+    if (s) { const y = document.createElement('div'); y.className = 'kmyap kmyapt'; k.after(y); y.appendChild(s); }
+  }
   const durumEsle = () => {
     try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); durumEsle(); } }).observe(app, { childList: true });
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); durumEsle(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
 })();
