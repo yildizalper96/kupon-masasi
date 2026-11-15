@@ -242,7 +242,10 @@ if (process.argv.includes('--live')) {
   if (!fs.existsSync(latestPath)) { console.log('latest.json yok: once tam calistir (--live olmadan).'); process.exit(0); }
   const prev = JSON.parse(fs.readFileSync(latestPath, 'utf8'));
   // yerel kupada iki takim da ust lig takimi degilse listeden cikar (eski calistirmalardan kalanlar; ayrintilar silinmez)
-  { const n0 = prev.m.length; prev.m = prev.m.filter(m => !DOMESTIC_CUPS.has(m.c) || (APP_ALL.includes(m.h) || APP_ALL.includes(m.a))); if (prev.m.length !== n0 && !DRY) { fs.writeFileSync(latestPath, JSON.stringify(prev)); console.log('Yerel kupa: ust lig olmayan', n0 - prev.m.length, 'mac listeden cikarildi.'); } }
+  { const n0 = prev.m.length; const detM = (() => { try { return JSON.parse(fs.readFileSync(path.join(outDir, 'details.json'), 'utf8').replace(/^﻿/, '')).m || {}; } catch (e) { return {}; } })();
+    // yalniz ad degil kimlik de: ayrintida takim kimligi biliniyorsa ids.json'daki gercek kimlikle ayni olmali (ayni adli amator kulupler elenir)
+    const gercekK = (n, id) => APP_ALL.includes(n) && !(id && TID[n] && String(TID[n]) !== String(id));
+    prev.m = prev.m.filter(m => { if (!DOMESTIC_CUPS.has(m.c)) return true; const d = detM[m.id] || {}; return gercekK(m.h, d.hid) || gercekK(m.a, d.aid); }); if (prev.m.length !== n0 && !DRY) { fs.writeFileSync(latestPath, JSON.stringify(prev)); console.log('Yerel kupa: ust lig olmayan', n0 - prev.m.length, 'mac listeden cikarildi.'); } }
   const LIVE_ST = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'SUSP']);
   const byId = new Map(prev.m.map(m => [m.id, m]));
   const seen = new Set();
