@@ -950,7 +950,10 @@
   const APIMEV = { G: 'K', D: 'D', M: 'O', F: 'F' };
   function oyuncuIndeksi() {
     const X = window.KMX || {}, sqs = X.sq || {}, bk = X.byKey || {};
-    const sig = (X.at || '') + '|' + Object.keys(typeof PS !== 'undefined' ? PS : {}).length + '|' + Object.keys(sqs).length + '|' + Object.keys(bk).length + '|' + Object.keys(typeof LVD !== 'undefined' ? LVD : {}).length + '|' + (SEZ && SEZ.p ? Object.keys(SEZ.p).length : 0);
+    const gecis = tmV('gecis', () => fetch('data/players/gecis.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null));
+    const gz = new Set((gecis && gecis.gizle) || []);
+    const gzL = [...gz].map(k => { const p = k.split('|'); return { t: p[1], n: p.slice(2).join('|') }; });
+    const sig = (gecis === undefined ? 'g0' : 'g1') + (X.at || '') + '|' + Object.keys(typeof PS !== 'undefined' ? PS : {}).length + '|' + Object.keys(sqs).length + '|' + Object.keys(bk).length + '|' + Object.keys(typeof LVD !== 'undefined' ? LVD : {}).length + '|' + (SEZ && SEZ.p ? Object.keys(SEZ.p).length : 0);
     if (OYI && OYI.sig === sig) return OYI;
     const L = [], grup = new Map(), kupa = c => ['CL', 'EL', 'ECL', 'UNL'].includes(c);
     (typeof plAll === 'function' ? plAll() : []).forEach(x => {
@@ -959,8 +962,11 @@
       else if (kupa(o.c) && !kupa(x.c)) { o.key = x.k; o.c = x.c; o.ps = x; }
     });
     // ayni tam ad (en az iki kelime) birden cok kulupte: sezon icinde transfer; en cok mac oynadigi kulup ana kayit
-    { const ta = new Map(); L.forEach(e => { const k = adN(e.n).join(' '); if (k.split(' ').length >= 2) (ta.get(k) || ta.set(k, []).get(k)).push(e); });
-      ta.forEach(l => { if (l.length < 2) return; l.sort((x, y) => (+y.ps.p[1] || 0) - (+x.ps.p[1] || 0)); const ana = l[0]; ana.diger = l.slice(1).map(x => x.ps); l.slice(1).forEach(x => { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); }); }); }
+    // takim degistiren oyuncu (data/players/gecis.json "LIG|Takim|Ad"): eski takim kaydi gizli; yeni takim ana kayit, eski istatistik diger olarak kalir
+    L.forEach(e => { e.gizli = gz.has(e.ps.c + '|' + e.ps.team + '|' + e.ps.p[0]); });
+    { const ta = new Map(); L.forEach(e => { const k = adN(e.n).join(' '); if (k.split(' ').length >= 2 || gz.size) (ta.get(k) || ta.set(k, []).get(k)).push(e); });
+      ta.forEach(l => { if (l.length < 2) return; if (adN(l[0].n).length < 2) { const vis = l.filter(x => !x.gizli); l.filter(x => x.gizli).forEach(h => { const c = vis.filter(v => v.ps.p[6] === h.ps.p[6]); const t = c.length === 1 ? c[0] : (vis.length === 1 ? vis[0] : null); if (t) (t.diger = t.diger || []).push(h.ps); }); return; } l.sort((x, y) => (x.gizli ? 1 : 0) - (y.gizli ? 1 : 0) || (+y.ps.p[1] || 0) - (+x.ps.p[1] || 0)); const ana = l[0]; ana.diger = l.slice(1).map(x => x.ps); l.slice(1).forEach(x => { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); }); }); }
+    for (let i = L.length - 1; i >= 0; i--) if (L[i].gizli) L.splice(i, 1);
     const psTakim = new Set(L.map(e => e.team).concat(L.flatMap(e => (e.diger || []).map(x => x.team))));
     const soy = {}; L.forEach(e => { const t = adN(e.n); const s = t[t.length - 1]; (soy[s] = soy[s] || []).push(e); });
     // API oyunculari
@@ -1000,6 +1006,7 @@
         else { e.milli = o.team; e.milliNo = o.no; e.id = e.id || o.id; e.ph = e.ph || o.ph; e.a = e.a || o.a; e.pos = e.pos || o.pos; }
         (e.adlar = e.adlar || []).push(o.n);
       } else {
+        if (gzL.some(g => g.t === o.team && ayniAd(g.n, o.n))) return; // eski takimdaki (gecis.json) oyuncu
         L.push({ key: o.team + '|' + o.n, n: tam || o.n, ad: o.n, adlar: [o.n], team: o.team, milli: kulupBag ? null : o.team, milliNo: kulupBag ? null : o.no, id: o.id, ph: o.ph, no: kulupBag ? o.no : null, a: o.a, pos: o.pos });
       }
     });
