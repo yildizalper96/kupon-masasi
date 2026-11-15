@@ -695,6 +695,7 @@
   const nz = x => (typeof nzq === 'function' ? nzq(String(x || '')) : String(x || '').toLowerCase());
   // sitede biriken oyuncu toplamlari (veri oturumu): {at, done, p:{<id>|n:<takim>:<ad>: {n,tm,no,pos,ph,c:{<lig>:{m,min,rs,rn,g,a,...}}}}}
   let SEZ = null;
+  fetch('data/players/foot.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j) window.KMFOOT = j; }).catch(() => { });
   fetch('data/players/season.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.p) { SEZ = j; try { render(); } catch (e) { } } }).catch(() => { });
   function sezonKaydi(e, team) {
     if (!SEZ || !SEZ.p) return null;
@@ -840,12 +841,15 @@
     // kulup forma numarasi (PS p[7]; 0 = kaynakta yok), yoksa kulup kadrosundan
     // bio.json 2024 sezonundan gelebilir (eski numara olabilir): en son kaynak o
     const forma = (p && +p[7] > 0 ? p[7] : null) ?? (+e.no > 0 ? e.no : null) ?? (+bio.no > 0 ? bio.no : null);
-    if (bio.h) bilgi.push([String(bio.h).replace(/\s*cm$/i, '') + ' cm', 'Boy']);
+    const kfh = (e.id && window.KMFOOT && window.KMFOOT[e.id] && window.KMFOOT[e.id].h) || 0;
+    if (bio.h || kfh) bilgi.push([String(bio.h || kfh).replace(/\s*cm$/i, '') + ' cm', 'Boy']);
     if (forma != null && forma !== '') bilgi.push([forma, 'Forma']);
     const dg = bio.b ? new Date(bio.b + 'T12:00:00Z') : null, dgOk = dg && !isNaN(dg);
     const yas = dgOk ? Math.floor((Date.now() - dg) / 315576e5) : e.a;
     if (yas) bilgi.push([yas + ' yaş', dgOk ? dg.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Yaş']);
-    const ayak = { right: 'Sağ', left: 'Sol', both: 'Her ikisi', sag: 'Sağ', sol: 'Sol' }[String(bio.foot || '').toLowerCase()];
+    // data/players/foot.json (Wikidata, tools/foot-wikidata.mjs; ada gore eslesme, yalnizca kesin tek aday)
+    const kf = (e.id && window.KMFOOT && window.KMFOOT[e.id]) || {};
+    const ayak = { right: 'Sağ', left: 'Sol', both: 'Her ikisi', sag: 'Sağ', sol: 'Sol' }[String(bio.foot || kf.f || '').toLowerCase()];
     // tercih ettigi ayak her zaman gosterilir; kaynakta yoksa "veri yok" (uydurulmaz)
     bilgi.push([ayak ? E(ayak) : '<span class="kmph-yok">veri yok</span>', 'Tercih ettiği ayak', 1]);
     // ulke: bayrak + ad, tiklayinca milli takim sayfasi (yalnizca milli takim kadrosundan biliniyorsa)
