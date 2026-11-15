@@ -3,7 +3,7 @@
  * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
  * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.
  * Surum degistirmek icin CACHE adini artir (eski onbellekler silinir). */
-const CACHE = 'km-v4';
+const CACHE = 'km-v5';
 // Takim/lig logolari ve oyuncu fotograflari (media.api-sports.io): onbellek oncelikli, kalici.
 // Gorsel bir kez indikten sonra her acilista aninda gelir; arka planda 7 gunde bir tazelenir.
 const IMG = 'km-img-v1';
@@ -67,7 +67,7 @@ self.addEventListener('fetch', e => {
   // cache:'no-cache': tarayicinin HTTP onbellegi (GitHub Pages max-age=600) atlanir, sunucuya sorulur
   // (degismediyse 304, kucuk); yeni yayin sayfa yenilenince hemen gelir
   e.respondWith(
-    fetch(req, req.mode === 'navigate' ? undefined : { cache: 'no-cache' })
+    (req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req, { cache: 'no-cache' }))
       .then(res => {
         if (res && res.ok && res.type === 'basic') {
           const copy = res.clone();

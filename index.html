@@ -30,5 +30,5 @@
 <div id='vpz' style='position:fixed;left:0;top:0;width:1px;height:100vh;pointer-events:none;visibility:hidden'></div>
 <script src="js/extras.js"></script>
 <script src="js/desktop.js"></script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+<script>if('serviceWorker' in navigator){(function(){var sw=navigator.serviceWorker,eski=!!sw.controller,yk=0;sw.addEventListener('controllerchange',function(){if(eski&&!yk){yk=1;location.reload()}});window.addEventListener('load',function(){sw.register('sw.js',{updateViaCache:'none'}).then(function(r){r.update().catch(function(){});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')r.update().catch(function(){})})}).catch(function(){})})})()}</script>
 </body></html>
