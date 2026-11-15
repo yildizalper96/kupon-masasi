@@ -815,6 +815,9 @@
     const t = (x && typeof PS !== 'undefined' && PS[x.tk]) || {};
     return { e, p, team, nm: e.n, c, t };
   }
+  // kulubun resmi tam adi (uygulamadaki kisa adlar icin); listede olmayan ad aynen kalir
+  const TAM_KULUP = { 'Man City': 'Manchester City', 'Man United': 'Manchester United', 'N. Forest': 'Nottingham Forest', 'C. Palace': 'Crystal Palace', 'Leeds': 'Leeds United', 'Newcastle': 'Newcastle United', 'Brighton': 'Brighton & Hove Albion', 'West Ham': 'West Ham United', 'Wolves': 'Wolverhampton', 'Tottenham': 'Tottenham Hotspur', 'Leicester': 'Leicester City', 'Ipswich': 'Ipswich Town', 'PSG': 'Paris Saint-Germain', 'Milan': 'AC Milan', 'Leverkusen': 'Bayer Leverkusen', 'M’gladbach': 'Borussia Mönchengladbach', 'Dortmund': 'Borussia Dortmund', 'Bayern': 'Bayern Münih', 'Leipzig': 'RB Leipzig', 'Frankfurt': 'Eintracht Frankfurt', 'Celta': 'Celta Vigo', 'Betis': 'Real Betis', 'Athletic': 'Athletic Bilbao', 'Sporting': 'Sporting CP', 'PSV': 'PSV Eindhoven', 'Dundee Utd': 'Dundee United' };
+  const kulupAd = n => TAM_KULUP[n] || n;
   function oyuncuSayfasi(v) {
     const o = oyuncuVeri(v), e = o.e, p = o.p, [r1] = renk(o.team);
     const posK = (p && p[6]) || e.pos || '', mev = MEVKI[posK] || '';
@@ -822,11 +825,12 @@
     const geri = (typeof NAVS !== 'undefined' && NAVS.length) ? `<button class="kmgeri" data-kmpgeri="1">${ic.geri}<span>Geri</span></button>` : '';
     const bas = `<div class="kmc kmph"><div class="kmph-u" style="--tr:${E(r1)}">${geri}
         <div class="kmph-f${foto ? '' : ' yok'}"><span>${E(basH(o.nm))}</span>${fotoImg(foto)}</div>
-        <div><h2>${E(o.nm)}</h2>${o.team ? `<a class="kmph-t" data-tm="${E(o.team)}">${bd(o.team)}<span>${E(o.team)}</span></a>` : ''}</div></div>`;
+        <div><h2>${E(o.nm)}</h2>${o.team ? `<a class="kmph-t" data-tm="${E(o.team)}">${bd(o.team)}<span>${E(kulupAd(o.team))}</span></a>` : ''}</div></div>`;
     const bilgi = [];
-    if (e.no && !e.milli) bilgi.push([e.no, 'Forma']);
+    // ulke: bayrak + ad (yalnizca milli takim kadrosundan biliniyorsa; uyruk verisi yoksa gosterilmez)
     if (e.a) bilgi.push([e.a + ' yaş', 'Yaş']);
-    if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Milli takım', 1]);
+    if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Ülke', 1]);
+    if (e.no && !e.milli) bilgi.push([e.no, 'Forma']);
     if (e.milliNo) bilgi.push([e.milliNo, 'Milli takımda forma']);
     const tl = TM[o.team]; if (tl && tl.l) bilgi.push([`${tl.r}.`, E(ligAd(tl.l)) + ' sırası']);
     const nokta = { K: [50, 88], D: [50, 68], O: [50, 46], F: [50, 18] }[posK] || null;
@@ -841,7 +845,7 @@
       const m90 = p[2] / 90, ek = [];
       if (p[6] === 'K') { if (p[8] != null) ek.push(kut(p[8], 'Gol yemeden')); if (p[9] != null) ek.push(kut(p[9], 'Yediği gol')); }
       if (p[2] >= 180) { ek.push(kut(f2(p[3] / m90), '90 dk\'da gol')); ek.push(kut(f2((p[3] + p[4]) / m90), '90 dk\'da gol+asist')); }
-      sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(o.team)}</small></h3><div class="kmph-s">${kut(p[3], 'Goller')}${kut(p[4], 'Asistler')}${kut(p[1], 'Maçlar')}${kut(p[2], 'Oyun süresi')}
+      sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(kulupAd(o.team))}</small></h3><div class="kmph-s">${kut(p[3], 'Goller')}${kut(p[4], 'Asistler')}${kut(p[1], 'Maçlar')}${kut(p[2], 'Oyun süresi')}
         <div><b><i class="kmkrt s"></i>${p[5]}</b><small>Sarı kartlar</small></div>${ek.join('')}</div>
         <p class="kmkay">Kaynak: ${E(o.t.src || '–')}${o.t.at ? ', ' + E(o.t.at) : ''}. Hesaplanan değerler bu toplamlardan.</p>`);
     } else sezon = '';
@@ -870,7 +874,7 @@
         <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`).join('')}</tbody></table>
         <p class="kmkay">Kulüp maçları takımın kayıtlı maçlarından, puanlı satırlar API-Football maç verisinden. "–": kaynakta yalnızca skor var.</p>`) : '';
     const nx = o.team ? siradaki(o.team) : null;
-    const takim = o.team ? card('kmpyan', `<h3 class="kmb">Takım</h3><div class="kmpy" data-tm="${E(o.team)}">${bd(o.team, 1)}<div><b>${E(o.team)}</b><small>${tl && tl.l ? E(ligAd(tl.l)) + ' · ' + tl.r + '. sıra' : ''}</small></div></div>
+    const takim = o.team ? card('kmpyan', `<h3 class="kmb">Takım</h3><div class="kmpy" data-tm="${E(o.team)}">${bd(o.team, 1)}<div><b>${E(kulupAd(o.team))}</b><small>${tl && tl.l ? E(ligAd(tl.l)) + ' · ' + tl.r + '. sıra' : ''}</small></div></div>
         ${nx ? `<div class="kmpy-nx" data-kmm="${E(key(nx))}"><small>Sonraki maç</small><span>${E(nx.h)} – ${E(nx.a)}</span><small>${E(kisaTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}</small></div>` : ''}`) : '';
     const mnx = e.milli && e.milli !== o.team ? siradaki(e.milli) : null;
     const milli = e.milli && e.milli !== o.team ? card('kmpyan', `<h3 class="kmb">Milli takım</h3><div class="kmpy" data-tm="${E(e.milli)}">${bd(e.milli, 1)}<div><b>${E(e.milli)}</b><small>Son kadroda${e.milliNo ? ' · ' + e.milliNo + ' numara' : ''}</small></div></div>

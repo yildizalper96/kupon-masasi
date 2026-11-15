@@ -1874,3 +1874,8 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
 .kmph-f:has(>img)>span{visibility:hidden}
 @media(max-width:1099px){#app .bd:has(>img.mf){overflow:hidden!important;border-radius:50%!important;background:var(--sf2)!important}}
 @media(max-width:1099px){#app .lgg .lgc .kmlgl{background:#fff!important;border-radius:50%!important;display:grid!important;place-items:center;width:36px!important;height:36px!important}#app .lgg .lgc .kmlgl img{width:26px!important;height:26px!important;object-fit:contain}}
+/* oyuncu sayfasi: Ulke = yuvarlak bayrak + ad (masaustu ve telefon) */
+.kmph-b .kmph-n{display:inline-flex!important;align-items:center;gap:8px}
+.kmph-b .kmph-n .bd{width:22px!important;height:22px!important;border-radius:50%!important;overflow:hidden!important;flex:none;background:var(--sf2)!important;font-size:6px!important}
+.kmph-b .kmph-n .bd img.tlg{transform:scale(1.36);object-fit:cover}
+.kmph-t span{white-space:nowrap}
