@@ -3,19 +3,25 @@
 // yuklenemezse uygulamanin bas harf rozeti gorunur (img onerror ile kaldirilir).
 // Not: logolar ilgili kuluplerin markasidir; yayin hakki API sartlarina gore kullanicinin sorumlulugundadir.
 (function () {
+  // kimlik sozlugu cihazda saklanir: ilk cizimde logolar hazir olur (ag cevabi beklenmez), sonra arka planda guncellenir
+  const ANAH = 'kmTeamIds';
   let T = {};
+  try { const v = JSON.parse(localStorage.getItem(ANAH) || 'null'); if (v && typeof v === 'object') T = v; } catch (e) { }
+  window.kmTeamId = n => T[n] || null;
   // milli takim (Uluslar Ligi) logolari bayraktir: telefonda yuvarlak kesilir (class mf)
   let MS = null, MN = -1;
   const milli = n => { try { if (MN !== R.length) { MS = new Set(); R.forEach(m => { if (m.c === 'UNL') { MS.add(m.h); MS.add(m.a); } }); MN = R.length; } return MS.has(n); } catch (e) { return false; } };
   window.kmLogo = function (n) {
     const id = T[n];
     if (!id) return '';
-    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' loading='lazy' decoding='async' referrerpolicy='no-referrer' onload='this.parentNode.classList.add("hl")' onerror='this.remove()'>`;
+    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='this.parentNode.classList.add("hl")' onerror='this.remove()'>`;
   };
   fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.t) return;
+    const yeni = JSON.stringify(j.t), degisti = yeni !== JSON.stringify(T);
     T = j.t;
-    try { if (typeof render === 'function') render(); } catch (e) { }
+    try { localStorage.setItem(ANAH, yeni); } catch (e) { }
+    if (degisti) { try { if (typeof render === 'function') render(); } catch (e) { } }
   }).catch(() => { });
 })();
 // Lig logolari (API-Football): kimlik once fixtures latest.json meta'sindan (KMX.lgId), yoksa sabit tablodan (tools/fetch-fixtures.mjs LEAGUES).
@@ -27,7 +33,7 @@
   window.kmLigLogo = function (c, yedek, cls) {
     const id = window.kmLigId(c);
     if (!id) return yedek || '';
-    return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
+    return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
   };
 })();
 // Lig sayfasini acmak icin arama metni: yalnizca bu lige eslesen ad (or. "Serie A" Brezilya Serie A ile de eslesir)

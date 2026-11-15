@@ -102,7 +102,7 @@
     try { if (window.KMX && typeof KMX.photo === 'function') return KMX.photo(takim, p && (p.n || p)) || ''; } catch (e) { }
     return '';
   };
-  const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hf')" onerror="this.remove()">` : '';
+  const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hf')" onerror="this.remove()">` : '';
   const basH = n => String(n || '').replace(/[^A-Za-zÇĞİÖŞÜçğıöşü. ]/g, '').trim().split(' ').pop().replace('.', '').slice(0, 2).toUpperCase();
   const renk = n => { try { const c = TC[n]; if (c) return c; } catch (e) { } return ['#4a5a68', '#cbd5dc']; };
   const nedenTr = r => { const s = String(r || ''); if (/suspen|card|ceza/i.test(s)) return 'Cezalı'; if (/injur|muscle|knee|ankle|hamstring|sakat/i.test(s)) return 'Sakat'; if (/doubt|şüphe/i.test(s)) return 'Şüpheli'; return s || 'Eksik'; };

@@ -36,9 +36,10 @@
         if (!id || !bd) return;
         var tile = document.createElement('span'); tile.className = 'kmlgl';
         var img = new Image(); img.alt = ''; img.referrerPolicy = 'no-referrer';
-        img.onload = function () { if (bd.parentNode) bd.parentNode.replaceChild(tile, bd); };
-        img.onerror = function () { img.remove(); };
+        // logo kutusu hemen yerine konur (onbellekteki gorsel ilk karede cizilir); yuklenemezse kod rozeti geri gelir
+        img.onerror = function () { if (tile.parentNode) tile.parentNode.replaceChild(bd, tile); };
         tile.appendChild(img);
+        if (bd.parentNode) bd.parentNode.replaceChild(tile, bd);
         img.src = 'https://media.api-sports.io/football/leagues/' + id + '.png';
       });
     } catch (e) { if (window.console) console.warn('lig-kutu:', e); }

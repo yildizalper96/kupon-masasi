@@ -1859,3 +1859,18 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   #app>.box>.lg2 .kmlo,#app>.box>.lg2 .dzlgb{width:28px!important;height:28px!important}
   #app>.box>.lg2 .kmlo>img{inset:9%!important;width:82%!important;height:82%!important}
 }
+
+/* ==== Gorseller: yuklenirken bas harf/renk yerine sessiz yer tutucu; gorsel gelince yerine oturur, gelmezse bas harf gorunur ==== */
+/* gorsel varsa bastan gorunur (JS'in 'yuklendi' isaretini beklemez); bas harf/renk yalnizca gorsel yoksa ya da hata verip kaldirilinca cikar */
+.bd .tlg,.bd.hl .tlg{opacity:1!important}
+.bd:has(>img.tlg){background:transparent!important;box-shadow:none!important;color:transparent!important;text-shadow:none!important;overflow:visible}
+.bd.kmyuk{color:transparent!important;background:var(--sf2)!important;box-shadow:none!important}
+.kmfoto,.hf>.kmfoto{opacity:1!important}
+.kmav:has(>img.kmfoto)>i{visibility:hidden}
+.kmav:has(>img.kmfoto){background:var(--sf2)!important}
+.kmlo>img{opacity:1!important}
+.kmlo:has(>img){background:#fff!important;box-shadow:0 0 0 1px var(--ln)}
+.kmlo:has(>img)>:not(img){visibility:hidden}
+.kmph-f:has(>img)>span{visibility:hidden}
+@media(max-width:1099px){#app .bd:has(>img.mf){overflow:hidden!important;border-radius:50%!important;background:var(--sf2)!important}}
+@media(max-width:1099px){#app .lgg .lgc .kmlgl{background:#fff!important;border-radius:50%!important;display:grid!important;place-items:center;width:36px!important;height:36px!important}#app .lgg .lgc .kmlgl img{width:26px!important;height:26px!important;object-fit:contain}}

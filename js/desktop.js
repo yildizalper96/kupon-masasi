@@ -249,7 +249,7 @@
     const sat = (t, k, n, ic, alt) => `<button type="button" class="kma-r" data-kmat="${t}" data-kmak="${esc(k)}" data-kman="${esc(n)}">${ic}<span><b>${esc(n)}</b>${alt ? `<small>${esc(alt)}</small>` : ''}</span></button>`;
     if (aF === 'tum' || aF === 'tm') { const l = takimlar().filter(n => nz(n).includes(q)).sort((a, b) => nz(a).indexOf(q) - nz(b).indexOf(q)).slice(0, aF === 'tum' ? 5 : 30); if (l.length) bol.push(['Takımlar', l.map(n => { let u = ''; try { const t = TM[n]; u = t && t.l ? ligAdi(t.l) : ''; } catch (e) { } return sat('tm', n, n, bdG(n), u); }).join('')]); }
     if (aF === 'tum' || aF === 'lg') { let ks = []; try { ks = (typeof LORD !== 'undefined' ? LORD : Object.keys(LN)); } catch (e) { } const l = ks.filter(c => nz(ligAdi(c)).includes(q) || nz(c) === q).slice(0, aF === 'tum' ? 4 : 30); if (l.length) bol.push(['Ligler', l.map(c => { let u = ''; try { u = LN[c] ? LN[c].split(' – ')[0] : ''; } catch (e) { } return sat('lg', c, ligAdi(c), `<span class="kma-lg">${bayrak(c)}</span>`, u); }).join('')]); }
-    if ((aF === 'tum' || aF === 'pl') && q.length >= 3 && typeof window.kmOyuncuAra === 'function') { const l = window.kmOyuncuAra(q).slice(0, aF === 'tum' ? 5 : 16); if (l.length) bol.push(['Oyuncular', l.map(p => sat('pl', p.k, p.n, `<span class="kma-av">${p.f ? `<img src="${esc(p.f)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<i>${esc(String(p.n).split(' ').pop().slice(0, 2).toUpperCase())}</i></span>`, p.tm)).join('')]); }
+    if ((aF === 'tum' || aF === 'pl') && q.length >= 3 && typeof window.kmOyuncuAra === 'function') { const l = window.kmOyuncuAra(q).slice(0, aF === 'tum' ? 5 : 16); if (l.length) bol.push(['Oyuncular', l.map(p => sat('pl', p.k, p.n, `<span class="kma-av">${p.f ? `<img src="${esc(p.f)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<i>${esc(String(p.n).split(' ').pop().slice(0, 2).toUpperCase())}</i></span>`, p.tm)).join('')]); }
     if (aF === 'tum' || aF === 'm') {
       let l = []; try { const now = Date.now() - 3 * 36e5; l = R.filter(m => nz(m.h + ' ' + m.a).includes(q)).sort((a, b) => ((a.t < now) - (b.t < now)) || (a.t < now ? b.t - a.t : a.t - b.t)).slice(0, aF === 'tum' ? 5 : 30); } catch (e) { }
       if (l.length) bol.push(['Maçlar', l.map(m => { const d = new Date(m.t), k = [m.c, m.h, m.a].join('|'); let sk = ''; try { const s = stt(m); sk = s.sc ? `${s.sc[0]} - ${s.sc[1]}` : hm(m.t); } catch (e) { } return `<button type="button" class="kma-r kma-m" data-kmat="m" data-kmak="${esc(k)}" data-kman="${esc(m.h + ' – ' + m.a)}"><span class="kma-mt"><span>${esc(m.h)}</span>${bdG(m.h)}<b>${esc(sk)}</b>${bdG(m.a)}<span>${esc(m.a)}</span></span><small>${esc(d.getDate() + ' ' + AY[d.getMonth()])} · ${esc(ligAdi(m.c))}</small></button>`; }).join('')]);
@@ -320,11 +320,32 @@
     const s = k.querySelector(':scope > .kmsek');
     if (s) { const y = document.createElement('div'); y.className = 'kmyap kmyapt'; k.after(y); y.appendChild(s); }
   }
+  // gorsel on yukleme: bosta iken yakin gunlerin takim logolari, lig logolari ve bugunun resmi 11 fotograflari indirilir;
+  // service worker kalici onbellege alir, sayfa acilinca gorseller aninda gelir
+  const ONY = new Set();
+  function onYukle() {
+    const bag = navigator.connection || {}, kisit = bag.saveData || /(^|-)2g/.test(bag.effectiveType || '');
+    const l = [];
+    const ekle = u => { if (u && !ONY.has(u)) { ONY.add(u); l.push(u); } };
+    try {
+      const simdi = Date.now(), tid = window.kmTeamId || (() => null);
+      R.filter(m => Math.abs(m.t - simdi) < 3 * 864e5).forEach(m => [m.h, m.a].forEach(n => { const id = tid(n); if (id) ekle(`https://media.api-sports.io/football/teams/${id}.png`); }));
+      if (!kisit) { try { Object.keys(TM).forEach(n => { const id = tid(n); if (id) ekle(`https://media.api-sports.io/football/teams/${id}.png`); }); } catch (e) { } R.filter(m => Math.abs(m.t - simdi) < 10 * 864e5).forEach(m => [m.h, m.a].forEach(n => { const id = tid(n); if (id) ekle(`https://media.api-sports.io/football/teams/${id}.png`); })); }
+      Object.keys(LN).forEach(c => { const id = window.kmLigId && window.kmLigId(c); if (id) ekle(`https://media.api-sports.io/football/leagues/${id}.png`); });
+      if (!kisit && window.KMX && typeof KMX.luRaw === 'function') R.filter(m => Math.abs(m.t - simdi) < 864e5).forEach(m => { let r = null; try { r = KMX.luRaw(m); } catch (e) { } if (!r) return; ['h', 'a'].forEach(s => [...((r[s] || {}).xi || []), ...((r[s] || {}).bn || [])].forEach(p => { if (p && +p.id > 0) ekle(`https://media.api-sports.io/football/players/${+p.id}.png`); })); });
+    } catch (e) { }
+    if (!l.length) return;
+    let i = 0;
+    const parti = () => { const s = l.slice(i, i += 12); s.forEach(u => { const im = new Image(); im.decoding = 'async'; im.referrerPolicy = 'no-referrer'; im.src = u; }); if (i < l.length) setTimeout(parti, 120); };
+    (window.requestIdleCallback || (f => setTimeout(f, 600)))(parti);
+  }
+  let onyZ = 0;
+  const onYukleZamanla = () => { clearTimeout(onyZ); onyZ = setTimeout(onYukle, 900); };
   const durumEsle = () => {
     try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
   };
 
-  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); kisaAd(); durumEsle(); } }).observe(app, { childList: true });
+  new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); kisaAd(); durumEsle(); onYukleZamanla(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
 })();
