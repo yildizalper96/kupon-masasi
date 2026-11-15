@@ -1984,3 +1984,4 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
 }
 @media(min-width:1100px){#dz:has(#app>.kmkdt){grid-template-columns:minmax(0,1fr)!important}#dz:has(#app>.kmkdt) #dzr,#dz:has(#app>.kmkdt) #dzl{display:none!important}}
 @media(min-width:1100px){.kmuy{display:inline-flex;align-items:center;gap:8px;cursor:pointer}.kmuy:hover span{text-decoration:underline}.kmuy .bd{margin-right:0!important}}
+@media(min-width:1100px){.kmph-kay{padding:0 28px 16px;margin:0}}
