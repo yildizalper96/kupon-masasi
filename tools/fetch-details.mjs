@@ -248,8 +248,8 @@ for (const m of cand) {
 }
 
 D.at = new Date().toISOString();
-// eski maclari temizle (baslamasindan 2 gun gecmis)
-for (const [id, e] of Object.entries(D.m)) if (e.t && Date.parse(e.t) < now - HRS(48)) delete D.m[id];
+// eski maclari temizle (baslamasindan 30 gun gecmis; 2 gun iken gecmis gunlerin skor/istatistik/kadrosu kayboluyordu)
+// HICBIR MAC SILINMEZ (kullanici karari, 15 Kas 2026). Dosya buyurse eski aylar data/fixtures/arsiv/YYYY-MM.json'a tasinacak (yapilacak).
 fs.writeFileSync(detPath, JSON.stringify(D));
 console.log(log.join('\n'));
 console.log(`\nHarcanan istek: ${used}, kalan gunluk (yaklasik): ${remaining === null ? '?' : remaining - used}. Mac: ${Object.keys(D.m).length}, takim kadrosu: ${Object.keys(D.sq).length}.`);
