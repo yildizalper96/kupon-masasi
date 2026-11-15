@@ -1951,3 +1951,4 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
 .betw .betlbl{font:600 14px var(--f);color:var(--mut);margin:4px 2px 8px}
 @media(max-width:1099px){.kpc{border-radius:var(--mr,18px);border:0}.kpc-s{padding:12px 14px}.kpc-g{padding:10px 14px}.kpc-r{margin-left:0}.kpc-gf{margin-left:0}.kpc-f{padding:10px 14px 14px}}
 @media(max-width:1099px){.kpc-fl .kpc-ik .bd+.bd{display:none!important}.kpc-s{gap:10px}}
+.kmph-b .kmph-yok{font-weight:500;color:var(--mut);font-size:14px}

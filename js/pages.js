@@ -708,7 +708,7 @@
   const APIMEV = { G: 'K', D: 'D', M: 'O', F: 'F' };
   function oyuncuIndeksi() {
     const X = window.KMX || {}, sqs = X.sq || {}, bk = X.byKey || {};
-    const sig = (X.at || '') + '|' + Object.keys(typeof PS !== 'undefined' ? PS : {}).length + '|' + Object.keys(sqs).length + '|' + Object.keys(bk).length + '|' + Object.keys(typeof LVD !== 'undefined' ? LVD : {}).length;
+    const sig = (X.at || '') + '|' + Object.keys(typeof PS !== 'undefined' ? PS : {}).length + '|' + Object.keys(sqs).length + '|' + Object.keys(bk).length + '|' + Object.keys(typeof LVD !== 'undefined' ? LVD : {}).length + '|' + (SEZ && SEZ.p ? Object.keys(SEZ.p).length : 0);
     if (OYI && OYI.sig === sig) return OYI;
     const L = [], grup = new Map(), kupa = c => ['CL', 'EL', 'ECL', 'UNL'].includes(c);
     (typeof plAll === 'function' ? plAll() : []).forEach(x => {
@@ -735,6 +735,14 @@
       if (r) [...(r.xi || []), ...(r.bn || [])].forEach(p => ekle(tm, p, APIMEV[p.pos]));
       ((e.live && e.live.px && e.live.px[s]) || []).forEach(p => ekle(tm, p, APIMEV[p.pos]));
     }); });
+    // kalici kimlikler: eski maclar veriden dusunce foto kaybolmasin (season.json + bu cihazda daha once gorulenler)
+    if (SEZ && SEZ.p) Object.entries(SEZ.p).forEach(([k, v]) => { if (v && v.tm && /^\d+$/.test(k)) ekle(v.tm, { id: +k, n: v.n, ph: v.ph, no: v.no }, APIMEV[v.pos] || v.pos); });
+    try {
+      const PK = 'kmPlIds', bel = JSON.parse(localStorage.getItem(PK) || '{}'); let deg = false;
+      api.forEach(o => { const k = o.team + '|' + o.n; if (o.id) { if (bel[k] !== o.id) { bel[k] = o.id; deg = true; } } else if (bel[k]) o.id = bel[k]; });
+      Object.entries(bel).forEach(([k, id]) => { const i = k.indexOf('|'), tm = k.slice(0, i), n = k.slice(i + 1); if (!api.some(o => o.id === id)) ekle(tm, { id, n }); });
+      if (deg) localStorage.setItem(PK, JSON.stringify(bel));
+    } catch (x) { }
     // mac olaylarindaki tam adlar (takima gore)
     const evAd = {};
     try { Object.entries(LVD).forEach(([k, v]) => { const [, h, a] = k.split('|'); (v && v.ev || []).forEach(ev => { const tm = ev.s === 'a' ? a : ev.s === 'h' ? h : null; if (tm) [ev.a, ev.b].forEach(n => { if (n) (evAd[tm] = evAd[tm] || new Set()).add(n); }); }); }); } catch (e) { }
@@ -838,7 +846,8 @@
     const yas = dgOk ? Math.floor((Date.now() - dg) / 315576e5) : e.a;
     if (yas) bilgi.push([yas + ' yaş', dgOk ? dg.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Yaş']);
     const ayak = { right: 'Sağ', left: 'Sol', both: 'Her ikisi', sag: 'Sağ', sol: 'Sol' }[String(bio.foot || '').toLowerCase()];
-    if (ayak) bilgi.push([ayak, 'Tercih ettiği ayak']);
+    // tercih ettigi ayak her zaman gosterilir; kaynakta yoksa "veri yok" (uydurulmaz)
+    bilgi.push([ayak ? E(ayak) : '<span class="kmph-yok">veri yok</span>', 'Tercih ettiği ayak', 1]);
     // ulke: bayrak + ad, tiklayinca milli takim sayfasi (yalnizca milli takim kadrosundan biliniyorsa)
     if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Ülke', 1, e.milli]);
     const tl = TM[o.team]; if (tl && tl.l) bilgi.push([`${tl.r}.`, E(ligAd(tl.l)) + ' sırası']);
