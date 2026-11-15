@@ -738,8 +738,18 @@
   const TMSTOP = new Set(['fc', 'cf', 'rcd', 'ac', 'sc', 'sk', 'fk', 'as', 'ss', 'us', 'calcio', 'club', 'de', 'cfc', 'afc', 'ssc', 'sv', 'vfl', 'vfb', 'tsg', 'rc', 'cd', 'ud', 'sd', 'ca', 'ogc', 'losc', 'aj', 'bv', 'psv', 'kf', 'ks', 'nk', 'gnk', 'hnk', 'bk', 'if', 'aik', 'sl', 'jk', 'pae', 'gfc', 'krc', 'kv', 'kaa', 'rsc', 'royal', 'spor', 'kulubu', 'c', 'd', 'f', '1', '04', '05', '07', '09', '1846', '1899', '1900', '1907', '1909', '1910', '1913']);
   const tmTok = s => adN(s).filter(w => !TMSTOP.has(w) && !/^\d+$/.test(w));
   const TMADC = {};
+  const tmLogoMap = () => tmV('clublogo', () => fetch('data/tm/clublogo.json').then(r => r.ok ? r.json() : null));
+  const tmKulupAd = () => tmV('clubnames', () => fetch('data/tm/club-names.json').then(r => r.ok ? r.json() : null));
+  function kulupLogo(ad, app) {
+    if (app) return bd(app);
+    const m = tmLogoMap(), id = m && m[ad];
+    return id ? `<span class="bd kmkr-yb">${E(basH(ad || '?'))}<img class="tlg" src="https://media.api-sports.io/football/teams/${+id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hl')" onerror="this.remove()"></span>` : `<span class="bd kmkr-yb">${E(basH(ad || '?'))}</span>`;
+  }
   function tmAdApp(ad) {
     if (!ad) return null; if (ad in TMADC) return TMADC[ad];
+    { const m = tmLogoMap(), ids = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null));
+      if (m === undefined || ids === undefined) return null;
+      const id = m && m[ad]; if (id && ids && ids.t) { const n = Object.keys(ids.t).find(k => +ids.t[k] === +id); if (n) return (TMADC[ad] = n); } }
     const tk = tmTok(ad); let bul = null;
     if (tk.length) {
       const adaylar = new Set(Object.keys(TM)); R.forEach(m => { adaylar.add(m.h); adaylar.add(m.a); });
@@ -790,7 +800,7 @@
     const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(t[t.length - 1]).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
     const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
     const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
-    const logo = parca.map(s => { const n = s.n.reduce((b, x) => x.y < b.y ? x : b, s.n[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${s.d && s.d.app ? bd(s.d.app) : `<i>${E(basH(a || '?'))}</i>`}</span>`; }).join('');
+    const logo = parca.map(s => { const n = s.n.reduce((b, x) => x.y < b.y ? x : b, s.n[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
     const veri = nk.map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
     const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), sonV = l[l.length - 1];
     return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(sonV[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>
@@ -804,14 +814,20 @@
     const sezonKulup = y => kulupAn(D, Date.UTC(+y, 9, 1));
     const ps = e.ps && e.ps.p, sp = sezonPuani(e);
     const simdiY = (() => { const n = new Date(); return n.getUTCMonth() >= 6 ? n.getUTCFullYear() : n.getUTCFullYear() - 1; })();
-    const sezonlar = st.map(r => ({ y: +r[0], d: sezonKulup(r[0]), m: r[1], g: r[2], a: r[3] }));
+    const cn = tmKulupAd() || {};
+    const anahtar = d => d ? (d.app || adN(d.ad).join(' ')) : '';
+    const donemBul = (ad, y) => { const app = tmAdApp(ad), k = app || adN(ad).join(' '); const t0 = Date.UTC(+y, 6, 1), t1 = Date.UTC(+y + 1, 5, 30);
+      const L = D.filter(d => anahtar(d) === k); return L.find(d => (!d.bas || Date.parse(d.bas) <= t1) && (!d.bit || Date.parse(d.bit) >= t0)) || L[L.length - 1] || { ad, app }; };
+    const sezonlar = st.filter(r => !(r[7] != null && cn[r[7]] && GENC.test(String(cn[r[7]]).replace(/\./g, ' ')))).map(r => ({ y: +r[0], d: r[7] != null && cn[r[7]] ? donemBul(cn[r[7]], r[0]) : sezonKulup(r[0]), m: r[1], g: r[2], a: r[3] }));
     if (ps && !sezonlar.some(s => s.y === simdiY)) sezonlar.push({ y: simdiY, d: D.slice().reverse().find(d => d.app === e.team) || { ad: e.team, app: e.team }, m: +ps[1] || 0, g: +ps[3] || 0, a: +ps[4] || 0, pu: sp && sp.o, simdi: 1 });
+    // ayni sezon + ayni kulup satirlari (kaynakta bolunmus) toplanir
+    for (let i = sezonlar.length - 1; i >= 0; i--) { const x = sezonlar[i], j = sezonlar.findIndex(y => y !== x && y.y === x.y && y.d === x.d); if (j >= 0 && j < i) { const y = sezonlar[j]; y.m = (+y.m || 0) + (+x.m || 0); y.g = (+y.g || 0) + (+x.g || 0); y.a = (+y.a || 0) + (+x.a || 0); sezonlar.splice(i, 1); } }
     sezonlar.sort((a, b) => b.y - a.y);
     // donem istatistigi: sezonun kulubu bu donemse toplanir
     D.forEach(d => { d.m = 0; d.g = 0; d.var = false; });
     sezonlar.forEach(s => { const d = s.d; if (d && D.includes(d)) { d.m += +s.m || 0; d.g += +s.g || 0; d.var = true; } else { const dd = D.find(x => x.app === (s.d && s.d.app)); if (dd) { dd.m += +s.m || 0; dd.g += +s.g || 0; dd.var = true; } } });
     const ar = s => s ? new Date(s + 'T12:00:00Z').toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : '';
-    const lg = d => d && d.app ? bd(d.app) : `<span class="bd kmkr-yb">${E(basH((d && d.ad) || '?'))}</span>`;
+    const lg = d => kulupLogo(d && d.ad, d && d.app);
     const adH = d => d && d.app ? `<b data-tm="${E(d.app)}">${E(d.app)}</b>` : `<b>${E((d && d.ad) || '?')}</b>`;
     const kul = D.slice().reverse().filter(d => (d.bas || d.bit || d.guncel) && !(d.donus && !d.var && d.bit && (Date.parse(d.bit) - Date.parse(d.bas)) < 120 * 864e5)).map(d => `<div class="kmkr-s"><span class="kmkr-l">${lg(d)}</span><div>${adH(d)}${d.not ? ` <em>(${E(d.not)})</em>` : ''}<small>${d.bas ? ar(d.bas) : (d.guncel ? `${simdiY}/${String(simdiY + 1).slice(2)}` : '')}${d.bas || d.guncel ? ' - ' : ''}${d.bit ? ar(d.bit) : 'şimdi'}</small></div><em class="kmkr-n">${d.var ? d.m : '–'}</em><em class="kmkr-n">${d.var ? d.g : '–'}</em></div>`).join('');
     const sez = sezonlar.map(s => `<div class="kmkr-s"><span class="kmkr-l">${lg(s.d)}</span><div>${adH(s.d)}<small>${s.y}/${s.y + 1}</small></div><em class="kmkr-n">${s.m ?? '–'}</em><em class="kmkr-n">${s.g ?? '–'}</em><em class="kmkr-n">${s.a ?? '–'}</em><span class="kmkr-p">${s.pu ? puanHap(s.pu.toFixed(2)) : ''}</span></div>`).join('');
@@ -836,7 +852,7 @@
     const cz = a.querySelector('.kmdeg-cz'), ip = a.querySelector('.kmdeg-ip');
     cz.hidden = false; cz.style.left = n[0] + '%';
     ip.hidden = false; ip.style.left = Math.min(Math.max(n[0], 14), 86) + '%';
-    ip.innerHTML = `<span>${n[4] && (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? bd(n[4]) : ''}<b style="color:${n[5]}">${E(n[4])}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`;
+    ip.innerHTML = `<span>${n[4] ? kulupLogo(n[4], (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? n[4] : null) : ''}<b style="color:${n[5]}">${E(n[4])}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`;
   });
   // takim / milli takim bilgisi
   function tmTakimHarita() { return tmV('teammap', () => fetch('data/tm/teammap.json').then(r => r.ok ? r.json() : null)); }
