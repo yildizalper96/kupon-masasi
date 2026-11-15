@@ -325,10 +325,23 @@
     if (v.weather) s.push(`<div class="kmsr"><span>Hava</span><b>${E(v.weather)}</b></div>`);
     return card('kmstad', `<div class="kmstad-b">${ic.konum}<div><b>${E(v.name)}</b><small>${E(v.city || '')}</small></div></div>${s.join('')}`);
   }
+  // hakem: mac kaydindaki ad (details m[id].ref ya da latest.json rf) + Transfermarkt hakem istatistigi (KMTM.ref)
+  let RFM = null;
+  function hakemAdi(m) {
+    try { const e = window.KMX && KMX.byKey && KMX.byKey[key(m)]; if (e && e.ref) return e.ref; } catch (x) { }
+    if (RFM === null) { RFM = {}; fetch('data/fixtures/latest.json', { cache: 'default' }).then(r => r.ok ? r.json() : null).then(j => { (j && j.m || []).forEach(x => { if (x.rf) RFM[[x.c, x.h, x.a].join('|')] = x.rf; }); if (Object.keys(RFM).length) { try { render(); } catch (e) { } } }).catch(() => { }); }
+    return RFM[key(m)] || '';
+  }
+  function hakemTm(m) {
+    const ad = hakemAdi(m); if (!ad) return null;
+    const r = window.KMTM ? tmV('r' + ad, () => KMTM.ref(ad)) : null;
+    const f = v => v == null ? null : String((+v).toFixed(2)).replace('.', ',');
+    return r ? { name: r.n || ad, g: r.g, yc: f(r.y), rc: f(r.r), src: 'Transfermarkt verileri (2023 sonrası, en az 15 maç)' } : { name: ad };
+  }
   function hakemKarti(r) {
     if (!r || !r.name) return '';
     const k = (l, v) => v == null ? '' : `<div><small>${l}</small><b>${E(v)}</b><span>/ maç</span></div>`;
-    return card('kmhakem', `<h3 class="kmb">Hakem</h3><div class="kmhk"><b>${E(r.name)}</b><small>${E(r.country || '')}</small></div>${(r.yc != null || r.fouls != null) ? `<div class="kmhk2">${k('Sarı kart', r.yc)}${k('Faul', r.fouls)}</div>` : ''}${r.src ? `<p class="kmkay">Kaynak: ${E(r.src)}</p>` : ''}`);
+    return card('kmhakem', `<h3 class="kmb">Hakem</h3><div class="kmhk"><b>${E(r.name)}</b><small>${E(r.country || (r.g ? r.g + ' maç (2023 sonrası)' : ''))}</small></div>${(r.yc != null || r.fouls != null || r.rc != null) ? `<div class="kmhk2">${k('Sarı kart', r.yc)}${k('Kırmızı kart', r.rc)}${k('Faul', r.fouls)}</div>` : ''}${r.src ? `<p class="kmkay">Kaynak: ${E(r.src)}</p>` : ''}`);
   }
   function bilgiKarti(m) {
     const x = xm(m), lu = LU[key(m)];
@@ -458,7 +471,7 @@
     if (DAR.matches) {
       // telefon: tek akis (FotMob mobil sirasi); sag sutun kartlari Bilgiler sekmesinin icinde
       let ana;
-      if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + macBilgiKarti(m) + stadKarti(x.venue) + hakemKarti(x.ref) + tabloLig(m.c, [m.h, m.a]) + sonrakiMac(m) + formKarti(m) + kimKazanir(m) + h2hKarti(m) + p.tbx + (typeof kpBox === 'function' ? kpBox(m) : '') + bilgiKarti(m) + p.nwb;
+      if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + macBilgiKarti(m) + stadKarti(x.venue) + hakemKarti(x.ref || hakemTm(m)) + tabloLig(m.c, [m.h, m.a]) + sonrakiMac(m) + formKarti(m) + kimKazanir(m) + h2hKarti(m) + p.tbx + (typeof kpBox === 'function' ? kpBox(m) : '') + bilgiKarti(m) + p.nwb;
       else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
       else if (dt === 'k') ana = kadroKarti(m);
       else if (dt === 'i') ana = istatistikSekmesi(m);
@@ -466,7 +479,7 @@
       else ana = `<div class="kmeski">${p.kalan}</div>`;
       return sahaFoto(macBaslikMobil(m) + ana);
     }
-    const yan =`<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref)}${bilgiKarti(m)}${p.nwb}</div>`;
+    const yan =`<div class="mside">${kimKazanir(m)}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref || hakemTm(m))}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + kadroKarti(m) + formKarti(m) + sonrakiMac(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
     else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
