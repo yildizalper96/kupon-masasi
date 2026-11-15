@@ -191,9 +191,79 @@
   if (!document.getElementById('kmara')) {
     const a = document.createElement('button'); a.id = 'kmara'; a.type = 'button'; a.setAttribute('aria-label', 'Ara');
     a.innerHTML = SV('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>', 2.2);
-    a.onclick = () => { document.body.classList.add('kmaraac'); window.scrollTo(0, 0); const q = document.getElementById('q'); if (q) setTimeout(() => q.focus(), 30); };
+    a.onclick = () => aramaAc();
     document.body.appendChild(a);
   }
+  // alt menu ikonlari (telefon): dolgulu, sade ikonlar; masaustunde yalnizca profil ikonu gorunur
+  const NIK = {
+    k: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.6"/><path d="M12 5v14M2.5 9.6h2.8v4.8H2.5M21.5 9.6h-2.8v4.8h2.8"/><circle cx="12" cy="12" r="2.4"/></svg>',
+    l: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v1.6h3.4v2.6a4.6 4.6 0 0 1-4.1 4.6A5.1 5.1 0 0 1 13.2 15v2.2h3.3V21h-9v-3.8h3.3V15a5.1 5.1 0 0 1-3.1-3.2A4.6 4.6 0 0 1 3.6 7.2V4.6H7zm0 3.4H5.4v.8A2.8 2.8 0 0 0 7.1 9.8 6 6 0 0 1 7 8.8zm10 0v2.4c0 .3 0 .7-.1 1a2.8 2.8 0 0 0 1.7-2.6v-.8z"/></svg>',
+    g: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="11" width="4" height="9" rx="1.4"/><rect x="10" y="4" width="4" height="16" rx="1.4"/><rect x="16" y="8" width="4" height="12" rx="1.4"/></svg>',
+    s: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6.2 2.5h11.6c.7 0 1.2.5 1.2 1.2V21l-2.4-1.5-2.3 1.5-2.3-1.5-2.3 1.5-2.3-1.5L5 21V3.7c0-.7.5-1.2 1.2-1.2zM8.5 7v2h7V7zm0 4v2h7v-2zm0 4v2h4.5v-2z"/></svg>',
+    u: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.8" r="4.3"/><path d="M3.8 20.6c.4-4.3 3.9-6.8 8.2-6.8s7.8 2.5 8.2 6.8c0 .5-.4.9-.9.9H4.7c-.5 0-.9-.4-.9-.9z"/></svg>',
+  };
+  document.querySelectorAll('nav button[data-t]').forEach(b => { const i = NIK[b.dataset.t], k = b.querySelector('b'); if (i && k) k.innerHTML = i; });
+
+  // ===== tam ekran arama (telefon): ustte baslik + suzgec haplari, son aramalar / oneriler, altta arama kutusu =====
+  const SON = 'kmSonAra';
+  const sonOku = () => { try { const v = JSON.parse(localStorage.getItem(SON) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const sonYaz = x => { try { const l = sonOku().filter(y => !(y.t === x.t && y.k === x.k)); l.unshift(x); localStorage.setItem(SON, JSON.stringify(l.slice(0, 8))); } catch (e) { } };
+  const ara = document.createElement('div'); ara.id = 'kmarae'; ara.hidden = true;
+  ara.innerHTML = `<div class="kma-ic"><h1>Ara</h1><div class="kma-f">${[['tum', 'Tümü'], ['tm', 'Takımlar'], ['lg', 'Ligler'], ['pl', 'Oyuncular'], ['m', 'Maçlar']].map(([k, l], i) => `<button type="button" data-kmaf="${k}" class="${i ? '' : 'on'}">${l}</button>`).join('')}</div><div class="kma-g"></div></div>
+    <div class="kma-alt"><label class="kma-k">${SV('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>', 2.2)}<input type="search" placeholder="Ara" enterkeyhint="search" autocomplete="off" aria-label="Ara"></label><button type="button" class="kma-x" aria-label="Kapat">${SV('<path d="M6 6l12 12M18 6L6 18"/>', 2.2)}</button></div>`;
+  document.body.appendChild(ara);
+  const aInp = ara.querySelector('input'), aG = ara.querySelector('.kma-g');
+  let aF = 'tum';
+  const nz = s => String(s || '').toLocaleLowerCase('tr');
+  const TREND = SV('<path d="M3 16l6-6 4 4 8-8M15 6h6v6"/>', 2.2);
+  function aramaAc() { ara.hidden = false; document.body.classList.add('kmaraacik'); aInp.value = ''; aCiz(); setTimeout(() => aInp.focus(), 40); }
+  function aramaKapa() { ara.hidden = true; document.body.classList.remove('kmaraacik'); aInp.blur(); }
+  function aGit(x) {
+    sonYaz(x); aramaKapa();
+    try {
+      if (x.t === 'tm') { push(); det = null; PMV = null; tab = 'k'; Q = x.k; QX = Q; const q = document.getElementById('q'); if (q) q.value = Q; render(); }
+      else if (x.t === 'lg') ligAc(x.k);
+      else if (x.t === 'pl') { if (typeof plOpen === 'function') plOpen(x.k, x.n); }
+      else if (x.t === 'm') { push(); if (typeof tab !== 'undefined' && tab === 'g') tab = 'k'; det = x.k; dt = 'p'; PMV = null; render(); }
+      window.scrollTo(0, 0);
+    } catch (e) { }
+  }
+  function takimlar() { const s = new Set(); try { R.forEach(m => { s.add(m.h); s.add(m.a); }); } catch (e) { } return [...s]; }
+  function oneri() {
+    const son = sonOku();
+    if (son.length) return `<h4>Son aramalar</h4><div class="kma-c">${son.map((x, i) => `<button type="button" data-kmas="${i}">${x.t === 'tm' ? bdG(x.k) : TREND}<span>${esc(x.n)}</span></button>`).join('')}</div>`;
+    const tk = new Set(takimlar());
+    let fav = []; try { fav = [...FAV].filter(n => tk.has(n)); } catch (e) { }
+    const pop = ['Galatasaray', 'Fenerbahçe', 'Beşiktaş', 'Real Madrid', 'Barcelona', 'Man City', 'Arsenal', 'Liverpool', 'Bayern'].filter(n => tk.has(n));
+    const l = [...new Set([...fav, ...pop])].slice(0, 6);
+    return l.length ? `<h4>Öneriler</h4><div class="kma-c">${l.map(n => `<button type="button" data-kmat="tm" data-kmak="${esc(n)}">${TREND}<span>${esc(n)}</span></button>`).join('')}</div>` : '';
+  }
+  const bdG = n => { try { return typeof bd === 'function' ? bd(n) : ''; } catch (e) { return ''; } };
+  function aCiz() {
+    const q = nz(aInp.value.trim());
+    ara.querySelectorAll('[data-kmaf]').forEach(b => b.classList.toggle('on', b.dataset.kmaf === aF));
+    if (q.length < 2) { aG.innerHTML = oneri(); return; }
+    const bol = [];
+    const sat = (t, k, n, ic, alt) => `<button type="button" class="kma-r" data-kmat="${t}" data-kmak="${esc(k)}" data-kman="${esc(n)}">${ic}<span><b>${esc(n)}</b>${alt ? `<small>${esc(alt)}</small>` : ''}</span></button>`;
+    if (aF === 'tum' || aF === 'tm') { const l = takimlar().filter(n => nz(n).includes(q)).sort((a, b) => nz(a).indexOf(q) - nz(b).indexOf(q)).slice(0, aF === 'tum' ? 5 : 30); if (l.length) bol.push(['Takımlar', l.map(n => { let u = ''; try { const t = TM[n]; u = t && t.l ? ligAdi(t.l) : ''; } catch (e) { } return sat('tm', n, n, bdG(n), u); }).join('')]); }
+    if (aF === 'tum' || aF === 'lg') { let ks = []; try { ks = (typeof LORD !== 'undefined' ? LORD : Object.keys(LN)); } catch (e) { } const l = ks.filter(c => nz(ligAdi(c)).includes(q) || nz(c) === q).slice(0, aF === 'tum' ? 4 : 30); if (l.length) bol.push(['Ligler', l.map(c => { let u = ''; try { u = LN[c] ? LN[c].split(' – ')[0] : ''; } catch (e) { } return sat('lg', c, ligAdi(c), `<span class="kma-lg">${bayrak(c)}</span>`, u); }).join('')]); }
+    if ((aF === 'tum' || aF === 'pl') && q.length >= 3 && typeof window.kmOyuncuAra === 'function') { const l = window.kmOyuncuAra(q).slice(0, aF === 'tum' ? 5 : 16); if (l.length) bol.push(['Oyuncular', l.map(p => sat('pl', p.k, p.n, `<span class="kma-av">${p.f ? `<img src="${esc(p.f)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<i>${esc(String(p.n).split(' ').pop().slice(0, 2).toUpperCase())}</i></span>`, p.tm)).join('')]); }
+    if (aF === 'tum' || aF === 'm') {
+      let l = []; try { const now = Date.now() - 3 * 36e5; l = R.filter(m => nz(m.h + ' ' + m.a).includes(q)).sort((a, b) => ((a.t < now) - (b.t < now)) || (a.t < now ? b.t - a.t : a.t - b.t)).slice(0, aF === 'tum' ? 5 : 30); } catch (e) { }
+      if (l.length) bol.push(['Maçlar', l.map(m => { const d = new Date(m.t), k = [m.c, m.h, m.a].join('|'); let sk = ''; try { const s = stt(m); sk = s.sc ? `${s.sc[0]} - ${s.sc[1]}` : hm(m.t); } catch (e) { } return `<button type="button" class="kma-r kma-m" data-kmat="m" data-kmak="${esc(k)}" data-kman="${esc(m.h + ' – ' + m.a)}"><span class="kma-mt"><span>${esc(m.h)}</span>${bdG(m.h)}<b>${esc(sk)}</b>${bdG(m.a)}<span>${esc(m.a)}</span></span><small>${esc(d.getDate() + ' ' + AY[d.getMonth()])} · ${esc(ligAdi(m.c))}</small></button>`; }).join('')]);
+    }
+    aG.innerHTML = bol.length ? bol.map(([h, x]) => `<h4>${h}</h4><div class="kma-l">${x}</div>`).join('') : '<p class="kma-bos">Sonuç bulunamadı.</p>';
+  }
+  aInp.addEventListener('input', aCiz);
+  aInp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const r = aG.querySelector('.kma-r'); if (r) r.click(); } else if (e.key === 'Escape') aramaKapa(); });
+  ara.querySelector('.kma-x').onclick = aramaKapa;
+  ara.addEventListener('click', e => {
+    const f = e.target.closest('[data-kmaf]'); if (f) { aF = f.dataset.kmaf; aCiz(); return; }
+    const s = e.target.closest('[data-kmas]'); if (s) { const x = sonOku()[+s.dataset.kmas]; if (x) aGit(x); return; }
+    const r = e.target.closest('[data-kmat]'); if (r) { e.preventDefault(); e.stopPropagation(); aGit({ t: r.dataset.kmat, k: r.dataset.kmak, n: r.dataset.kman || r.dataset.kmak }); }
+  }, true);
+  // klavye acilinca alttaki kutu klavyenin ustune cikar
+  if (window.visualViewport) { const kb = () => { const v = visualViewport; document.documentElement.style.setProperty('--kmkb', Math.max(0, innerHeight - v.height - v.offsetTop) + 'px'); }; visualViewport.addEventListener('resize', kb); visualViewport.addEventListener('scroll', kb); }
   const AY = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
   const gunEt = d => {
     const g = n => dk(new Date(Date.now() + n * 864e5));

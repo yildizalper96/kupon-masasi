@@ -875,6 +875,8 @@
     return bas + ust + sezon + maclar + `<div class="mside">${takim}${milli}</div>`;
   }
   // arama: birlesik dizinden oyuncular (tam ad ya da kisaltma)
+  // telefon arama ekrani icin: oyuncu sonuclari (anahtar, ad, takim, foto adresi)
+  window.kmOyuncuAra = q => { try { return oyuncuArama(q).map(e => ({ k: e.key, n: e.ad || e.n, tm: e.team, f: fotoUrl(e.team, { id: e.id, ph: e.ph, n: e.ad }) })); } catch (x) { return []; } };
   function oyuncuArama(q) {
     const qn = adN(q).join(' '); if (qn.length < 3) return [];
     const L = oyuncuIndeksi().L;

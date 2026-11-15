@@ -35,7 +35,7 @@
         var kod = b.getAttribute('data-lg2'), id = (window.KMX && KMX.lgId && KMX.lgId[kod]) || (window.kmLigId && window.kmLigId(kod)), bd = b.querySelector('.bd');
         if (!id || !bd) return;
         var tile = document.createElement('span'); tile.className = 'kmlgl';
-        var img = new Image(); img.alt = ''; img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
+        var img = new Image(); img.alt = ''; img.referrerPolicy = 'no-referrer';
         img.onload = function () { if (bd.parentNode) bd.parentNode.replaceChild(tile, bd); };
         img.onerror = function () { img.remove(); };
         tile.appendChild(img);
