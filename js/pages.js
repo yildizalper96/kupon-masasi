@@ -749,8 +749,14 @@
     const m = tmLogoMap(), id = m && m[ad];
     return id ? `<span class="bd kmkr-yb">${E(basH(ad || '?'))}<img class="tlg" src="https://media.api-sports.io/football/teams/${+id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hl')" onerror="this.remove()"></span>` : `<span class="bd kmkr-yb">${E(basH(ad || '?'))}</span>`;
   }
+  // Transfermarkt'in farkli yazdigi kulup adlari -> uygulamadaki ad (otomatik eslesmenin bulamadiklari)
+  const TMALIAS = { 'Nottm Forest': 'N. Forest', 'Spurs': 'Tottenham', 'Sparta Prague': 'Sparta Praha', 'AC Sparta Prague': 'Sparta Praha', 'Fortuna Sittardia Combinatie': 'Fortuna Sittard', 'Oud-Heverlee Leuven': 'OH Leuven', 'H. Beer Sheva': 'Hapoel Beer-Sheva', 'Hapoel Beer Sheva': 'Hapoel Beer-Sheva', 'Union Saint-Gilloise': 'Union SG', 'Royale Union Saint-Gilloise': 'Union SG', 'Sint-Truiden': 'STVV', 'Sint-Truidense VV': 'STVV' };
   function tmAdApp(ad) {
     if (!ad) return null; if (ad in TMADC) return TMADC[ad];
+    // resmi tam ad -> uygulamadaki kisa ad (Manchester City -> Man City): ayni kulup iki ayri takim gibi gorunmesin
+    if (TMALIAS[ad]) return (TMADC[ad] = TMALIAS[ad]);
+    if (TAM_KULUP[ad]) return (TMADC[ad] = ad);
+    { const ters = Object.keys(TAM_KULUP).find(k => adN(TAM_KULUP[k]).join(' ') === adN(ad).join(' ')); if (ters) return (TMADC[ad] = ters); }
     { const m = tmLogoMap(), ids = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null));
       if (m === undefined || ids === undefined) return null;
       const id = m && m[ad]; if (id && ids && ids.t) { const n = Object.keys(ids.t).find(k => +ids.t[k] === +id); if (n) return (TMADC[ad] = n); } }
@@ -759,6 +765,8 @@
       const adaylar = new Set(Object.keys(TM)); R.forEach(m => { adaylar.add(m.h); adaylar.add(m.a); });
       const ids = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null)); if (ids && ids.t) Object.keys(ids.t).forEach(n => adaylar.add(n)); else if (ids === undefined) return null;
       const L = [...adaylar].filter(n => { const u = tmTok(n); return u.length && (u.every(w => tk.includes(w)) || tk.every(w => u.includes(w))); });
+      // kisaltma: kelime kelime on ek (Man City ~ Manchester City, Nott'm ~ Nottingham)
+      if (!L.length) [...adaylar].forEach(n => { const u = tmTok(n); if (u.length && u.length === tk.length && u.every((w, i) => w.length >= 3 && (tk[i].startsWith(w) || w.startsWith(tk[i])))) L.push(n); });
       bul = L.sort((a, b) => (TM[b] ? 1 : 0) - (TM[a] ? 1 : 0) || a.length - b.length)[0] || null;
     }
     return (TMADC[ad] = bul);
@@ -832,7 +840,7 @@
     sezonlar.forEach(s => { const d = s.d; if (d && D.includes(d)) { d.m += +s.m || 0; d.g += +s.g || 0; d.var = true; } else { const dd = D.find(x => x.app === (s.d && s.d.app)); if (dd) { dd.m += +s.m || 0; dd.g += +s.g || 0; dd.var = true; } } });
     const ar = s => s ? new Date(s + 'T12:00:00Z').toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : '';
     const lg = d => kulupLogo(d && d.ad, d && d.app);
-    const adH = d => d && d.app ? `<b data-tm="${E(d.app)}">${E(d.app)}</b>` : `<b>${E((d && d.ad) || '?')}</b>`;
+    const adH = d => d && d.app ? `<b data-tm="${E(d.app)}">${E(kulupAd(d.app))}</b>` : `<b>${E((d && d.ad) || '?')}</b>`;
     const kul = D.slice().reverse().filter(d => (d.bas || d.bit || d.guncel) && !(d.donus && !d.var && d.bit && (Date.parse(d.bit) - Date.parse(d.bas)) < 120 * 864e5)).map(d => `<div class="kmkr-s"><span class="kmkr-l">${lg(d)}</span><div>${adH(d)}${d.not ? ` <em>(${E(d.not)})</em>` : ''}<small>${d.bas ? ar(d.bas) : (d.guncel ? `${simdiY}/${String(simdiY + 1).slice(2)}` : '')}${d.bas || d.guncel ? ' - ' : ''}${d.bit ? ar(d.bit) : 'şimdi'}</small></div><em class="kmkr-n">${d.var ? d.m : '–'}</em><em class="kmkr-n">${d.var ? d.g : '–'}</em></div>`).join('');
     const sez = sezonlar.map(s => `<div class="kmkr-s"><span class="kmkr-l">${lg(s.d)}</span><div>${adH(s.d)}<small>${s.y}/${s.y + 1}</small></div><em class="kmkr-n">${s.m ?? '–'}</em><em class="kmkr-n">${s.g ?? '–'}</em><em class="kmkr-n">${s.a ?? '–'}</em></div>`).join('');
     const ust = KRS === 'k' ? `<div class="kmkr-b"><span>Profesyonel kariyer</span><i title="Maç">${icon.mac}</i><i title="Gol">${icon.gol}</i></div>` : `<div class="kmkr-b s"><span>Profesyonel kariyer</span><i title="Maç">${icon.mac}</i><i title="Gol">${icon.gol}</i><i title="Asist">${icon.krampon}</i></div>`;
@@ -846,18 +854,36 @@
     if (p.ic && +p.ic[0] > 0) bilgi.push([`${p.ic[0]} maç · ${p.ic[1] || 0} gol`, 'Milli takımda']);
     return { deg: degerGrafik(p, e), sez: '', yan: kariyerKarti(p, e), bilgi, sp: SPTR[p.sp] || p.sp || '' };
   }
-  // deger grafigi uzerine gelince: kulup, tarih, deger
-  document.addEventListener('mousemove', ev => {
-    const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); document.querySelectorAll('.kmdeg-a').forEach(x => { if (x !== a) { const c = x.querySelector('.kmdeg-cz'), ip = x.querySelector('.kmdeg-ip'); if (c) c.hidden = true; if (ip) ip.hidden = true; } });
-    if (!a) return;
-    let L; try { L = JSON.parse(a.dataset.kmdeg); } catch (x) { return; }
-    const r = a.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * 100;
+  // deger grafigi: fare ya da parmakla (surukleyerek) kulup, tarih, deger; imlec parmagi kesintisiz izler
+  const degGizle = haric => document.querySelectorAll('.kmdeg-a').forEach(x => { if (x !== haric) { const c = x.querySelector('.kmdeg-cz'), ip = x.querySelector('.kmdeg-ip'); if (c) c.hidden = true; if (ip) ip.hidden = true; } });
+  function degGoster(a, clientX) {
+    let L = a._kmL; if (!L) { try { L = a._kmL = JSON.parse(a.dataset.kmdeg); } catch (x) { return; } }
+    const r = a.getBoundingClientRect(); if (!r.width) return;
+    const px = Math.min(Math.max((clientX - r.left) / r.width * 100, L[0][0]), L[L.length - 1][0]);
     const n = L.reduce((b, x) => Math.abs(x[0] - px) < Math.abs(b[0] - px) ? x : b, L[0]);
     const cz = a.querySelector('.kmdeg-cz'), ip = a.querySelector('.kmdeg-ip');
-    cz.hidden = false; cz.style.left = n[0] + '%';
-    ip.hidden = false; ip.style.left = Math.min(Math.max(n[0], 14), 86) + '%';
-    ip.innerHTML = `<span>${n[4] ? kulupLogo(n[4], (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? n[4] : null) : ''}<b style="color:${n[5]}">${E(n[4])}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`;
+    cz.hidden = false; cz.style.left = px + '%';
+    ip.hidden = false; ip.style.left = Math.min(Math.max(px, 16), 84) + '%';
+    if (a._kmN !== n || !ip.innerHTML) { a._kmN = n; ip.innerHTML = `<span>${n[4] ? kulupLogo(n[4], (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? n[4] : null) : ''}<b style="color:${n[5]}">${E(kulupAd(n[4]))}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`; }
+  }
+  // tarayici pointermove'u zaten kare basina birlestirir; dogrudan cizilir
+  const degPlan = (a, x) => degGoster(a, x);
+  document.addEventListener('mousemove', ev => {
+    const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); degGizle(a); if (a) degPlan(a, ev.clientX);
   });
+  // dokunmatik: dokununca ve parmak surukledikce akar (dikey kaydirma serbest: touch-action pan-y)
+  document.addEventListener('pointerdown', ev => {
+    if (ev.pointerType === 'mouse') return;
+    const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); degGizle(a); if (!a) return;
+    a._kmP = ev.pointerId; try { a.setPointerCapture(ev.pointerId); } catch (x) { } degPlan(a, ev.clientX);
+  }, { passive: true });
+  document.addEventListener('pointermove', ev => {
+    if (ev.pointerType === 'mouse') return;
+    const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); if (a && a._kmP === ev.pointerId) degPlan(a, ev.clientX);
+  }, { passive: true });
+  const degBirak = ev => { const a = ev.target.closest && ev.target.closest('[data-kmdeg]'); if (a && a._kmP === ev.pointerId) a._kmP = null; };
+  document.addEventListener('pointerup', degBirak, { passive: true });
+  document.addEventListener('pointercancel', degBirak, { passive: true });
   // takim / milli takim bilgisi
   function tmTakimHarita() { return tmV('teammap', () => fetch('data/tm/teammap.json').then(r => r.ok ? r.json() : null)); }
   function tmKulup(n) {

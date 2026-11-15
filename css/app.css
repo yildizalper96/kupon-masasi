@@ -2094,3 +2094,6 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   .kmois3g>.kmois3{margin:0 0 12px!important}
   .kmois3 .kmec b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+/* deger grafigi: parmakla yatay surukleme grafigi gezer, dikey kaydirma sayfayi kaydirir */
+.kmdeg-a{touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.kmdeg-cz,.kmdeg-ip{will-change:left;transition:none!important}
