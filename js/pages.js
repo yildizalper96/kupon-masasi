@@ -852,6 +852,7 @@
     const ayak = { right: 'Sağ', left: 'Sol', both: 'Her ikisi', sag: 'Sağ', sol: 'Sol' }[String(bio.foot || kf.f || '').toLowerCase()];
     // tercih ettigi ayak her zaman gosterilir; kaynakta yoksa "veri yok" (uydurulmaz)
     bilgi.push([ayak ? E(ayak) : '<span class="kmph-yok">veri yok</span>', 'Tercih ettiği ayak', 1]);
+    const tl = TM[o.team]; // sag sutundaki Takim kutusu kullanir (bilgi satirina lig sirasi eklenmez)
     // ulke: bayrak + ad, tiklayinca milli takim sayfasi (yalnizca milli takim kadrosundan biliniyorsa)
     if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Ülke', 1, e.milli]);
     const nokta = { K: [50, 88], D: [50, 68], O: [50, 46], F: [50, 18] }[posK] || null;
