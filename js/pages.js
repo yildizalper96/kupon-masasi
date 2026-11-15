@@ -786,15 +786,17 @@
       D.push({ ad: r[2], bas: r[0], bit: tr[i + 1] ? tr[i + 1][0] : null, donus, not: donus ? 'Kiralıktan dönüş' : gencten ? '' : kiralik ? 'Kiralandı' : (+r[3] === 0 ? 'Bedelsiz Transfer' : '') });
     });
     // profesyonel kariyer: genclik/yedek takimlari cikar, art arda ayni kulup donemlerini birlestir
-    for (let i = D.length - 1; i >= 0; i--) if (GENC.test(String(D[i].ad).replace(/\./g, ' '))) D.splice(i, 1);
+    // kulupsuz donem (Without Club vb.) gosterilmez
+    for (let i = D.length - 1; i >= 0; i--) if (GENC.test(String(D[i].ad).replace(/\./g, ' ')) || KULUPSUZ.test(String(D[i].ad))) { if (KULUPSUZ.test(String(D[i].ad)) && D[i - 1] && !D[i - 1].bit) D[i - 1].bit = D[i].bit; D.splice(i, 1); }
     D.forEach(d => { d.app = tmAdApp(d.ad); });
     for (let i = D.length - 1; i > 0; i--) { const a = D[i - 1], b = D[i]; if ((a.app || a.ad) === (b.app || b.ad) && !b.not) { a.bit = b.bit; D.splice(i, 1); } }
     // guncel kulup (uygulama verisi): son donem degilse eklenir
     const son = D[D.length - 1];
-    if (e && e.team && TM[e.team] && (!son || son.app !== e.team)) { if (son && !son.bit) son.bit = null; D.push({ ad: e.team, app: e.team, bas: null, bit: null, guncel: 1 }); if (son && !son.bit) son.bit = (new Date().getFullYear()) + '-06-30'; }
+    if (e && e.team && TM[e.team] && (!son || son.app !== e.team)) { if (son && !son.bit) son.bit = (new Date().getFullYear()) + '-06-30'; D.push({ ad: e.team, app: e.team, bas: son && son.bit && Date.parse(son.bit) > Date.parse(son.bas || 0) ? son.bit : null, bit: null, guncel: 1 }); }
     return D;
   }
   const GENC = /\b(u\s?\d{2}|yth|youth|jugend|primavera|juvenil|juv|reserves?|juniors?|academy|ii|b)\b/i;
+  const KULUPSUZ = /without club|vereinslos|sin equipo|sans club|career break|retired|unknown|kul[uü]ps[uü]z/i;
   const kulupAn = (D, t) => { let k = D[0]; for (const d of D) { if (d.bas && Date.parse(d.bas) <= t) k = d; } return k; };
   // deger grafigi: kulup donemine gore renkli alan + cizgi, transfer noktalarinda kulup logosu, uzerine gelince deger
   function degerGrafik(p, e) {
@@ -802,20 +804,21 @@
     const l = v.filter(x => x && x[0] && +x[1] > 0); if (l.length < 2) return '';
     const D = kulupDonemleri(p, e);
     const W = 1000, H = 220, P = 6, t = l.map(x => Date.UTC(+x[0].slice(0, 4), +x[0].slice(5, 7) - 1, 15)), mx = Math.max(...l.map(x => +x[1])) * 1.08;
-    const X = tt => P + (tt - t[0]) / ((t[t.length - 1] - t[0]) || 1) * (W - 2 * P), Y = val => H - P - (val / mx) * (H - 2 * P);
+    let T1 = t[t.length - 1];
+    const X = tt => P + (tt - t[0]) / ((T1 - t[0]) || 1) * (W - 2 * P), Y = val => H - P - (val / mx) * (H - 2 * P);
     const nk = l.map((x, i) => { const d = kulupAn(D, t[i]); return { x: X(t[i]), y: Y(+x[1]), v: +x[1], t: t[i], d }; });
-    // transfer verisi eskiyse (oyuncu sonra baska kulube gitti) son deger guncel kulube aittir: grafik ve logo guncel kulubu gostersin
-    { const gk = D[D.length - 1]; if (gk && nk.length && e && e.team && (gk.guncel || gk.app === e.team) && nk[nk.length - 1].d !== gk) nk[nk.length - 1].d = gk; }
+    // transfer verisi eskiyse (oyuncu sonra guncel kulube gitti): guncel kulup donemi transfer tarihinden bugune son bilinen degerle, kendi renginde
+    { const gk = D[D.length - 1], sn = nk[nk.length - 1]; if (gk && sn && e && e.team && (gk.guncel || gk.app === e.team) && sn.d !== gk) { const t1 = Math.max(Date.now(), sn.t + 60 * 864e5), tb = gk.bas && Date.parse(gk.bas) > sn.t && Date.parse(gk.bas) < t1 ? Date.parse(gk.bas) : sn.t + (t1 - sn.t) / 2; T1 = t1; nk.forEach(n => { n.x = X(n.t); }); nk.push({ x: X(tb), y: sn.y, v: sn.v, t: tb, d: gk, ek: 1 }, { x: X(t1), y: sn.y, v: sn.v, t: t1, d: gk, ek: 1 }); } }
     // donemlere bol
     const parca = []; const kkk = d => d && (d.app || ((tmLogoMap() || {})[d.ad] ? 'L' + tmLogoMap()[d.ad] : d.ad)); nk.forEach(n => { const s = parca[parca.length - 1]; if (!s || kkk(s.d) !== kkk(n.d)) { if (s) s.n.push(n); parca.push({ d: n.d, n: [n] }); } else s.n.push(n); });
     const renkler = new Map(); let ri = 0; parca.forEach(s => { const k = s.d && (s.d.app || s.d.ad); if (!renkler.has(k)) renkler.set(k, kulupRenk(s.d && s.d.app, ri++)); s.r = renkler.get(k); });
     const yol = s => s.n.map((n, i) => `${i ? 'L' : 'M'}${n.x.toFixed(1)},${n.y.toFixed(1)}`).join(' ');
     const svg = parca.map(s => `<path d="${yol(s)} L${s.n[s.n.length - 1].x.toFixed(1)},${H - P} L${s.n[0].x.toFixed(1)},${H - P} Z" fill="${s.r}" fill-opacity=".22"/><path d="${yol(s)}" fill="none" stroke="${s.r}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>`).join('');
-    const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(t[t.length - 1]).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
+    const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(T1).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
     const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
     const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
     const logo = parca.map(s => { const own = s.n.filter(x => kkk(x.d) === kkk(s.d)), n = (own.length ? own : s.n).reduce((b, x) => x.y < b.y ? x : b, (own.length ? own : s.n)[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
-    const veri = nk.map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
+    const veri = nk.filter(n => !n.ek).map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
     const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), sonV = l[l.length - 1];
     return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(sonV[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>
       <div class="kmdeg-w"><div class="kmdeg-y">${ye.join('')}</div><div class="kmdeg-a" data-kmdeg='${E(JSON.stringify(veri))}'><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${[0.25, 0.5, 0.75, 1].map(f => `<line x1="0" x2="${W}" y1="${Y(mx / 1.08 * f).toFixed(1)}" y2="${Y(mx / 1.08 * f).toFixed(1)}" class="kz"/>`).join('')}${svg}</svg>${logo}<i class="kmdeg-cz" hidden></i><div class="kmdeg-ip" hidden></div></div></div>
