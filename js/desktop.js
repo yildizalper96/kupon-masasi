@@ -345,6 +345,35 @@
     try { if (canliB) canliB.classList.toggle('on', !!LV); if (filB) filB.classList.toggle('on', !!FS); } catch (e) { }
   };
 
+  // Takim adlari: veri anahtari kisa (Man City), ekranda tam ad (Manchester City); siginmayan tek-ad ogesinde yaygin kisaltma (Man Utd)
+  const tamAdUygula = (() => {
+    const T = window.KMTAM || {}, D = window.KMDAR || {}, ks = Object.keys(T).filter(k => T[k] !== k).sort((a, b) => b.length - a.length);
+    if (!ks.length) return () => { };
+    const es = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(ks.map(k => { const f = T[k], i = f.indexOf(k), on = i >= 0 ? f.slice(0, i) : '', son = i >= 0 ? f.slice(i + k.length) : ''; return (on ? '(?<!' + es(on) + ')' : '') + '(?<![\\p{L}\\d])' + es(k) + '(?![\\p{L}\\d])' + (son ? '(?!' + es(son) + ')' : ''); }).join('|'), 'gu');
+    const tam = new Map(ks.map(k => [k, T[k]])), dar = new Map(ks.map(k => [T[k], D[k] || k]));
+    const ATLA = /^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|NOSCRIPT)$/;
+    let bek = [], zam = 0;
+    const isle = () => {
+      zam = 0; const L = bek; bek = []; const tek = [];
+      L.forEach(kok => {
+        if (!kok.isConnected) return;
+        const w = document.createTreeWalker(kok, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && !ATLA.test(n.parentElement.tagName) && !n.parentElement.isContentEditable ? 1 : 2 });
+        for (let n = kok.nodeType === 3 ? kok : w.nextNode(); n; n = kok.nodeType === 3 ? null : w.nextNode()) {
+          const v = n.nodeValue; if (!v || v.length < 3) continue;
+          re.lastIndex = 0; if (!re.test(v)) continue;
+          re.lastIndex = 0; const y = v.replace(re, k => tam.get(k) || k);
+          if (y !== v) { n.nodeValue = y; if (dar.has(y.trim())) tek.push(n); }
+        }
+      });
+      // sigmiyorsa (kesilmis/tasmis) yaygin kisaltma
+      if (tek.length) setTimeout(() => tek.forEach(n => { const e = n.parentElement; if (!e || !e.isConnected || e.childNodes.length !== 1) return; if (e.clientWidth > 0 && e.scrollWidth > e.clientWidth + 1) n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), dar.get(n.nodeValue.trim())); }));
+    };
+    const ekle = n => { bek.push(n); if (!zam) { zam = 1; queueMicrotask(isle); } };
+    new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1 || n.nodeType === 3) ekle(n); }))).observe(document.body, { childList: true, subtree: true });
+    return ekle;
+  })();
+  tamAdUygula(document.body);
   new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); kisaAd(); durumEsle(); onYukleZamanla(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
