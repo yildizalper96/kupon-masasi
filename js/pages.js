@@ -804,15 +804,17 @@
     const W = 1000, H = 220, P = 6, t = l.map(x => Date.UTC(+x[0].slice(0, 4), +x[0].slice(5, 7) - 1, 15)), mx = Math.max(...l.map(x => +x[1])) * 1.08;
     const X = tt => P + (tt - t[0]) / ((t[t.length - 1] - t[0]) || 1) * (W - 2 * P), Y = val => H - P - (val / mx) * (H - 2 * P);
     const nk = l.map((x, i) => { const d = kulupAn(D, t[i]); return { x: X(t[i]), y: Y(+x[1]), v: +x[1], t: t[i], d }; });
+    // transfer verisi eskiyse (oyuncu sonra baska kulube gitti) son deger guncel kulube aittir: grafik ve logo guncel kulubu gostersin
+    { const gk = D[D.length - 1]; if (gk && nk.length && e && e.team && (gk.guncel || gk.app === e.team) && nk[nk.length - 1].d !== gk) nk[nk.length - 1].d = gk; }
     // donemlere bol
-    const parca = []; nk.forEach(n => { const s = parca[parca.length - 1]; if (!s || s.d !== n.d) { if (s) s.n.push(n); parca.push({ d: n.d, n: [n] }); } else s.n.push(n); });
+    const parca = []; const kkk = d => d && (d.app || ((tmLogoMap() || {})[d.ad] ? 'L' + tmLogoMap()[d.ad] : d.ad)); nk.forEach(n => { const s = parca[parca.length - 1]; if (!s || kkk(s.d) !== kkk(n.d)) { if (s) s.n.push(n); parca.push({ d: n.d, n: [n] }); } else s.n.push(n); });
     const renkler = new Map(); let ri = 0; parca.forEach(s => { const k = s.d && (s.d.app || s.d.ad); if (!renkler.has(k)) renkler.set(k, kulupRenk(s.d && s.d.app, ri++)); s.r = renkler.get(k); });
     const yol = s => s.n.map((n, i) => `${i ? 'L' : 'M'}${n.x.toFixed(1)},${n.y.toFixed(1)}`).join(' ');
     const svg = parca.map(s => `<path d="${yol(s)} L${s.n[s.n.length - 1].x.toFixed(1)},${H - P} L${s.n[0].x.toFixed(1)},${H - P} Z" fill="${s.r}" fill-opacity=".22"/><path d="${yol(s)}" fill="none" stroke="${s.r}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>`).join('');
     const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(t[t.length - 1]).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
     const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
     const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
-    const logo = parca.map(s => { const n = s.n.reduce((b, x) => x.y < b.y ? x : b, s.n[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
+    const logo = parca.map(s => { const own = s.n.filter(x => kkk(x.d) === kkk(s.d)), n = (own.length ? own : s.n).reduce((b, x) => x.y < b.y ? x : b, (own.length ? own : s.n)[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
     const veri = nk.map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
     const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), sonV = l[l.length - 1];
     return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(sonV[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>

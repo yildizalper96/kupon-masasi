@@ -26,14 +26,17 @@ if (MAX > 0) {
   const rq = st?.response?.requests; let remaining = rq && Number.isFinite(rq.limit_day) ? rq.limit_day - rq.current : null;
   console.log(`Kota: ${remaining ?? '?'} kaldi; en cok ${MAX} istek, ${RESERVE} yedek.`);
   let used = 0, lastReq = 0, gapMs = 7000;
-  for (const lg of [...new Set(LEAGUES)]) {
-    if (AT[lg]) continue; if (used >= MAX || (remaining === null ? 0 : remaining) - used <= RESERVE) break;
+  // once 2024 sezonu (guncel kulupler), sonra eski sezonlardan dusenler/yukselenler: Turk ligi (Giresunspor, Altay, Istanbulspor...) ve buyuk ligler
+  const EXTRA = [[203, 2022], [204, 2024], [204, 2022], [203, 2020], [39, 2020], [140, 2020], [135, 2020], [78, 2020], [61, 2020], [40, 2022], [141, 2022], [136, 2022], [79, 2022], [62, 2022]];
+  const JOBS = [...new Set(LEAGUES)].map(l => [l, 2024, String(l)]).concat(EXTRA.map(([l, s]) => [l, s, `${l}-${s}`]));
+  for (const [lg, season, key] of JOBS) {
+    if (AT[key]) continue; if (used >= MAX || (remaining === null ? 0 : remaining) - used <= RESERVE) break;
     const wait = lastReq + gapMs - Date.now(); if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait)); lastReq = Date.now();
-    const r = await fetch(`${HOST}/teams?league=${lg}&season=2024`, { headers: { 'x-apisports-key': KEY } }); const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 500;
+    const r = await fetch(`${HOST}/teams?league=${lg}&season=${season}`, { headers: { 'x-apisports-key': KEY } }); const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 500;
     used++; const j = await r.json(); const er = j.errors && (Array.isArray(j.errors) ? j.errors : Object.values(j.errors));
-    if (er && er.length) { console.log('lig', lg, 'hata:', JSON.stringify(j.errors).slice(0, 80)); if (/rate|limit|token|request/i.test(JSON.stringify(j.errors))) break; AT[lg] = []; continue; }
-    AT[lg] = (j.response || []).filter(x => x.team && !x.team.national).map(x => [x.team.id, x.team.name]);
-    console.log('lig', lg, AT[lg].length, 'takim');
+    if (er && er.length) { console.log('lig', lg, 'hata:', JSON.stringify(j.errors).slice(0, 80)); if (/rate|limit|token|request/i.test(JSON.stringify(j.errors))) break; AT[key] = []; continue; }
+    AT[key] = (j.response || []).filter(x => x.team && !x.team.national).map(x => [x.team.id, x.team.name]);
+    console.log('lig', key, AT[key].length, 'takim');
   }
   fs.mkdirSync(path.dirname(apiPath), { recursive: true }); fs.writeFileSync(apiPath, JSON.stringify(AT));
   console.log('Harcanan istek:', used);
@@ -52,7 +55,38 @@ for (const name of names) {
   const n = nz(name); let id = null;
   const ex = byN.get(n); if (ex && ex.size === 1) id = [...ex][0];
   if (!id) { const nt = toks(name); if (nt.length) { const c = api.filter(a => a.t.length && a.t.length === nt.length && a.t.every(w => nt.includes(w))); const s = new Set(c.map(x => x.id)); if (s.size === 1) id = [...s][0]; } }
+  if (!id) { // ad parcalari birbirinin altkumesi ("Bayern Munich" ~ "Bayern", "Man Utd" ~ "Manchester Utd" icin kisaltma tablosu)
+    const AL = { man: 'manchester', utd: 'united', 'nott m': 'nottingham', wolves: 'wolverhampton', sheff: 'sheffield', 'm tel aviv': 'maccabi tel aviv' };
+    let nn = ' ' + n + ' '; for (const [a, b] of Object.entries(AL)) nn = nn.replace(new RegExp(' ' + a + ' ', 'g'), ' ' + b + ' ');
+    const nt = toks(nn); if (nt.length) { const c = api.filter(a => a.t.length && (a.t.every(w => nt.includes(w)) || nt.every(w => a.t.includes(w)))); const s = new Set(c.map(x => x.id)); if (s.size === 1) id = [...s][0]; }
+  }
   if (id) { out[name] = +id; hit++; }
+}
+// elle girilen kimlikler (data/tm/clublogo-elle.json, kullanici karari 15 Kas 2026): ustune yazar. API lig listelerinde (api-teams.json)
+// o kimlik varsa ve adiyla hic ortak parca yoksa YANLIS sayilip atilir (yanlis logo, eksik logodan kotudur).
+try {
+  const man = rd(path.join(root, 'data/tm/clublogo-elle.json')); const idName = new Map(api.map(a => [String(a.id), a])); let ok = 0, bad = 0, unv = 0;
+  for (const [name, id] of Object.entries(man)) {
+    const a = idName.get(String(id));
+    if (a) { const nt = toks(name), at = a.t; const pre = (x, y) => { let i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++; return i; }; // ortak on ek >=4 harf: Rennes~Rennais, M'gladbach~Mönchengladbach (iceren parca)
+    const A = nz(a.name).split(' ').filter(w => w.length >= 4), B = nz(name).split(' ').filter(w => w.length >= 4);
+    const share = nt.some(w => at.includes(w)) || A.some(x => B.some(y => pre(x, y) >= 4 || (x.length >= 5 && y.includes(x)) || (y.length >= 5 && x.includes(y)))); if (!share) { console.log('UYARI elle kimlik reddedildi:', name, id, '(API adi:', a.name + ')'); bad++; continue; } ok++; } else unv++;
+    out[name] = +id;
+  }
+  console.log(`elle: ${Object.keys(man).length} kayit, dogrulanan ${ok}, henuz dogrulanamayan ${unv}, reddedilen ${bad}`);
+} catch (e) { }
+// genclik/B/yedek takimlari ana kulubun kimligine baglanir ("Sporting U19", "Man City U23", "Barça Youth", "Sporting B"): ek soyulur, ana kulup adi (birebir) out'ta aranir.
+{
+  const YS = /(\s+(U ?\d{2}|Sub-?\d{2}|Youth|Yth\.?|Juniors?|Jgd\.?|Jugend|Reserves?|Res\.?|Primavera|Academy|Akademi|II|III|B|C|Next))+$/i;
+  const idx = new Map(); for (const [k, v] of Object.entries(out)) { const z = nz(k); if (!idx.has(z)) idx.set(z, v); } for (const a of api) { if (!idx.has(a.n)) idx.set(a.n, a.id); }
+  const AL = { 'Barça': 'Barcelona', 'Bilbao': 'Athletic Club', 'W. Bremen': 'Werder Bremen', 'B. München': 'Bayern Munich', 'Din. Zagreb': 'Dinamo Zagreb', 'D. Zagreb': 'Dinamo Zagreb', 'Palace': 'Crystal Palace', 'Spurs': 'Tottenham', 'Stmk.-Sturm': 'Sturm Graz', 'Nordsjaell.': 'Nordsjælland', 'Sporting CP': 'Sporting', 'Vikt. Plzen': 'Viktoria Plzeň', 'Hajduk': 'Hajduk Split', 'FCK': 'FC Copenhagen', 'HSV': 'Hamburger SV', 'Boro': 'Middlesbrough', 'Sparta': 'Sparta Prague', 'AKA Salzb.': 'Red Bull Salzburg', 'BSC YB': 'Young Boys', 'AZ': 'AZ Alkmaar', 'Red Star': 'Crvena Zvezda', 'Legia': 'Legia Warszawa', 'Lech': 'Lech Poznań', 'RM Castilla': 'Real Madrid', 'RM Castilla': 'Real Madrid', 'Atl. Madrileño': 'Atletico Madrid' };
+  let yh = 0;
+  for (const name of names) {
+    if (!name || out[name] || !(YS.test(name) || name === 'RM Castilla')) continue;
+    const base = name.replace(YS, '').trim().replace(/^RM Castilla$/, 'Real Madrid'); const id = out[base] || idx.get(nz(base)) || idx.get(nz(AL[base] || ''));
+    if (id) { out[name] = +id; yh++; }
+  }
+  console.log('genclik/B takimi ana kulube baglandi:', yh);
 }
 fs.writeFileSync(path.join(root, 'data/tm/clublogo.json'), JSON.stringify(out));
 console.log(`TM kulup adi ${names.size}, API takim kaydi ${api.length}, eslesen ${hit}`);
