@@ -1977,7 +1977,7 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   td.kmkdt-o{display:flex;align-items:center;gap:14px}
   td.kmkdt-o b{font:600 14px var(--f)}
   .kmkdt-t .kmav{width:40px;height:40px}
-  td.kmkdt-u{text-align:left}
+  td.kmkdt-u{text-align:center;white-space:nowrap}
   td.kmkdt-u .bd{width:18px!important;height:18px!important;line-height:18px!important;font-size:5px!important;vertical-align:middle;margin-right:8px}
   .kmkdt-h td{color:var(--mut)}
   .kmmut{color:var(--mut)}
@@ -2024,12 +2024,13 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   .kmdeg-x{position:relative;height:22px;margin:6px 24px 0 94px}
   .kmdeg-x span{position:absolute;transform:translateX(-50%);font:600 11.5px var(--f);color:var(--ink)}
   .kmkr-t{padding:0 24px;border-bottom:1px solid var(--ln)}
-  .kmkr-b{display:grid;grid-template-columns:1fr 40px 40px;align-items:center;gap:4px;padding:14px 24px 6px;color:var(--mut);font-size:13px}
-  .kmkr-b.s{grid-template-columns:1fr 34px 34px 34px 46px}
+  .kmkr-b{display:grid;grid-template-columns:30px 1fr 40px 40px;align-items:center;gap:10px;padding:14px 24px 6px;color:var(--mut);font-size:13px}
+  .kmkr-b>span{grid-column:1/3}
+  .kmkr-b.s{grid-template-columns:30px 1fr 34px 34px 34px;gap:4px 8px}
   .kmkr-b i{display:grid;place-items:center;font-style:normal}
   .kmkr-b i svg{width:15px;height:15px}
   .kmkr-s{display:grid;grid-template-columns:30px 1fr 40px 40px;align-items:center;gap:10px;padding:10px 24px}
-  .kmkr-ic.s .kmkr-s{grid-template-columns:30px 1fr 34px 34px 34px 46px;gap:4px 8px}
+  .kmkr-ic.s .kmkr-s{grid-template-columns:30px 1fr 34px 34px 34px;gap:4px 8px}
   .kmkr-s b{display:block;font:600 13.5px var(--f);cursor:pointer}
   .kmkr-s em{font-style:normal;color:var(--mut);font-size:12.5px}
   .kmkr-s small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
@@ -2037,4 +2038,13 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   .kmkr-p{text-align:right}
   .kmkr-l .bd{width:26px!important;height:26px!important;line-height:26px!important;font-size:7px!important}
   .kmkr-yb{display:inline-grid!important;place-items:center;background:var(--sf2)!important;color:var(--mut)!important;border-radius:50%}
+}
+
+/* Mac satiri hizasi: durum (MS/Canli/saat) her satirda ayni ortada; orta blok (takim-skor-takim) sag sutun genisliginden bagimsiz */
+#dz .mr .lt{text-align:center!important;justify-self:stretch}
+#dz .mr .lt span{display:block;text-align:center!important}
+@media(min-width:1100px){
+  #dz .mr{grid-template-columns:46px minmax(0,1fr) 64px minmax(0,1fr) 96px!important}
+  #dz .mr .pr{grid-column:5;justify-self:end}
+  #dz .mr>.sc+.pb,#dz .mr .pb{display:none!important}
 }

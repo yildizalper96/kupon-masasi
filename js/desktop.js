@@ -101,7 +101,7 @@
     if (!l.length || sag.querySelector('.dzhaber')) return;
     l.sort((a, b) => String(b.d || '').localeCompare(String(a.d || '')));
     const tarih = d => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(d || ''); return m ? `${m[3]}.${m[2]}` : esc(d || ''); };
-    sag.insertAdjacentHTML('beforeend', `<section class="dzk dzhaber"><h3>Takım notları</h3>${l.slice(0, 4).map(x => `<div class="dzhb"><div class="dzhb-u"><b data-tm="${esc(x.tm)}">${esc(x.tm)}</b><small>${tarih(x.d)}</small></div><p>${esc(String(x.x || '').slice(0, 220))}${String(x.x || '').length > 220 ? '…' : ''}</p><small>Kaynak: ${esc(x.src || '')}</small></div>`).join('')}</section>`);
+    sag.insertAdjacentHTML('beforeend', `<section class="dzk dzhaber"><h3>Takım notları</h3>${l.slice(0, 4).map(x => `<div class="dzhb"><div class="dzhb-u"><b data-tm="${esc(x.tm)}">${esc(x.tm)}</b><small>${tarih(x.d)}</small></div><p>${esc(String(x.x || '').slice(0, 220))}${String(x.x || '').length > 220 ? '…' : ''}</p><small>Kaynak: ${esc((window.KMKAY || String)(x.src || ''))}</small></div>`).join('')}</section>`);
   }
   // genislik telefona dusunce tasinan kutular uygulamaya geri doner (bir sonraki cizimde zaten oraya gelir)
   MQ.addEventListener('change', () => { if (!MQ.matches) { [...sag.children].forEach(k => app.appendChild(k)); sag.innerHTML = ''; } else sagCiz(); });
