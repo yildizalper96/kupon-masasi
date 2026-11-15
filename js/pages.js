@@ -1104,16 +1104,28 @@
     // maci mac ayrinti dosyasi (data/players/mlog.json, Sofascore; API ucretsiz planda gecmis maclari vermiyor): yalniz verisi bilinmeyen satirlar, rakip + skor ayniysa ve oyuncu o maci kadrosunda bulunuyorsa doldurulur
     { const ML = tmV('mlog', () => fetch('data/players/mlog.json').then(r => r.ok ? r.json() : null));
       if (ML && ML.t) ps.forEach(r => {
-        if (!(r.bilinmez || r.dk == null)) return; const L = ML.t[kay[r.ki || 0][1]]; if (!L) return;
+        const L = ML.t[kay[r.ki || 0][1]]; if (!L) return;
         const e = L.find(x => x.s === r.skor && ayniTk(x.r, r.rakip)); if (!e) return;
+        if (!r.t) r.t = e.t; // tarih: maci kaydindaki baslama saati (siralama icin)
+        if (!(r.bilinmez || r.dk == null)) return;
         const q = e.p.find(x => is(x[0]));
+        const xk = !q && e.x && Object.keys(e.x).find(k => is(k)); // kaynaktaki eksik oyuncu listesi: sakat / cezali
+        if (xk) { r.dur = e.x[xk]; r.dk = null; r.g = 0; r.a = 0; r.y = 0; r.pu = undefined; r.bilinmez = false; r.ml = 1; return; }
         if (!q) { // kadro listesi tam (21) ve oyuncu baska bir maci listesinde bulunuyorsa (ad eslesmesi calisiyor) bu macta kadroda degil
           if (e.p.length >= 21 && L.some(x => x.p.some(y => is(y[0])))) { r.dur = 'Kadroda yok'; r.dk = null; r.g = 0; r.a = 0; r.y = 0; r.pu = undefined; r.bilinmez = false; r.ml = 1; }
           return; }
         const oynadi = q[2] != null;
         r.dur = q[1] === 'E' ? 'İlk 11' : oynadi ? 'Yedek' : 'Oynamadı'; r.dk = oynadi ? q[2] : null;
         r.g = q[3] || 0; r.a = q[4] || 0; r.y = q[5] || 0; r.pu = q[7] != null ? q[7] : undefined; r.bilinmez = false; r.ml = 1;
+      });
+      // sezon basindan beri: uygulamada satiri olmayan maclar, oyuncu oynadiysa eklenir (hafta sirasiyla, tarih yazilmaz)
+      if (ML && ML.t) { const L = ML.t[o.team]; if (L) [...L].reverse().forEach(e => {
+        if (ps.some(r => !r.ki && r.skor === e.s && ayniTk(r.rakip, e.r))) return;
+        const q = e.p.find(x => is(x[0])); if (!q || q[2] == null) return;
+        const [x, y] = e.s.split(' - ').map(Number), gf = e.ev ? x : y, ga = e.ev ? y : x;
+        ps.push({ t: e.t || 0, d: e.c === 'CL' ? e.d : e.w + '. hafta', c: e.c === 'CL' ? 'Şampiyonlar Ligi' : 'Süper Lig', rakip: e.r, ev: !!e.ev, skor: e.s, r: gf > ga ? 'G' : gf < ga ? 'M' : 'B', dk: q[2], dur: q[1] === 'E' ? 'İlk 11' : 'Yedek', g: q[3] || 0, a: q[4] || 0, y: q[5] || 0, pu: q[7] != null ? q[7] : undefined, bilinmez: false, ki: 0, ml: 1 });
       }); }
+    }
     return ps.concat(apiMaclari(o.e, ps)).sort((x, y) => (y.t || 0) - (x.t || 0));
   }
   function oyuncuVeri(v) {
