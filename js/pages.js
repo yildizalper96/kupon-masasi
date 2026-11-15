@@ -734,7 +734,7 @@
   }
   const TMKAY = '<p class="kmkay">Kaynak: Transfermarkt</p>';
   const binEur = v => degerYaz((+v || 0) * 1000);
-  const ayYil = s => { const [y, m] = String(s || '').split('-'); return y ? new Date(Date.UTC(+y, (+m || 1) - 1, 1)).toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : ''; };
+  const ayYil = s => { const [y, m] = String(s || '').split('-'); return y ? new Date(Date.UTC(+y, (+m || 1) - 1, 1)).toLocaleDateString('tr-TR', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''; };
   const tarihTr = s => { const d = s ? new Date(s + 'T12:00:00Z') : null; return d && !isNaN(d) ? d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
   const SPTR = { 'Goalkeeper': 'Kaleci', 'Centre-Back': 'Stoper', 'Left-Back': 'Sol bek', 'Right-Back': 'Sağ bek', 'Defensive Midfield': 'Ön libero', 'Central Midfield': 'Merkez orta saha', 'Attacking Midfield': 'Ofansif orta saha', 'Left Midfield': 'Sol orta saha', 'Right Midfield': 'Sağ orta saha', 'Left Winger': 'Sol kanat', 'Right Winger': 'Sağ kanat', 'Centre-Forward': 'Santrfor', 'Second Striker': 'İkinci forvet' };
   function tmOyuncu(e) { const t = +kfOf(e).t; return t && window.KMTM ? tmV('p' + t, () => KMTM.player(t)) : null; }
@@ -818,7 +818,9 @@
     const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
     const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
     const logo = parca.map(s => { const own = s.n.filter(x => kkk(x.d) === kkk(s.d)), n = (own.length ? own : s.n).reduce((b, x) => x.y < b.y ? x : b, (own.length ? own : s.n)[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
-    const veri = nk.filter(n => !n.ek).map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
+    // ek noktalar (guncel kulup donemi) uzerine gelinince de secilir: tarih transfer ayi, deger son bilinen deger
+    const tbAy = (nk.find(n => n.ek) || {}).t;
+    const veri = nk.map(n => [+(n.x / W * 100).toFixed(2), +(n.y / H * 100).toFixed(2), n.v, new Date(n.ek ? tbAy : n.t).toISOString().slice(0, 7), (n.d && (n.d.app || n.d.ad)) || '', renkler.get(n.d && (n.d.app || n.d.ad)) || '#888']);
     const enY = l.reduce((b, x) => +x[1] > +b[1] ? x : b, l[0]), sonV = l[l.length - 1];
     return card('kmdeg', `<div class="kmdeg-u"><h3 class="kmb">Transfer değeri: ${E(binEur(sonV[1]))}</h3><small>En yüksek: ${E(binEur(enY[1]))} (${E(ayYil(enY[0]))})</small></div>
       <div class="kmdeg-w"><div class="kmdeg-y">${ye.join('')}</div><div class="kmdeg-a" data-kmdeg='${E(JSON.stringify(veri))}'><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${[0.25, 0.5, 0.75, 1].map(f => `<line x1="0" x2="${W}" y1="${Y(mx / 1.08 * f).toFixed(1)}" y2="${Y(mx / 1.08 * f).toFixed(1)}" class="kz"/>`).join('')}${svg}</svg>${logo}<i class="kmdeg-cz" hidden></i><div class="kmdeg-ip" hidden></div></div></div>
