@@ -194,8 +194,14 @@ function toMatch(x) {
   if (!c) return null;
   const hn = teamName(c, x.teams.home.name), an = teamName(c, x.teams.away.name);
   // yerel kupalarin ilk turlari: iki takim da uygulamanin bildigi ust lig takimlarindan degilse alma (2./3. lig istemiyoruz)
-  if (DOMESTIC_CUPS.has(c) && !APP_ALL.includes(hn) && !APP_ALL.includes(an)) { skippedCup++; return null; }
-  tidAdd(hn, x.teams.home.id); tidAdd(an, x.teams.away.id);
+  // kullanici karari (15 Kas 2026): yerel kupada takimlardan EN AZ BIRI gercekten ust lig takimiysa goster; yalnizca ad benzerligi
+  // (ornegin Rochefort-Juventus: Fransa'daki kucuk Juventus) yetmez -> bilinen takim kimligi API'dekiyle ayni olmali.
+  if (DOMESTIC_CUPS.has(c)) {
+    const gercek = (n, id) => APP_ALL.includes(n) && !(TID[n] && TID[n] !== id);
+    if (!gercek(hn, x.teams.home.id) && !gercek(an, x.teams.away.id)) { skippedCup++; return null; }
+  }
+  // takim kimligi yalnizca lig/Avrupa maclarindan ogrenilir: yerel kupadaki ayni adli kucuk kulupler (Juventus, Lyon...) kimligi ezmesin
+  if (!DOMESTIC_CUPS.has(c)) { tidAdd(hn, x.teams.home.id); tidAdd(an, x.teams.away.id); }
   return {
     id: x.fixture.id, c, t: x.fixture.date.slice(0, 16) + 'Z', h: hn, a: an,
     st: x.fixture.status.short, el: x.fixture.status.elapsed ?? null,
@@ -234,6 +240,8 @@ if (process.argv.includes('--live')) {
   const latestPath = path.join(outDir, 'latest.json');
   if (!fs.existsSync(latestPath)) { console.log('latest.json yok: once tam calistir (--live olmadan).'); process.exit(0); }
   const prev = JSON.parse(fs.readFileSync(latestPath, 'utf8'));
+  // yerel kupada iki takim da ust lig takimi degilse listeden cikar (eski calistirmalardan kalanlar; ayrintilar silinmez)
+  { const n0 = prev.m.length; prev.m = prev.m.filter(m => !DOMESTIC_CUPS.has(m.c) || (APP_ALL.includes(m.h) || APP_ALL.includes(m.a))); if (prev.m.length !== n0 && !DRY) { fs.writeFileSync(latestPath, JSON.stringify(prev)); console.log('Yerel kupa: ust lig olmayan', n0 - prev.m.length, 'mac listeden cikarildi.'); } }
   const LIVE_ST = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'SUSP']);
   const byId = new Map(prev.m.map(m => [m.id, m]));
   const seen = new Set();
