@@ -827,15 +827,24 @@
         <div class="kmph-f${foto ? '' : ' yok'}"><span>${E(basH(o.nm))}</span>${fotoImg(foto)}</div>
         <div><h2>${E(o.nm)}</h2>${o.team ? `<a class="kmph-t" data-tm="${E(o.team)}">${bd(o.team)}<span>${E(kulupAd(o.team))}</span></a>` : ''}</div></div>`;
     const bilgi = [];
-    // ulke: bayrak + ad (yalnizca milli takim kadrosundan biliniyorsa; uyruk verisi yoksa gosterilmez)
-    if (e.a) bilgi.push([e.a + ' yaş', 'Yaş']);
-    if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Ülke', 1]);
-    if (e.no && !e.milli) bilgi.push([e.no, 'Forma']);
-    if (e.milliNo) bilgi.push([e.milliNo, 'Milli takımda forma']);
+    // kisisel bilgi: yalnizca kaynakta olan alanlar (boy/dogum/ayak data/players/bio.json -> window.KMBIO, oyuncu kimligine gore)
+    const bio = (e.id && window.KMBIO && (window.KMBIO.p || window.KMBIO)[e.id]) || {};
+    // kulup forma numarasi (PS p[7]; 0 = kaynakta yok), yoksa kulup kadrosundan
+    // bio.json 2024 sezonundan gelebilir (eski numara olabilir): en son kaynak o
+    const forma = (p && +p[7] > 0 ? p[7] : null) ?? (+e.no > 0 ? e.no : null) ?? (+bio.no > 0 ? bio.no : null);
+    if (bio.h) bilgi.push([String(bio.h).replace(/\s*cm$/i, '') + ' cm', 'Boy']);
+    if (forma != null && forma !== '') bilgi.push([forma, 'Forma']);
+    const dg = bio.b ? new Date(bio.b + 'T12:00:00Z') : null, dgOk = dg && !isNaN(dg);
+    const yas = dgOk ? Math.floor((Date.now() - dg) / 315576e5) : e.a;
+    if (yas) bilgi.push([yas + ' yaş', dgOk ? dg.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Yaş']);
+    const ayak = { right: 'Sağ', left: 'Sol', both: 'Her ikisi', sag: 'Sağ', sol: 'Sol' }[String(bio.foot || '').toLowerCase()];
+    if (ayak) bilgi.push([ayak, 'Tercih ettiği ayak']);
+    // ulke: bayrak + ad, tiklayinca milli takim sayfasi (yalnizca milli takim kadrosundan biliniyorsa)
+    if (e.milli && e.milli !== o.team) bilgi.push([`${bd(e.milli)}<span>${E(e.milli)}</span>`, 'Ülke', 1, e.milli]);
     const tl = TM[o.team]; if (tl && tl.l) bilgi.push([`${tl.r}.`, E(ligAd(tl.l)) + ' sırası']);
     const nokta = { K: [50, 88], D: [50, 68], O: [50, 46], F: [50, 18] }[posK] || null;
     const saha = nokta ? `<div class="kmph-saha"><i class="ce"></i><i class="ku"></i><i class="ka"></i><b style="left:${nokta[0]}%;top:${nokta[1]}%">${({ Kaleci: 'KL', Defans: 'DF', 'Orta saha': 'OS', Forvet: 'FV' })[mev] || ''}</b></div>` : '';
-    const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h]) => `<div><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
+    const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h, tk]) => `<div${tk ? ` class="kmph-lk" data-tm="${E(tk)}" title="${E(tk)} milli takımı"` : ''}><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
         <div class="kmph-m"><h4>Mevki</h4>${mev ? `<b>${E(mev)}</b>` : '<p class="kmbos">veri yok</p>'}${saha}</div></div></div>`;
     const ml = oyuncuMaclari(o), api = ml.filter(m => m.pu !== undefined);
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;

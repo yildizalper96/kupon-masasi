@@ -196,26 +196,36 @@
       '.ka-leg{border-top:1px solid var(--ln,#2a3a46);padding:9px 0}.ka-lt{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.ka-lt b{font-size:14.5px;line-height:1.3}.ka-lt small{display:block;opacity:.65;font-size:12px;margin-top:2px}' +
       '.ka-tag{padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700;color:#fff;white-space:nowrap}.ka-pb{height:5px;border-radius:3px;background:var(--ln,#2a3a46);margin:7px 0 5px;overflow:hidden}.ka-pb i{display:block;height:100%}' +
       '.ka-chips{display:flex;flex-wrap:wrap;gap:5px}.ka-chip{font-size:11.5px;padding:2px 8px;border-radius:99px;border:1px solid var(--ln,#2a3a46);opacity:.9}.ka-chip.na{opacity:.5;border-style:dashed}' +
-      '.ka-note{font-size:12px;opacity:.65;line-height:1.5;margin-top:10px}';
+      '.ka-note{font-size:12px;opacity:.65;line-height:1.5;margin-top:10px}' +
+      '.ka .ka-head{margin:8px 0 0}.ka .ka-big{font:800 28px/1 var(--f)}.ka-lr{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}' +
+      '.ka-oz{margin:10px 0 6px;font-size:13.5px;line-height:1.45;color:var(--ink)}.ka-leg{padding:10px 0}.ka-lt b{font-weight:600}' +
+      '.ka-rm{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--warn,#b86e00) 10%,transparent);font-size:12.5px;color:var(--mut)}.ka-rm b{color:var(--ink)}.ka-rm .kpc-b{flex:none}';
     document.head.appendChild(s);
   })();
 
   function colorOf(c) { return c === 'low' ? 'var(--ok,#1b7a4b)' : c === 'mid' ? 'var(--warn,#b86e00)' : 'var(--hot,#b3362f)'; }
 
-  function legHtml(x, draft) {
-    var chips = [];
-    chips.push(x.mk != null ? '<span class="ka-chip">Piyasa %' + pc(x.mk) + '</span>' : '<span class="ka-chip na">Piyasa verisi yok</span>');
-    if (x.m) {
-      var fh = x.form[0], fa = x.form[1];
-      chips.push(fh || fa ? '<span class="ka-chip">Form: ' + (fh ? esc(x.m.h) + ' ' + fh : '') + (fh && fa ? ' · ' : '') + (fa ? esc(x.m.a) + ' ' + fa : '') + '</span>' : '<span class="ka-chip na">Form verisi yok</span>');
-      chips.push(x.h2h ? '<span class="ka-chip">Karşılıklı: ' + esc(x.h2h) + '</span>' : '<span class="ka-chip na">Karşılıklı maç verisi yok</span>');
-      chips.push('<span class="ka-chip' + (x.lu && x.lu.confirmed ? '' : ' na') + '">' + esc(x.lu ? x.lu.txt : 'Kadro verisi yok') + (x.lu && x.lu.out != null ? ' · eksik: ' + x.lu.out : '') + '</span>');
+  // Kisa ve oz gorunum: risk + tek cumle, secim basina tek satir, yalnizca gerektiginde "cikar" onerisi
+  function legHtml(x, draft, a) {
+    var not = '';
+    if (x.res === 'hit' || x.res === 'miss') not = '';
+    else if (x.mk != null && x.p0 - x.mk >= MARKET_GAP) not = 'Piyasa daha temkinli (%' + pc(x.mk) + ')';
+    else if (x.lu && !x.lu.confirmed && x.m && (+x.m.t - Date.now()) < 3 * 3600e3 && (+x.m.t - Date.now()) > 0) not = 'Resmi 11 henüz yok';
+    var oner = '';
+    if (draft && x.without && x.res !== 'hit' && x.res !== 'miss' && a.weakest === x && (x.p < WEAK || a.risk !== 'low') && a.pend.length > 1) {
+      oner = '<div class="ka-rm"><span>Çıkarırsan tutma ihtimali <b>%' + pc(a.pAll) + ' → %' + pc(x.without.p) + '</b>, oran ' + a.od.toFixed(2) + ' → ' + x.without.od.toFixed(2) + '</span><button class="kpc-b" data-krm="' + x.i + '">Çıkar</button></div>';
     }
-    if (x.cal) chips.push('<span class="ka-chip">Geçmiş: %' + x.cal.lo + '-' + x.cal.hi + ' bandında ' + x.cal.n + ' tahminin %' + pc(x.cal.rate) + '\'i tuttu</span>');
-    if (x.left) chips.push('<span class="ka-chip">Başlamasına ' + esc(x.left) + '</span>');
-    var rm = (draft && x.res !== 'hit' && x.res !== 'miss' && x.p < WEAK && x.without) ? '<button class="kpb2" data-krm="' + x.i + '">Kupondan çıkar</button>' : '';
-    return '<div class="ka-leg"><div class="ka-lt"><div><b>' + esc(x.lab) + '</b><small>' + esc(x.mname) + '</small></div><div style="text-align:right"><b>%' + pc(x.p) + '</b><br><span class="ka-tag ' + x.cls + '">' + x.tag + '</span></div></div>' +
-      '<div class="ka-pb"><i style="width:' + pc(x.p) + '%;background:' + colorOf(x.cls) + '"></i></div><div class="ka-chips">' + chips.join('') + '</div>' + rm + '</div>';
+    return '<div class="ka-leg"><div class="ka-lt"><div><b>' + esc(x.lab) + '</b><small>' + esc(x.mname) + (not ? ' · ' + esc(not) : '') + '</small></div><div class="ka-lr"><b>%' + pc(x.p) + '</b><span class="ka-tag ' + x.cls + '">' + x.tag + '</span></div></div>' + oner + '</div>';
+  }
+
+  function ozet(a) {
+    var n = a.pend.length, w = a.weakest;
+    if (!n) return a.sureFail ? 'Kuponda yatan seçim var, kupon tutmadı.' : 'Tüm maçlar bitti, seçimlerin hepsi tuttu.';
+    if (a.sureFail) return 'Yatan seçim olduğu için kupon tutamaz.';
+    if (a.risk === 'low') return 'Seçimlerin hepsi güçlü görünüyor; yine de hiçbir bahis risksiz değildir.';
+    var s = a.risk === 'mid' ? 'Kuponu en çok zorlayan seçim: ' : 'Riskli: ';
+    if (a.risk === 'high' && a.weakList.length > 1) return s + a.weakList.length + ' seçimin ihtimali %' + pc(WEAK) + '\'in altında. En zayıfı çıkarmak kuponu belirgin güçlendirir.';
+    return n > 1 && w ? s + w.lab + ' (%' + pc(w.p) + ').' : 'Tek seçimli kupon: tutma ihtimali %' + pc(a.pAll) + '.';
   }
 
   function html(legs, opts) {
@@ -223,17 +233,14 @@
     if (!legs || !legs.length) return '';
     var a;
     try { a = analyze(legs); } catch (e) { if (window.console) console.warn('kupon-analiz:', e); return ''; }
-    var adv = advice(a), draft = !!opts.draft;
-    var D = a.D, d0 = D[0] || 0, d1 = D[1] || 0, d2 = Math.max(0, 1 - d0 - d1);
-    var bar = a.n > 1 ? '<div class="ka-bar"><i style="width:' + pc(d0) + '%;background:var(--ok,#1b7a4b)"></i><i style="width:' + pc(d1) + '%;background:var(--warn,#b86e00)"></i><i style="width:' + pc(d2) + '%;background:var(--hot,#b3362f)"></i></div>' +
-      '<div class="ka-leg2"><span style="--c:var(--ok,#1b7a4b)">Hepsi tutar %' + pc(d0) + '</span><span style="--c:var(--warn,#b86e00)">1 seçim yatar %' + pc(d1) + '</span><span style="--c:var(--hot,#b3362f)">2+ yatar %' + pc(d2) + '</span></div>' : '';
+    var draft = !!opts.draft;
     var label = a.risk === 'low' ? 'Düşük riskli' : a.risk === 'mid' ? 'Orta riskli' : 'Yüksek riskli';
-    var advH = adv.map(function (z) { return '<div class="ka-a ' + z.c + '">' + esc(z.t) + (draft && z.rm != null ? '<button class="kpb2" data-krm="' + z.rm + '">Bu seçimi kupondan çıkar</button>' : '') + '</div>'; }).join('');
-    var legsH = a.info.slice().sort(function (u, v) { return u.p - v.p; }).map(function (x) { return legHtml(x, draft); }).join('');
+    var legsH = a.info.slice().sort(function (u, v) { return u.p - v.p; }).map(function (x) { return legHtml(x, draft, a); }).join('');
     return '<div class="box ka" id="kmka"><h3>Kupon analizi<small>simülasyon</small></h3>' +
-      '<div class="ka-head"><span class="ka-badge ' + a.risk + '">' + label + '</span><span class="ka-big">%' + pc(a.pAll) + '</span><span class="ka-sub">hepsinin tutma ihtimali · tahmini oran ' + a.od.toFixed(2) + '</span></div>' + bar +
-      '<div class="ka-adv">' + advH + '</div><h4>Seçimler (en zayıftan en sağlama)</h4>' + legsH +
-      '<div class="ka-note">Bu bir bahis tavsiyesi değil, istatistiksel simülasyondur. İhtimaller modelin maç öncesi tahminidir; farklı maçlar birbirinden bağımsız varsayılır. Kadro, sakatlık ve maç içi gelişmeler ihtimalleri değiştirebilir. Hiçbir bahis risksiz değildir.</div></div>';
+      '<div class="ka-head"><span class="ka-big">%' + pc(a.pAll) + '</span><span class="ka-badge ' + a.risk + '">' + label + '</span></div>' +
+      '<div class="ka-sub">hepsinin birlikte tutma ihtimali · tahmini oran ' + a.od.toFixed(2) + '</div>' +
+      '<p class="ka-oz ' + a.risk + '">' + esc(ozet(a)) + '</p>' + legsH +
+      '<div class="ka-note">İstatistiksel simülasyondur, bahis tavsiyesi değildir. Hiçbir bahis risksiz değildir.</div></div>';
   }
 
   // Kayitli (bekleyen) kuponlar icin kisa ozet
