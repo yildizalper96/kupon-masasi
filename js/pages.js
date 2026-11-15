@@ -700,9 +700,9 @@
     const l = L.slice().sort((a, b) => sira[pos(a)] - sira[pos(b)] || (+a.no || 99) - (+b.no || 99) || a.n.localeCompare(b.n, 'tr'));
     let hoca = ''; try { const X = window.KMX; let son = null; Object.values(X.byKey || {}).forEach(m => { const s = m.h === n ? 'h' : m.a === n ? 'a' : null; if (s && m.lu && m.lu[s] && m.lu[s].co && (!son || Date.parse(m.t) > son.t)) son = { t: Date.parse(m.t), co: m.lu[s].co }; }); hoca = (son && son.co) || xt(n).coach || ''; } catch (e) { }
     const [ka, kb] = renk(n);
-    const ulkeH = e => e.milli && e.milli !== n ? `${bd(e.milli)}<span>${E(e.milli)}</span>` : '<span class="kmmut">–</span>';
+    const ulkeH = e => { const u = (e.id && window.KMFOOT && window.KMFOOT[e.id] && window.KMFOOT[e.id].n) || (e.milli && e.milli !== n ? e.milli : ''); return u ? `<span class="kmuy" data-tm="${E(u)}">${bd(u)}<span>${E(u)}</span></span>` : '<span class="kmmut">–</span>'; };
     const sat = e => `<tr ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + e.ad)}"`}><td class="kmkdt-o"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><b>${E(e.n)}</b></td><td>${E(POSAD[pos(e)] || '–')}</td><td class="kmkdt-u">${ulkeH(e)}</td><td>${e.no ? E(e.no) : '–'}</td><td>${e.a ? E(e.a) : '–'}</td><td>${e.ps ? E(e.ps.p[1]) : '–'}</td><td>${e.ps ? E(e.ps.p[3]) : '–'}</td><td>${e.ps ? E(e.ps.p[4]) : '–'}</td></tr>`;
-    return card('kmkdt', `<table class="kmkdt-t"><thead><tr><th class="kmkdt-o">Oyuncu</th><th>Pozisyon</th><th>Milli takım</th><th>Forma</th><th>Yaş</th><th>Maç</th><th>Gol</th><th>Asist</th></tr></thead><tbody>
+    return card('kmkdt', `<table class="kmkdt-t"><thead><tr><th class="kmkdt-o">Oyuncu</th><th>Pozisyon</th><th>Uyruk</th><th>Forma</th><th>Yaş</th><th>Maç</th><th>Gol</th><th>Asist</th></tr></thead><tbody>
       ${hoca ? `<tr class="kmkdt-h"><td class="kmkdt-o"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(hoca))}</i></span><b>${E(hoca)}</b></td><td>Antrenör</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>` : ''}${l.map(sat).join('')}</tbody></table>
       <p class="kmkay">Forma ve yaş kadro listesinden (kulüp kadrosu çekildikçe dolar), maç/gol/asist kayıtlı sezon verisinden.</p>`);
   }
@@ -1155,6 +1155,15 @@
     if (!(e.target.closest && e.target.closest('#q'))) aramaKapat();
   }, true);
   addEventListener('resize', () => { const k = document.getElementById('kmar'); if (k && !k.hidden) aramaKutu(); });
+  window.KM_DURUM_AL = () => ({ TT, TTn, TMS: Object.assign({}, TMS), OIS, OSS: Object.assign({}, OSS), DV, LFX: Object.assign({}, LFX), SMF, MKS, MKSn });
+  window.KM_DURUM_VER = d => { if (!d) return; ({ TT, TTn, OIS, DV, SMF, MKS, MKSn } = d); TMS = Object.assign({}, d.TMS); OSS = Object.assign({}, d.OSS); LFX = Object.assign({}, d.LFX); };
+  // ic ice tiklanabilirde (satir oyuncuya, hucredeki uyruk takima) en icteki data-tm kazanir
+  window.addEventListener('click', ev => {
+    const tm = ev.target.closest && ev.target.closest('[data-tm]'); if (!tm) return;
+    const dis = tm.parentElement && tm.parentElement.closest('[data-pl],[data-pn],[data-kmm]'); if (!dis) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    try { push(); det = null; PMV = null; tab = 'k'; Q = tm.dataset.tm; QX = Q; const q = document.getElementById('q'); if (q) q.value = Q; render(); } catch (x) { }
+  }, true);
   // ortak tiklamalar (yakalama asamasinda, uygulamanin belge dinleyicisinden once)
   document.addEventListener('click', e => {
     const mm = e.target.closest && e.target.closest('[data-kmm]');

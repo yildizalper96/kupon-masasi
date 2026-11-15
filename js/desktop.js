@@ -348,4 +348,18 @@
   new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) { sagCiz(); ustaDon(); kapaliUygula(); bayrakUygula(); gunSeridi(); ligAramasi(); mobilBaslik(); kisaAd(); durumEsle(); onYukleZamanla(); } }).observe(app, { childList: true });
   gunSeridi(); durumEsle();
   solCiz(); sagCiz();
+
+  // Geri/ileri: her gecmis kaydina kaydirma konumu (orta/sag/sol sutun ve pencere) ve sayfa ici durum (sekme, sayfa) eklenir;
+  // geri donuste once durum, cizimden sonra kaydirma geri yuklenir (ustaDon'un basa almasindan sonra).
+  try {
+    const kay = () => ({ a: app.scrollTop, r: sag.scrollTop, l: sol.scrollTop, w: window.pageYOffset || 0 });
+    let bekle = null;
+    const uygula = () => { const k = bekle; if (!k) return; try { app.scrollTop = k.a; sag.scrollTop = k.r; sol.scrollTop = k.l; if (!MQ.matches) window.scrollTo(0, k.w); } catch (e) { } };
+    const yamala = arr => {
+      if (!Array.isArray(arr) || arr.__km) return; arr.__km = 1;
+      arr.push = function (x) { try { if (x && typeof x === 'object') { x._sc = kay(); x._km = window.KM_DURUM_AL ? window.KM_DURUM_AL() : null; } } catch (e) { } return Array.prototype.push.apply(this, arguments); };
+      arr.pop = function () { const x = Array.prototype.pop.call(this); try { if (x && x._sc) { if (x._km && window.KM_DURUM_VER) window.KM_DURUM_VER(x._km); bekle = x._sc; [0, 60, 200, 450].forEach(t => setTimeout(uygula, t)); setTimeout(() => { bekle = null; }, 500); } } catch (e) { } return x; };
+    };
+    yamala(NAVS); yamala(FWD);
+  } catch (e) { }
 })();
