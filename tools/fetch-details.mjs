@@ -141,6 +141,7 @@ for (const m of cand) {
     if (f) {
       const lv = normalize(f, e.hid, e.aid);
       e.live = lv; e.liveAt = new Date().toISOString();
+      if (f.fixture && f.fixture.referee) e.ref = String(f.fixture.referee).replace(/,.*$/, '').trim(); // hakem adi (ek istek yok; KMTM.ref bununla baglanir)
       if (!e.luRaw && luKoy(e, f.lineups)) log.push(`${m.h}-${m.a}: ilk 11 mac verisinden alindi`);
       if (lv.fin) {
         // devre bazli istatistik (1. / 2. yari): 1 ek istek, kota azsa atlanir (bir sonraki calistirmada thTry<2 ise tekrar denenir)

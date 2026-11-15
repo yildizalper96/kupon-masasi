@@ -7,7 +7,7 @@ const nz = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 function csv(t) { const rows = []; let r = [], f = '', q = false; for (let i = 0; i < t.length; i++) { const c = t[i]; if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; } else if (c === '"') q = true; else if (c === ',') { r.push(f); f = ''; } else if (c === '\n') { r.push(f.replace(/\r$/, '')); rows.push(r); r = []; f = ''; } else f += c; } if (f || r.length) { r.push(f); rows.push(r); } return rows; }
 const file = process.argv[2]; if (!file) { console.error('CSV yolu gerekli'); process.exit(1); }
 const rows = csv(fs.readFileSync(file, 'utf8')); const H = rows[0]; const ix = k => H.indexOf(k);
-const D = rows.slice(1).filter(r => r.length > 20).map(r => ({ nm: r[ix('full_name')].split(',').reverse().join(' ').trim(), n: nz(r[ix('full_name')].split(',').reverse().join(' ')), cn: nz(r[ix('common_name')]), ln: nz(r[ix('last_name')]), fn: nz(r[ix('first_name')]), club: r[ix('club_name')], h: +r[ix('height')], foot: /^left/i.test(r[ix('foot')]) ? 'left' : /^right/i.test(r[ix('foot')]) ? 'right' : null })).filter(d => d.foot || d.h);
+const D = rows.slice(1).filter(r => r.length > 20).map(r => ({ nm: r[ix('full_name')].split(',').reverse().join(' ').trim(), n: nz(r[ix('full_name')].split(',').reverse().join(' ')), cn: nz(r[ix('common_name')]), ln: nz(r[ix('last_name')]), fn: nz(r[ix('first_name')]), club: r[ix('club_name')], nat: r[ix('nation_name')], h: +r[ix('height')], foot: /^left/i.test(r[ix('foot')]) ? 'left' : /^right/i.test(r[ix('foot')]) ? 'right' : null })).filter(d => d.foot || d.h);
 
 const P = {}; const add = (id, n) => { if (id && n && !P[id]) P[id] = n; };
 const rd = f => JSON.parse(fs.readFileSync(f, 'utf8').replace(/^\uFEFF/, ''));
@@ -18,14 +18,34 @@ try {
   for (const m of Object.values(d.m || {})) for (const t of ['h', 'a']) for (const p of [...((m.luRaw || {})[t]?.xi || []), ...((m.luRaw || {})[t]?.bn || [])]) add(p.id, p.n);
 } catch (e) { }
 
+// uyruk: Ingilizce ulke adi -> Turkce (fetch-fixtures.mjs NATIONS tablosu); tabloda yoksa yazilmaz
+let NAT = {}; try { const src = fs.readFileSync('tools/fetch-fixtures.mjs', 'utf8'); const mm = src.match(/const NATIONS = (\{[\s\S]*?\n\});/); if (mm) NAT = (0, eval)('(' + mm[1] + ')'); } catch (e) { }
+const NATN = Object.fromEntries(Object.entries(NAT).map(([k, v]) => [nz(k), v]));
+const ulke = s => NATN[nz(s)] || null;
+
+// dogum yili: istege bagli 2. CSV (FBref sezon istatistigi: Player, Born; yalnizca 5 buyuk lig)
+const BORN = new Map();
+if (process.argv[3]) {
+  const fr = csv(fs.readFileSync(process.argv[3], 'utf8')), FH = fr[0], pi = FH.indexOf('Player'), bi = FH.indexOf('Born');
+  const tmp = new Map();
+  for (const r of fr.slice(1)) { if (!r[pi] || !(+r[bi] > 1900)) continue; const k = nz(r[pi]); (tmp.get(k) || tmp.set(k, new Set()).get(k)).add(+r[bi]); }
+  for (const [k, s] of tmp) if (s.size === 1) BORN.set(k, [...s][0]);
+}
+const bornOf = (name, ab, m) => {
+  const n = nz(name); if (!ab || !m) return BORN.get(n) || null;
+  const c = [...BORN.keys()].filter(k => k[0] === m[1] && k.endsWith(' ' + m[2]));
+  const ys = new Set(c.map(k => BORN.get(k))); return c.length >= 1 && ys.size === 1 && c.length === 1 ? BORN.get(c[0]) : null;
+};
+
 const out = {}; const bel = []; let yok = 0;
 for (const [id, name] of Object.entries(P)) {
   const n = nz(name); if (!n) continue;
   const ab = /^[A-Za-zÀ-ž]\.\s/.test(name), m = n.match(/^([a-z]) (.+)$/);
+  const by = bornOf(name, ab, m); // FBref dogum yili (varsa)
   const c = D.filter(x => ab && m ? (x.fn[0] === m[1] && (x.ln === m[2] || x.n.endsWith(' ' + m[2]) || x.cn === n || x.cn.endsWith(' ' + m[2]))) : (x.n === n || x.cn === n));
-  if (!c.length) { yok++; continue; }
+  if (!c.length) { if (by) out[id] = { y: by }; else yok++; continue; }
   const set = new Set(c.map(x => x.foot + '|' + x.h));
-  if (set.size === 1) { const x = c[0]; const o = {}; if (x.foot) o.f = x.foot; if (x.h > 0) o.h = x.h; out[id] = o; }
+  if (set.size === 1) { const x = c[0]; const o = {}; if (x.foot) o.f = x.foot; if (x.h > 0) o.h = x.h; const tr = ulke(x.nat); if (tr) o.n = tr; if (by) o.y = by; out[id] = o; }
   else bel.push(`${name} (id ${id}): ` + c.map(x => `${x.nm} [${x.club}] ${x.foot || '?'} ${x.h || '?'} cm`).join('  |  '));
 }
 try { Object.assign(out, JSON.parse(fs.readFileSync('data/players/foot-elle.json', 'utf8'))); } catch (e) { } // elle dogrulanan belirsizler (kullanici karari)

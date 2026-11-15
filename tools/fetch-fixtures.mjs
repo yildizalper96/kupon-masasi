@@ -207,6 +207,7 @@ function toMatch(x) {
     st: x.fixture.status.short, el: x.fixture.status.elapsed ?? null,
     sc: x.goals.home == null ? null : [x.goals.home, x.goals.away],
     rd: x.league.round || '',
+    ...(x.fixture.referee ? { rf: String(x.fixture.referee).replace(/,.*$/, '').trim() } : {}), // hakem (atanmissa; ek istek yok)
     hand: handPairs.has(hn + '|' + an),
   };
 }
