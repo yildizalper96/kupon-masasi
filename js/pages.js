@@ -1064,6 +1064,14 @@
   // API mac verisindeki (details.json live.px) maclari: milli takim + PS'te olmayan kulup maclari
   const AYK = { oca: 0, sub: 1, şub: 1, mar: 2, nis: 3, may: 4, haz: 5, tem: 6, agu: 7, ağu: 7, eyl: 8, eki: 9, kas: 10, ara: 11 };
   const psTarih = d => { const m = String(d || '').trim().split(/\s+/); if (m.length < 2) return 0; const ay = AYK[m[1].toLowerCase().slice(0, 3)]; if (ay == null) return 0; const n = new Date(); let y = n.getFullYear(); if (ay > n.getMonth() + 1) y--; return Date.UTC(y, ay, +m[0]); };
+  // mac tablosu sayfalama (her yarisma tablosu 10 mac)
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest && ev.target.closest('[data-kmpg]'); if (!b) return; const w = b.closest('.kmmg'); if (!w) return;
+    const pg = +w.dataset.pg || 1, p = Math.max(0, Math.min(pg - 1, (+w.dataset.p || 0) + (+b.dataset.kmpg)));
+    w.dataset.p = p; w.querySelectorAll('tbody tr').forEach((r, i) => { r.hidden = !(i >= p * 10 && i < p * 10 + 10); });
+    const n = w.querySelector('.kmmn b'); if (n) n.textContent = (p + 1) + '/' + pg;
+    const bs = w.querySelectorAll('[data-kmpg]'); bs[0].disabled = p === 0; bs[1].disabled = p >= pg - 1;
+  });
   function apiMaclari(e, ps) {
     const X = window.KMX, out = []; if (!X || !X.byKey) return out;
     Object.values(X.byKey).forEach(m => {
@@ -1208,10 +1216,14 @@
     }
     if (!sezon) sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı</h3><p class="kmbos">Bu oyuncu için istatistik verisi yok.</p>`);
     const tire = x => x == null || x === '' ? '–' : x;
-    const maclar = ml.length ? card('kmpmc', `<h3 class="kmb">Maç istatistikleri</h3><table><thead><tr><th>Tarih</th><th class="tk">Rakip</th><th></th><th>Durum</th><th title="Oynadığı dakika">Dk</th><th title="Gol">Gol</th><th title="Asist">Ast</th><th title="Sarı kart"><i class="kmkrt s"></i></th><th>Puan</th></tr></thead><tbody>${ml.map(m => `<tr${m.bilinmez ? ' class="bz"' : ''}>
+    // maclar yarisma bazinda ayri tablolar; her tablo en fazla 10 mac, ileri/geri dugmesiyle sayfalanir
+    const mSatir = (m, i) => `<tr data-i="${i}"${i >= 10 ? ' hidden' : ''}${m.bilinmez ? ' class="bz"' : ''}>
         <td><span>${E(m.d)}</span><small>${E(m.c || '')}</small></td><td class="tk"${m.rakip ? ` data-tm="${E(m.rakip)}"` : ''}>${m.rakip ? bd(m.rakip) : ''}<span>${E(m.rakip)}</span></td>
         <td class="sk">${m.r ? `<i class="kmkare ${sonuc(m.r)}">${E(m.r)}</i>` : ''}<span>${E(m.skor)}</span></td>
-        <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`).join('')}</tbody></table>
+        <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`;
+    const mGrup = []; ml.forEach(m => { const k = m.c || 'Diğer'; let g = mGrup.find(x => x.k === k); if (!g) mGrup.push(g = { k, a: [] }); g.a.push(m); });
+    const mTablo = g => { const pg = Math.ceil(g.a.length / 10); return `<div class="kmmg" data-pg="${pg}" data-p="0"><div class="kmmh"><h4>${E(g.k)}</h4>${pg > 1 ? `<span class="kmmn"><button type="button" data-kmpg="-1" disabled aria-label="Önceki">‹</button><b>1/${pg}</b><button type="button" data-kmpg="1" aria-label="Sonraki">›</button></span>` : ''}</div><table><thead><tr><th>Tarih</th><th class="tk">Rakip</th><th></th><th>Durum</th><th title="Oynadığı dakika">Dk</th><th title="Gol">Gol</th><th title="Asist">Ast</th><th title="Sarı kart"><i class="kmkrt s"></i></th><th>Puan</th></tr></thead><tbody>${g.a.map(mSatir).join('')}</tbody></table></div>`; };
+    const maclar = ml.length ? card('kmpmc', `<h3 class="kmb">Maç istatistikleri</h3>${mGrup.map(mTablo).join('')}
         <p class="kmkay">Kaynak: API-Football${ml.some(m => m.ml) ? ", Sofascore" : ""}</p>`) : '';
     const nx = o.team ? siradaki(o.team) : null;
     const takim = o.team ? card('kmpyan', `<h3 class="kmb">Takım</h3><div class="kmpy" data-tm="${E(o.team)}">${bd(o.team, 1)}<div><b>${E(kulupAd(o.team))}</b><small>${tl && tl.l ? E(ligAd(tl.l)) + ' · ' + tl.r + '. sıra' : ''}</small></div></div>
