@@ -218,8 +218,8 @@
   const TREND = SV('<path d="M3 16l6-6 4 4 8-8M15 6h6v6"/>', 2.2);
   // arama acikken alttaki sayfa kaymaz ve gorunmez: govde sabitlenir, ekran gorunur alana (klavye ustu) oturur
   let aY = 0;
-  function aramaAc() { aY = window.scrollY; const b = document.body; b.style.position = 'fixed'; b.style.top = -aY + 'px'; b.style.left = '0'; b.style.right = '0'; ara.hidden = false; b.classList.add('kmaraacik'); aInp.value = ''; aCiz(); vvAyar(); setTimeout(() => aInp.focus(), 40); }
-  function aramaKapa() { const b = document.body; ara.hidden = true; b.classList.remove('kmaraacik'); aInp.blur(); b.style.position = ''; b.style.top = ''; b.style.left = ''; b.style.right = ''; window.scrollTo(0, aY); }
+  function aramaAc() { aY = window.scrollY; const b = document.body; b.style.position = 'fixed'; b.style.top = -aY + 'px'; b.style.left = '0'; b.style.right = '0'; ara.hidden = false; b.classList.add('kmaraacik'); document.documentElement.classList.add('kmaraacik'); aInp.value = ''; aCiz(); vvAyar(); setTimeout(() => aInp.focus(), 40); }
+  function aramaKapa() { const b = document.body; ara.hidden = true; b.classList.remove('kmaraacik'); document.documentElement.classList.remove('kmaraacik'); aInp.blur(); b.style.position = ''; b.style.top = ''; b.style.left = ''; b.style.right = ''; window.scrollTo(0, aY); }
   function aGit(x) {
     sonYaz(x); aramaKapa(); aY = 0;
     try {
@@ -265,8 +265,15 @@
     const r = e.target.closest('[data-kmat]'); if (r) { e.preventDefault(); e.stopPropagation(); aGit({ t: r.dataset.kmat, k: r.dataset.kmak, n: r.dataset.kman || r.dataset.kmak }); }
   }, true);
   // klavye acilinca alttaki kutu klavyenin ustune cikar
-  function vvAyar() { const v = window.visualViewport; if (!v) return; ara.style.top = v.offsetTop + 'px'; ara.style.height = v.height + 'px'; }
+  // iOS: yazarken sayfa (layout viewport) kaydirilip arama ekrani ziplamasin: belge kaydirmasi sifirlanir, ekran gorunur alana kare basina oturur
+  let vvZ = 0;
+  function vvUygula() { vvZ = 0; const v = window.visualViewport; if (!v || ara.hidden) return; if (window.scrollY) window.scrollTo(0, 0); const t = Math.max(0, v.offsetTop) + 'px', h = v.height + 'px'; if (ara.style.top !== t) ara.style.top = t; if (ara.style.height !== h) ara.style.height = h; }
+  function vvAyar() { if (!vvZ) vvZ = requestAnimationFrame(vvUygula); }
   if (window.visualViewport) { visualViewport.addEventListener('resize', vvAyar); visualViewport.addEventListener('scroll', vvAyar); }
+  // sonuc listesi disinda surukleme sayfayi kaydirmasin (iOS gorunur alani kaydiriyordu)
+  ara.addEventListener('touchmove', e => { const ic = e.target.closest && e.target.closest('.kma-ic, .kma-f'); if (!ic) e.preventDefault(); }, { passive: false });
+  // yazarken sonuc listesi yeniden cizilince yukseklik ziplamasin: liste basa doner, gorunur alan yeniden hesaplanir
+  aInp.addEventListener('input', () => { const ic = ara.querySelector('.kma-ic'); if (ic) ic.scrollTop = 0; vvAyar(); });
   // uzun ulke adlari (ilk sozcuk ulkenin kendisiyse) mac satirlarinda kisa yazilir; bayrak zaten ulkeyi gosterir
   const KISA = { 'İrlanda Cumhuriyeti': 'İrlanda', 'Bosna-Hersek': 'Bosna', 'Faroe Adaları': 'Faroe' };
   function kisaAd() { if (!DAR.matches) return; app.querySelectorAll('.mr .tz [data-tm], .kmsnm b, .kmh2s span, .kmfs em').forEach(e => { const k = KISA[e.textContent.trim()]; if (k && e.children.length === 0) e.textContent = k; }); }

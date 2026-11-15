@@ -870,8 +870,10 @@
     const n = L.reduce((b, x) => Math.abs(x[0] - px) < Math.abs(b[0] - px) ? x : b, L[0]);
     const cz = a.querySelector('.kmdeg-cz'), ip = a.querySelector('.kmdeg-ip');
     cz.hidden = false; cz.style.left = px + '%';
-    ip.hidden = false; ip.style.left = Math.min(Math.max(px, 16), 84) + '%';
+    ip.hidden = false;
     if (a._kmN !== n || !ip.innerHTML) { a._kmN = n; ip.innerHTML = `<span>${n[4] ? kulupLogo(n[4], (TM[n[4]] || R.some(m => m.h === n[4] || m.a === n[4])) ? n[4] : null) : ''}<b style="color:${n[5]}">${E(kulupAd(n[4]))}</b><small>${E(ayYil(n[3]))}</small></span><em style="background:${n[5]}">${E(binEur(n[2]))}</em>`; }
+    // kutu grafigin (ve ekranin) disina tasmasin: genisligine gore piksel olarak sinirla
+    { const w = r.width, iw = ip.offsetWidth, sol = Math.max(-r.left + 8, -40), sag = Math.min(window.innerWidth - r.left - 8, w + 40); let x = px / 100 * w; x = iw >= sag - sol ? (sol + sag) / 2 : Math.min(Math.max(x, sol + iw / 2), sag - iw / 2); ip.style.left = x + 'px'; }
   }
   // tarayici pointermove'u zaten kare basina birlestirir; dogrudan cizilir
   const degPlan = (a, x) => degGoster(a, x);

@@ -2110,3 +2110,10 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
 /* deger grafigi: parmakla yatay surukleme grafigi gezer, dikey kaydirma sayfayi kaydirir */
 .kmdeg-a{touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .kmdeg-cz,.kmdeg-ip{will-change:left;transition:none!important}
+
+/* Telefon: transfer grafigi kutusu daha kompakt (ekrana sigsin) */
+@media(max-width:600px){.kmdeg-ip{gap:8px;padding:6px 8px 6px 10px}.kmdeg-ip span .bd{width:20px!important;height:20px!important}.kmdeg-ip b{font-size:12px}.kmdeg-ip small{font-size:11px}.kmdeg-ip em{font-size:12px;padding:3px 8px}}
+/* Telefon arama acikken belge kaymaz (iOS klavye ziplamasi) */
+html.kmaraacik{overflow:hidden;height:100%;overscroll-behavior:none}
+html.kmaraacik body{overscroll-behavior:none}
+#kmarae .kma-ic{-webkit-overflow-scrolling:touch}
