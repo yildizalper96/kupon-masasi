@@ -19,7 +19,7 @@ const copy = rel => {
 
 for (const rel of [
   'index.html', 'manifest.webmanifest', 'sw.js', 'icons', 'css', 'js',
-  'data/results', 'data/lineups', 'data/players',
+  'data/results', 'data/lineups', 'data/players', 'data/tm',
   'data/history/all.json', 'data/fixtures/latest.json', 'data/fixtures/details.json', 'data/fixtures/finished.json','data/teams/ids.json',
 ]) copy(rel);
 
