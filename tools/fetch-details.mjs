@@ -12,6 +12,8 @@ import { addMatch } from './season-agg.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
 const MAX = +arg('max', 30), RESERVE = +arg('reserve', 10), HOURS = +arg('hours', 40);
+// --phases-only: yalnizca ilk 11 + mac asamalari (ilk yari / mac sonu); oran, h2h, eksik, kadro listesi cekilmez (sik dis tetikleme icin)
+const PH = process.argv.includes('--phases-only');
 
 const envText = fs.existsSync(path.join(root, '.env')) ? fs.readFileSync(path.join(root, '.env'), 'utf8') : '';
 const KEY = process.env.API_FOOTBALL_KEY || envText.match(/^\s*API_FOOTBALL_KEY\s*=\s*["']?([^"'\r\n]+)/m)?.[1];
@@ -164,7 +166,7 @@ for (const m of cand) {
   const soon = ko < now + HRS(HOURS);
 
   // karsilikli maclar (haftada bir)
-  if (canSpend() && age(e.h2hAt) > HRS(24 * 7)) {
+  if (!PH && canSpend() && age(e.h2hAt) > HRS(24 * 7)) {
     try {
       const j = await api(`/fixtures/headtohead?h2h=${e.hid}-${e.aid}`);
       const nm = { [e.hid]: e.h, [e.aid]: e.a };
@@ -176,7 +178,7 @@ for (const m of cand) {
   }
 
   // piyasa beklentisi (12 saatte bir; ucretsiz planin gunluk 100 istegini asmamak icin)
-  if (soon && canSpend() && age(e.oddsAt) > HRS(12)) {
+  if (!PH && soon && canSpend() && age(e.oddsAt) > HRS(12)) {
     try {
       const j = await api('/odds?fixture=' + m.id);
       const mk = marketFrom(j.response);
@@ -186,7 +188,7 @@ for (const m of cand) {
   }
 
   // sakatlar / cezalilar (gunde bir)
-  if (soon && canSpend() && age(e.injAt) > HRS(24)) {
+  if (!PH && soon && canSpend() && age(e.injAt) > HRS(24)) {
     try {
       const j = await api('/injuries?fixture=' + m.id);
       e.inj = j.response.map(x => ({ s: x.team.id === e.hid ? 'h' : 'a', n: x.player.name, r: x.player.reason || x.player.type || '' }));
@@ -195,7 +197,9 @@ for (const m of cand) {
   }
 
   // ilk 11 + yedekler (kullanici istegi 14 Kas): baslamasina 58 dk kala (Avrupa kulup maclari CL/EL/ECL/USC icin 80 dk kala) ile baslamasindan 15 dk sonrasi
-  if (!e.luOk && canSpendLineup() && ko < now + (EURO.has(m.c) ? 80 : 58) * 60e3 && ko > now - 15 * 60e3) {
+  // kadro henuz aciklanmadiysa en az 6 dk arayla yeniden dene (sik tetiklemede bos istek yenmesin)
+  if (!e.luOk && canSpendLineup() && ko < now + (EURO.has(m.c) ? 80 : 58) * 60e3 && ko > now - 15 * 60e3 && age(e.luTryAt) > 6 * 60e3) {
+    e.luTryAt = new Date().toISOString();
     try {
       const j = await api('/fixtures/lineups?fixture=' + m.id);
       if (j.response.length === 2 && luKoy(e, j.response)) {
@@ -205,7 +209,7 @@ for (const m of cand) {
   }
 
   // milli takim kadro listesi (3 gunde bir)
-  if (NATIONAL.has(m.c) && soon) {
+  if (!PH && NATIONAL.has(m.c) && soon) {
     for (const [tid, nm] of [[e.hid, e.h], [e.aid, e.a]]) {
       if (!canSpend()) break;
       const s = D.sq[tid];
