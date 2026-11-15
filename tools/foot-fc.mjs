@@ -1,9 +1,9 @@
-﻿// Oyuncu boyu ve tercih edilen ayak: indirilen oyuncu CSV'sinden (EA FC verisi) data/players/foot.json uretir. API istegi HARCAMAZ.
+// Oyuncu boyu ve tercih edilen ayak: indirilen oyuncu CSV'sinden (EA FC verisi) data/players/foot.json uretir. API istegi HARCAMAZ.
 // Kullanim: node tools/foot-fc.mjs "C:\yol\fc27-players.csv"   (CSV depoya KONMAZ; yalnizca kucuk foot.json yayinlanir)
 // Cikti: data/players/foot.json { "<API-Football oyuncu kimligi>": { f:"right"|"left", h:<cm> } }  + data/players/foot-belirsiz.txt (yerel, git'e girmez)
 // Eslestirme: "M. Akanji" -> ad bas harfi + soyad; tam ad -> birebir. Tek aday (ayni ayak/boy) ise yazilir, farkli adaylar varsa YAZILMAZ ve listelenir.
 import fs from 'node:fs';
-const nz = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/Ä±/g, 'i').replace(/Ã¸/g, 'o').replace(/Å‚/g, 'l').replace(/Ä‘/g, 'd').replace(/ÃŸ/g, 'ss').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+const nz = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').replace(/ø/g, 'o').replace(/ł/g, 'l').replace(/đ/g, 'd').replace(/ß/g, 'ss').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
 function csv(t) { const rows = []; let r = [], f = '', q = false; for (let i = 0; i < t.length; i++) { const c = t[i]; if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; } else if (c === '"') q = true; else if (c === ',') { r.push(f); f = ''; } else if (c === '\n') { r.push(f.replace(/\r$/, '')); rows.push(r); r = []; f = ''; } else f += c; } if (f || r.length) { r.push(f); rows.push(r); } return rows; }
 const file = process.argv[2]; if (!file) { console.error('CSV yolu gerekli'); process.exit(1); }
 const rows = csv(fs.readFileSync(file, 'utf8')); const H = rows[0]; const ix = k => H.indexOf(k);
@@ -21,7 +21,7 @@ try {
 const out = {}; const bel = []; let yok = 0;
 for (const [id, name] of Object.entries(P)) {
   const n = nz(name); if (!n) continue;
-  const ab = /^[A-Za-zÃ€-Å¾]\.\s/.test(name), m = n.match(/^([a-z]) (.+)$/);
+  const ab = /^[A-Za-zÀ-ž]\.\s/.test(name), m = n.match(/^([a-z]) (.+)$/);
   const c = D.filter(x => ab && m ? (x.fn[0] === m[1] && (x.ln === m[2] || x.n.endsWith(' ' + m[2]) || x.cn === n || x.cn.endsWith(' ' + m[2]))) : (x.n === n || x.cn === n));
   if (!c.length) { yok++; continue; }
   const set = new Set(c.map(x => x.foot + '|' + x.h));
@@ -32,4 +32,3 @@ try { Object.assign(out, JSON.parse(fs.readFileSync('data/players/foot-elle.json
 fs.writeFileSync('data/players/foot.json', JSON.stringify(out));
 fs.writeFileSync('data/players/foot-belirsiz.txt', bel.join('\n'));
 console.log(`Oyuncu: ${Object.keys(P).length}, yazilan: ${Object.keys(out).length}, belirsiz: ${bel.length}, bulunamayan: ${yok}`);
-
