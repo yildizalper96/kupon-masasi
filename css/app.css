@@ -979,6 +979,12 @@ input,button,select,textarea{font-family:var(--f)}
   .kmkrt.s{background:#f2c94c}
   .kmpmc table{width:100%;border-collapse:collapse;font-size:13.5px}
   .kmpmc tr[hidden]{display:none}
+  .kmmg[hidden]{display:none}
+  .kmmt{display:flex;gap:8px;flex-wrap:wrap;padding:2px 24px 10px}
+  .kmmt button{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--ln);background:var(--sf);color:var(--mut);font:600 13.5px var(--f);cursor:pointer}
+  .kmmt button small{font:500 11.5px var(--f);opacity:.8}
+  .kmmt button.on{color:var(--tx);border-color:var(--tx);background:var(--sf2,var(--sf))}
+  .kmmh{justify-content:flex-end}
   .kmmg{margin-top:6px}.kmmg+.kmmg{margin-top:22px}
   .kmmh{display:flex;align-items:center;justify-content:space-between;padding:6px 24px 4px}
   .kmmh h4{margin:0;font:600 14px var(--f);color:var(--tx)}
