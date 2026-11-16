@@ -234,7 +234,7 @@
       if (x.t === 'tm') { push(); det = null; PMV = null; tab = 'k'; Q = x.k; QX = Q; const q = document.getElementById('q'); if (q) q.value = Q; render(); }
       else if (x.t === 'lg') ligAc(x.k);
       else if (x.t === 'pl') { if (typeof plOpen === 'function') plOpen(x.k, x.n); }
-      else if (x.t === 'm') { push(); if (typeof tab !== 'undefined' && tab === 'g') tab = 'k'; det = x.k; dt = 'p'; PMV = null; render(); }
+      else if (x.t === 'm') { push(); if (typeof tab !== 'undefined' && tab === 'g') tab = 'k'; det = x.k; dt = 'a'; PMV = null; render(); }
       window.scrollTo(0, 0);
     } catch (e) { }
   }
