@@ -60,3 +60,9 @@ for (const rel of ['fixtures/latest.json']) {
   if (rep && (!cur || ts(rep) > ts(cur))) { wr(path.join(root, 'data', rel), rep); console.log(rel + ': depodaki daha yeni, o kullanildi'); }
   else console.log(rel + ': ' + (cur ? 'onbellek yeni/esit, korundu' : 'dosya yok'));
 }
+// Amator kulup maclari (ayni adli kulupler) onbellekten geri gelmesin: tools/fetch-fixtures.mjs YASAK_MAC ile ayni liste
+{
+  const YASAK = new Set([1647967, 1647983]);
+  const p = path.join(root, 'data', 'fixtures', 'latest.json'), j = rd(p);
+  if (j && Array.isArray(j.m)) { const n0 = j.m.length; j.m = j.m.filter(m => !YASAK.has(m.id)); if (j.m.length !== n0) { wr(p, j); console.log('latest.json: yasakli ' + (n0 - j.m.length) + ' amator mac cikarildi'); } }
+}

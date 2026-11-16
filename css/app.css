@@ -2126,3 +2126,5 @@ html.kmaraacik body{overscroll-behavior:none}
   summary{display:flex;align-items:center}
 }
 .kmbas{opacity:.55!important;transform:scale(.98);transition:none!important}
+@media (pointer:coarse){nav{touch-action:none}}
+nav button.kmhov{background:rgba(0,0,0,.38)!important;color:var(--ok)!important}

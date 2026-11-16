@@ -17,7 +17,7 @@
   document.addEventListener('touchstart', function () { }, { passive: true });
 
   // ---- 2) yatay kaydirma parmagi takip eder (gecis karari app.js'teki touchend'de; burada yalniz gorsel takip + geri yaylanma)
-  var sx = 0, sy = 0, yatay = null, el = null, uygun = false;
+  var sx = 0, sy = 0, yatay = null, el = null, uygun = false, hedef = 0, rafId = 0;
   function ayaripKaydirilir(n) { while (n && n !== document.body) { if (n.scrollWidth > n.clientWidth + 2) { var o = getComputedStyle(n).overflowX; if (o === 'auto' || o === 'scroll') return true; } n = n.parentElement; } return false; }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0]; sx = t.clientX; sy = t.clientY; yatay = null;
@@ -29,16 +29,38 @@
     var t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     if (yatay === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) yatay = Math.abs(dx) > Math.abs(dy) * 1.5;
     if (!yatay) return;
-    el.style.transition = 'none';
-    el.style.transform = 'translate3d(' + Math.max(-160, Math.min(160, dx)) + 'px,0,0)';
+    hedef = Math.max(-160, Math.min(160, dx));
+    if (!rafId) rafId = requestAnimationFrame(function () { rafId = 0; if (!el) return; el.style.transition = 'none'; el.style.transform = 'translate3d(' + hedef + 'px,0,0)'; });
   }, { passive: true });
   function birak() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
     if (!el || !el.style.transform) return;
     var e2 = el; e2.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; e2.style.transform = 'translate3d(0,0,0)';
     setTimeout(function () { e2.style.transition = ''; e2.style.transform = ''; }, 240);
   }
   document.addEventListener('touchend', birak, { passive: true });
   document.addEventListener('touchcancel', birak, { passive: true });
+
+  // ---- 2b) alt menude parmakla gezerek sekme degistirme (parmak kalkinca altindaki sekme acilir). Konuma/boyuta dokunulmaz.
+  (function () {
+    var nav = document.querySelector('nav'); if (!nav) return;
+    var bas = null, hov = null, gezdi = false;
+    var altta = function (x, y) { var e = document.elementFromPoint(x, y); return e && e.closest ? e.closest('nav button') : null; };
+    var isaret = function (b) { if (hov === b) return; if (hov) hov.classList.remove('kmhov'); hov = b; if (b) { b.classList.add('kmhov'); try { KMHap(); } catch (e) { } } };
+    nav.addEventListener('touchstart', function (e) { var t = e.touches[0]; bas = altta(t.clientX, t.clientY); hov = null; gezdi = false; }, { passive: true });
+    nav.addEventListener('touchmove', function (e) {
+      if (!bas) return; var t = e.touches[0], b = altta(t.clientX, t.clientY);
+      if (b && b !== bas) gezdi = true;
+      if (gezdi) isaret(b);
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    var bitir = function (e) {
+      var b = hov, g = gezdi; if (hov) hov.classList.remove('kmhov'); hov = null; gezdi = false; var b0 = bas; bas = null;
+      if (g && b && e.type === 'touchend') { if (e.cancelable) e.preventDefault(); b.click(); }
+    };
+    nav.addEventListener('touchend', bitir, { passive: false });
+    nav.addEventListener('touchcancel', bitir, { passive: false });
+  })();
 
   // ---- 3) titresim: yalniz gercek olayda (kupon degisti, favori, bildirim). Yazarken titremez.
   var lbl = null, son = 0;
