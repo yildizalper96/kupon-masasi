@@ -2280,3 +2280,11 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kmoz-i{margin:6px 0 0;padding:8px 0 0 18px;border-top:1px solid var(--ln);font-size:13px;color:var(--mut);line-height:1.6}.kmoz-i b{color:var(--ink)}
 .kmozet .kmoz-m,.kmozet .kmoz-r,.kmozet .kmoz-i{margin-left:24px;margin-right:24px}
 @media(max-width:1099px){.kmozet .kmoz-m,.kmozet .kmoz-r,.kmozet .kmoz-i{margin-left:var(--kmoz-x,16px);margin-right:var(--kmoz-x,16px)}}
+/* Risk filtreleri (17 Kas 2026): mac listesinin ustunde yatay kaydirilan cipler (telefon + masaustu) */
+.rfl{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px;margin:0 0 2px;-webkit-overflow-scrolling:touch}
+.rfl::-webkit-scrollbar{display:none}
+.rfl button{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer;white-space:nowrap}
+.rfl button em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--mut);background:var(--sf2,rgba(127,127,127,.12));border-radius:999px;padding:1px 7px}
+.rfl button.on{background:var(--ok);border-color:var(--ok);color:#fff}.rfl button.on em{background:rgba(255,255,255,.22);color:#fff}
+.rfl button:disabled{opacity:.4;cursor:default}
+@media(max-width:1099px){.rfl{padding:0 0 10px}}
