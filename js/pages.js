@@ -106,7 +106,7 @@
     try { if (window.KMX && typeof KMX.photo === 'function') return KMX.photo(takim, p && (p.n || p)) || ''; } catch (e) { }
     return '';
   };
-  const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hf')" onerror="this.remove()">` : '';
+  const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="(this.parentNode||this).classList.add('hf')" onerror="this.remove()">` : '';
   const basH = n => String(n || '').replace(/[^A-Za-zÇĞİÖŞÜçğıöşü. ]/g, '').trim().split(' ').pop().replace('.', '').slice(0, 2).toUpperCase();
   const renk = n => { try { const c = TC[n]; if (c) return c; } catch (e) { } return ['#4a5a68', '#cbd5dc']; };
   const nedenTr = r => { const s = String(r || ''); if (/suspen|card|ceza/i.test(s)) return 'Cezalı'; if (/injur|muscle|knee|ankle|hamstring|sakat/i.test(s)) return 'Sakat'; if (/doubt|şüphe/i.test(s)) return 'Şüpheli'; return s || 'Eksik'; };
@@ -747,7 +747,7 @@
   function kulupLogo(ad, app) {
     if (app) return bd(app);
     const m = tmLogoMap(), id = m && m[ad];
-    return id ? `<span class="bd kmkr-yb">${E(basH(ad || '?'))}<img class="tlg" src="https://media.api-sports.io/football/teams/${+id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('hl')" onerror="this.remove()"></span>` : `<span class="bd kmkr-yb">${E(basH(ad || '?'))}</span>`;
+    return id ? `<span class="bd kmkr-yb">${E(basH(ad || '?'))}<img class="tlg" src="https://media.api-sports.io/football/teams/${+id}.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="(this.parentNode||this).classList.add('hl')" onerror="this.remove()"></span>` : `<span class="bd kmkr-yb">${E(basH(ad || '?'))}</span>`;
   }
   // Transfermarkt'in farkli yazdigi kulup adlari -> uygulamadaki ad (otomatik eslesmenin bulamadiklari)
   const TMALIAS = { 'Nottm Forest': 'N. Forest', 'Spurs': 'Tottenham', 'Sparta Prague': 'Sparta Praha', 'AC Sparta Prague': 'Sparta Praha', 'Fortuna Sittardia Combinatie': 'Fortuna Sittard', 'Oud-Heverlee Leuven': 'OH Leuven', 'H. Beer Sheva': 'Hapoel Beer-Sheva', 'Hapoel Beer Sheva': 'Hapoel Beer-Sheva', 'Union Saint-Gilloise': 'Union SG', 'Royale Union Saint-Gilloise': 'Union SG', 'Sint-Truiden': 'STVV', 'Sint-Truidense VV': 'STVV' };

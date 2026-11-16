@@ -14,7 +14,7 @@
   window.kmLogo = function (n) {
     const id = T[n];
     if (!id) return '';
-    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='this.parentNode.classList.add("hl")' onerror='this.remove()'>`;
+    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='(this.parentNode||this).classList.add("hl")' onerror='this.remove()'>`;
   };
   fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.t) return;
@@ -33,7 +33,7 @@
   window.kmLigLogo = function (c, yedek, cls) {
     const id = window.kmLigId(c);
     if (!id) return yedek || '';
-    return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
+    return `<span class="kmlo ${cls || ''}">${yedek || ''}<img src="https://media.api-sports.io/football/leagues/${id}.png" alt="" decoding="async" referrerpolicy="no-referrer" onload="(this.parentNode||this).classList.add('ok')" onerror="this.remove()"></span>`;
   };
 })();
 // Lig sayfasini acmak icin arama metni: yalnizca bu lige eslesen ad (or. "Serie A" Brezilya Serie A ile de eslesir)
