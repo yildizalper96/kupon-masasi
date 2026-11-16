@@ -278,7 +278,7 @@
     const ekle = (h, a, x, y, t) => { const k = h + '|' + a + '|' + x + '-' + y + '|' + new Date(t).toISOString().slice(0, 10); if (gor.has(k)) return; gor.add(k); l.push({ ev: h, dep: a, sk: x + ' - ' + y, r: h === n ? ren(x, y) : ren(y, x), t }); };
     BITEN.forEach(x => { if (!x || (x.h !== n && x.a !== n) || (x.c === m.c && x.h === m.h && x.a === m.a)) return; const t = Date.parse(x.t); if (t && Number.isFinite(+x.x) && Number.isFinite(+x.y)) ekle(x.h, x.a, +x.x, +x.y, t); });
     R.forEach(x => { if (key(x) === key(m) || (x.h !== n && x.a !== n)) return; const s2 = stt(x); if (s2.k === 'ft' && s2.sc) ekle(x.h, x.a, +s2.sc[0], +s2.sc[1], x.t); });
-    try { Object.values(HH).forEach(arr => (arr || []).forEach(r => { if (r.h !== n && r.a !== n) return; const p = String(r.d || '').split('.'); const t = p.length === 3 ? Date.UTC(+p[2], +p[1] - 1, +p[0]) : 0; if (t && t < m.t - 36e5) ekle(r.h, r.a, +r.x, +r.y, t); })); } catch (e) { }
+    // karsilasma gecmisi (HH) form sayilmaz: yalniz o iki takimin maclari oldugundan form yaniltici ("takili") gorunuyordu; ayri kartta gosterilir
     return l.sort((p, q) => q.t - p.t).slice(0, 5);
   }
   function formKarti(m) {
