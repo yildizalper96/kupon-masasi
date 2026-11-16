@@ -2241,10 +2241,11 @@ header .hr{position:relative}
 .kasa-ad{margin:12px 0 14px;padding-left:20px;font-size:13.5px;color:var(--mut);line-height:1.55}.kasa-ad b{color:var(--ink)}
 .kasa.bos .kasa-n{color:var(--mut)}
 @media(max-width:560px){.kasa-g{grid-template-columns:repeat(2,minmax(0,1fr))}.kasa-n{font-size:30px}}
-/* Kupon cubugu (17 Kas 2026): telefonda alt menunun hemen ustunde (nav konumu ayni formul + 74px), masaustunde sag altta */
-#kbar{position:fixed;z-index:9;left:12px;right:12px;bottom:calc(max(4px,calc(env(safe-area-inset-bottom,0px) - 20px)) + 74px);display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:18px;background:var(--sf,#16212a);border:1px solid var(--ln);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;color:var(--ink)}
-#kbar::before{content:'';width:4px;align-self:stretch;border-radius:4px;background:var(--ok);flex:none}
-#kbar.r1::before{background:var(--warn)}#kbar.r2::before{background:var(--hot)}
+/* Kupon cubugu (17 Kas 2026): telefonda alt menunun hemen ustunde (nav konumu ayni formul + 74px), masaustunde sag altta; dokununca ustunde kutu acilir */
+#kbar{position:fixed;z-index:9;left:12px;right:12px;bottom:calc(max(4px,calc(env(safe-area-inset-bottom,0px) - 20px)) + 74px);display:flex;flex-direction:column;gap:8px;color:var(--ink)}
+#kbar .kb-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:18px;background:var(--sf,#16212a);border:1px solid var(--ln);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
+#kbar .kb-bar::before{content:'';width:4px;align-self:stretch;border-radius:4px;background:var(--ok);flex:none}
+#kbar.r1 .kb-bar::before{background:var(--warn)}#kbar.r2 .kb-bar::before{background:var(--hot)}
 #kbar .kb-l{flex:1;min-width:0}
 #kbar .kb-l b{display:block;font:700 14px var(--f)}
 #kbar .kb-l small{display:block;font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2252,9 +2253,33 @@ header .hr{position:relative}
 #kbar .kb-n small{display:block;font-size:10.5px;color:var(--mut)}
 #kbar .kb-n b{display:block;font:800 15px var(--f);font-variant-numeric:tabular-nums}
 #kbar.r0 .kb-p{color:var(--ok)}#kbar.r1 .kb-p{color:var(--warn)}#kbar.r2 .kb-p{color:var(--hot)}
-#kbar .kb-go{font-style:normal;font-size:22px;color:var(--mut);flex:none;line-height:1}
+#kbar .kb-go{font-style:normal;font-size:18px;color:var(--mut);flex:none;line-height:1}
+#kbar .kb-pan{background:var(--sf,#16212a);border:1px solid var(--ln);border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.45);padding:14px;max-height:min(60vh,520px);display:flex;flex-direction:column}
+#kbar.anim .kb-pan{animation:kbIn .16s ease-out}
+@keyframes kbIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#kbar .kb-ph{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+#kbar .kb-ph b{font:700 15px var(--f)}#kbar .kb-ph small{color:var(--mut);font-size:12px;flex:1}
+#kbar .kb-x,#kbar .kb-rm{background:transparent;border:0;color:var(--mut);font-size:14px;cursor:pointer;min-width:32px;min-height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+#kbar .kb-x:hover,#kbar .kb-rm:hover{background:var(--sf2,rgba(127,127,127,.12));color:var(--ink)}
+#kbar .kb-ls{overflow-y:auto;min-height:0;margin:0 -4px;padding:0 4px}
+#kbar .kb-it{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}
+#kbar .kb-im{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;cursor:pointer}
+#kbar .kb-im>div{min-width:0}
+#kbar .kb-ik{display:flex;flex:none;padding-top:2px}#kbar .kb-ik .bd{width:20px!important;height:20px!important;font-size:0!important}#kbar .kb-ik .bd+.bd{margin-left:-6px}
+#kbar .kb-im small{display:block;font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#kbar .kb-im b{display:block;font:600 13.5px var(--f);margin:1px 0 3px}
+#kbar .kb-tg{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-size:11.5px;color:var(--mut)}
+#kbar .kb-tg i{width:7px;height:7px;border-radius:50%;background:var(--ok)}#kbar .r1 .kb-tg i{background:var(--warn)}#kbar .r2 .kb-tg i{background:var(--hot)}
+#kbar .kb-tg em{font-style:normal;font-weight:700;color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,transparent);padding:1px 7px;border-radius:999px}
+#kbar .kb-tg u{text-decoration:none;font-weight:700}#kbar .kb-tg u.ok{color:var(--ok)}#kbar .kb-tg u.miss{color:var(--hot)}#kbar .kb-tg u.live{color:var(--warn)}
+#kbar .kb-io{display:flex;align-items:center;gap:2px;flex:none}#kbar .kb-io b{font:800 15px var(--f);font-variant-numeric:tabular-nums}
+#kbar .kb-pf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 0;border-top:1px solid var(--ln)}
+#kbar .kb-pf>div{text-align:center;background:var(--sf2,rgba(127,127,127,.08));border-radius:12px;padding:8px 4px}
+#kbar .kb-pf small{display:block;font-size:11px;color:var(--mut)}#kbar .kb-pf b{display:block;font:800 16px var(--f)}
+#kbar .kb-go2{width:100%;margin:2px 0 0}
+#kbar .kb-not{font-size:11px;color:var(--mut);margin:8px 0 0;text-align:center}
 body.kbar-on #app{padding-bottom:184px!important}
-@media(min-width:1100px){#kbar{left:auto;right:24px;bottom:24px;width:380px}body.kbar-on #app{padding-bottom:90px!important}}
+@media(min-width:1100px){#kbar{left:auto;right:24px;bottom:24px;width:400px}body.kbar-on #app{padding-bottom:90px!important}}
 /* Neden tutmadi? (17 Kas 2026): tutmayan kupon kartinin icinde */
 .kw{margin:10px 0 4px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--hot) 9%,transparent);border:1px solid color-mix(in srgb,var(--hot) 30%,transparent)}
 .kw-h{font:700 14px var(--f);color:var(--ink);margin-bottom:4px}
