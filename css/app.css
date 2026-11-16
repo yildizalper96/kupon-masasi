@@ -1749,13 +1749,13 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   /* ana sayfa ust sagdaki Canli / takvim / filtre grubu simdilik gizli (kullanici istegi) */
   .kmust{display:none!important}
   /* alt menu: saydam cam hap, sagda ayni camdan arama dairesi */
-  nav{left:12px!important;right:88px!important;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) - 10px))!important;height:66px!important;padding:5px!important;border-radius:999px!important;
+  nav{left:12px!important;right:88px!important;bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 20px))!important;height:66px!important;padding:5px!important;border-radius:999px!important;
     background:rgba(38,38,42,.52)!important;-webkit-backdrop-filter:blur(22px) saturate(180%)!important;backdrop-filter:blur(22px) saturate(180%)!important;
     border:1px solid rgba(255,255,255,.10)!important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)!important}
   nav button{color:rgba(255,255,255,.92)!important;font:600 11.5px var(--f)!important;gap:4px!important}
   nav button svg{width:25px!important;height:25px!important}
   nav button.on{background:rgba(0,0,0,.38)!important;color:var(--ok)!important}
-  #kmara{right:12px!important;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) - 10px))!important;width:66px!important;height:66px!important;
+  #kmara{right:12px!important;bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 20px))!important;width:66px!important;height:66px!important;
     background:rgba(38,38,42,.52)!important;-webkit-backdrop-filter:blur(22px) saturate(180%)!important;backdrop-filter:blur(22px) saturate(180%)!important;
     border:1px solid rgba(255,255,255,.10)!important;color:#fff!important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)!important}
   #kmara svg{width:28px!important;height:28px!important}
