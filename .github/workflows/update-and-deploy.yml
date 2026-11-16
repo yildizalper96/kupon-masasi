@@ -9,9 +9,10 @@
 name: Veri güncelle ve yayınla
 
 on:
-  schedule:
-    - cron: '*/20 10-22 * * *'
-    - cron: '7 6,13,20 * * *'
+    # GECICI KAPALI (16 Kas 2026): API-Football hesabi askida; acilinca asagidaki 3 satiri geri ac (schedule: + 2 cron)
+    # schedule:
+    #   - cron: '*/20 10-22 * * *'
+    #   - cron: '7 6,13,20 * * *'
   workflow_dispatch:
     inputs:
       mode:
