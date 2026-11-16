@@ -2241,3 +2241,17 @@ header .hr{position:relative}
 .kasa-ad{margin:12px 0 14px;padding-left:20px;font-size:13.5px;color:var(--mut);line-height:1.55}.kasa-ad b{color:var(--ink)}
 .kasa.bos .kasa-n{color:var(--mut)}
 @media(max-width:560px){.kasa-g{grid-template-columns:repeat(2,minmax(0,1fr))}.kasa-n{font-size:30px}}
+/* Kupon cubugu (17 Kas 2026): telefonda alt menunun hemen ustunde (nav konumu ayni formul + 74px), masaustunde sag altta */
+#kbar{position:fixed;z-index:9;left:12px;right:12px;bottom:calc(max(4px,calc(env(safe-area-inset-bottom,0px) - 20px)) + 74px);display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:18px;background:var(--sf,#16212a);border:1px solid var(--ln);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;color:var(--ink)}
+#kbar::before{content:'';width:4px;align-self:stretch;border-radius:4px;background:var(--ok);flex:none}
+#kbar.r1::before{background:var(--warn)}#kbar.r2::before{background:var(--hot)}
+#kbar .kb-l{flex:1;min-width:0}
+#kbar .kb-l b{display:block;font:700 14px var(--f)}
+#kbar .kb-l small{display:block;font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#kbar .kb-n{text-align:center;flex:none}
+#kbar .kb-n small{display:block;font-size:10.5px;color:var(--mut)}
+#kbar .kb-n b{display:block;font:800 15px var(--f);font-variant-numeric:tabular-nums}
+#kbar.r0 .kb-p{color:var(--ok)}#kbar.r1 .kb-p{color:var(--warn)}#kbar.r2 .kb-p{color:var(--hot)}
+#kbar .kb-go{font-style:normal;font-size:22px;color:var(--mut);flex:none;line-height:1}
+body.kbar-on #app{padding-bottom:184px!important}
+@media(min-width:1100px){#kbar{left:auto;right:24px;bottom:24px;width:380px}body.kbar-on #app{padding-bottom:90px!important}}
