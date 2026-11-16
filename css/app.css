@@ -2133,7 +2133,9 @@ html.kmaraacik body{overscroll-behavior:none}
 nav.kmgez #kmlens{opacity:1}
 :root[data-theme="light"] #kmlens{background:rgba(0,0,0,.08)}
 /* yatay kaydirma sirasinda kayan icerik sayfayi genisletmesin (iOS'ta sayfa saga sola kayiyordu) */
-html,body{overflow-x:clip}
+html,body{overflow-x:hidden;overflow-x:clip;overscroll-behavior-x:none;max-width:100%}
+/* Telefon/dokunmatik: sayfa asla yatay kaymaz (yatay kaydirma yalniz kendi seritleri/tablolari icinde); sekme gecisi JS ile */
+@media (pointer:coarse){html,body{touch-action:pan-y!important}}
 
 :root[data-theme="light"]{color-scheme:light}
 /* Sag ust menu (js/menu.js) */

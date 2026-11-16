@@ -32,7 +32,7 @@
   function direnc(dx) { var a = Math.abs(dx); return (dx < 0 ? -1 : 1) * (a <= 100 ? a : 100 + (a - 100) * 0.35); }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0]; sx = t.clientX; sy = t.clientY; yatay = null; hedefler = [];
-    uygun = e.touches.length === 1 && !ayaripKaydirilir(e.target) && !(e.target.closest && e.target.closest('nav,input,textarea,select,#kmarae,#kpq,#kmara'));
+    uygun = e.touches.length === 1 && !ayaripKaydirilir(e.target) && !(e.target.closest && e.target.closest('nav,input,textarea,select,#kmarae,#kpq,#kmara,[data-kmdeg]'));
   }, { passive: true });
   document.addEventListener('touchmove', function (e) {
     if (!uygun || e.touches.length !== 1) return;
