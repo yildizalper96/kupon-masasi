@@ -1,0 +1,88 @@
+// Sag ust menu (FotMob gibi): cizgi (hamburger) dugmesi -> acilir panel: Profil, Simulator, Gecmis, Tema (acik/koyu), Dil (Turkce; English gorunur ama secilemez).
+// Tema: varsayilan KOYU. Acik secilebilir. Giris yapan kullanicinin secimi saklanir (cihazda + bulutta data/users/<id>/prefs), cikis yapinca koyu.
+(function () {
+  var root = document.documentElement;
+  // ---- tema
+  function temaUygula(t) {
+    if (t === 'light') root.setAttribute('data-theme', 'light'); else root.removeAttribute('data-theme');
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#f2f3f5' : '#000000');
+    document.querySelectorAll('[data-kmtema]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-kmtema') === (t === 'light' ? 'light' : 'dark')); });
+  }
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+  function uid() { try { return (typeof FUID !== 'undefined' && FUID) || (typeof KPUID !== 'undefined' && KPUID) || null; } catch (e) { return null; } }
+  async function db() { try { return (window.claude && claude.use) ? await claude.use('db') : null; } catch (e) { return null; } }
+  var tema = ls('km_tema') === 'light' ? 'light' : 'dark'; // km_tema yalniz giris yapmis kullanicida tutulur
+  temaUygula(tema);
+  function temaSec(t) {
+    tema = t; temaUygula(t);
+    var id = uid();
+    if (id) { ls('km_tema', t); db().then(function (d) { if (d) d.doc('data/users/' + id + '/prefs').set({ tema: t }).catch(function () { }); }); }
+  }
+  // giris / cikis izleme: giriste kullanicinin kayitli temasi, cikista koyu
+  var sonId = null;
+  setInterval(function () {
+    var id = uid(); if (id === sonId) return;
+    var once = sonId; sonId = id;
+    if (!id) { if (once) { ls('km_tema', null); tema = 'dark'; temaUygula('dark'); } return; }
+    db().then(function (d) {
+      if (!d) return;
+      d.doc('data/users/' + id + '/prefs').get().then(function (s) {
+        var t = s && s.exists && (s.data() || {}).tema;
+        if (t === 'light' || t === 'dark') { tema = t; ls('km_tema', t); temaUygula(t); }
+        else { ls('km_tema', tema); d.doc('data/users/' + id + '/prefs').set({ tema: tema }).catch(function () { }); }
+      }).catch(function () { });
+    });
+  }, 1000);
+  // oturum dusmusse (giris yok) eski kayitli tema kalmasin: koyuya don
+  setTimeout(function () { if (!uid() && ls('km_tema')) { ls('km_tema', null); tema = 'dark'; temaUygula('dark'); } }, 10000);
+
+  // ---- menu
+  var IC = {
+    menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    u: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+    c: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>',
+    g: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+    sun: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg>'
+  };
+  var panel = document.createElement('div'); panel.id = 'kmpanel'; panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'Menü');
+  panel.innerHTML =
+    '<div class="kmp-ust">' +
+      '<button type="button" data-kmgit="u">' + IC.u + '<span>Profil</span></button>' +
+      '<button type="button" data-kmgit="c">' + IC.c + '<span>Simülatör</span></button>' +
+      '<button type="button" data-kmgit="g">' + IC.g + '<span>Geçmiş</span></button>' +
+    '</div>' +
+    '<div class="kmp-sat"><b>Tema</b><span class="kmp-tema">' +
+      '<button type="button" data-kmtema="light" aria-label="Açık tema">' + IC.sun + '</button>' +
+      '<button type="button" data-kmtema="dark" aria-label="Koyu tema">' + IC.moon + '</button>' +
+    '</span></div>' +
+    '<div class="kmp-sat kmp-dil"><b>' + IC.globe + 'Dil</b><span class="kmp-dils">' +
+      '<button type="button" class="on" aria-pressed="true">Türkçe</button>' +
+      '<button type="button" disabled aria-disabled="true" title="Yakında">English</button>' +
+    '</span></div>';
+  document.body.appendChild(panel);
+
+  function dugme(cls) { var b = document.createElement('button'); b.type = 'button'; b.className = 'kmmenu ' + cls; b.setAttribute('aria-label', 'Menü'); b.setAttribute('aria-haspopup', 'dialog'); b.innerHTML = IC.menu; b.addEventListener('click', function (e) { e.stopPropagation(); acik() ? kapa() : ac(b); }); return b; }
+  var hr = document.querySelector('header .hr'); if (hr) hr.appendChild(dugme('kmm-ust'));         // telefon/tablet: baslikta sag ust
+  var nav = document.querySelector('nav'); if (nav) nav.appendChild(dugme('kmm-nav'));              // masaustu: ust bardaki profil yerinde
+  var kaynak = null;
+  function acik() { return !panel.hidden; }
+  function ac(b) {
+    kaynak = b; panel.hidden = false; temaUygula(tema);
+    var r = b.getBoundingClientRect(), W = window.innerWidth;
+    if (W < 1100) { panel.style.left = '12px'; panel.style.right = '12px'; panel.style.top = (r.bottom + 8) + 'px'; }
+    else { panel.style.left = 'auto'; panel.style.right = Math.max(12, W - r.right) + 'px'; panel.style.top = (r.bottom + 10) + 'px'; }
+    document.querySelectorAll('.kmmenu').forEach(function (x) { x.classList.add('on'); x.setAttribute('aria-expanded', 'true'); });
+  }
+  function kapa() { panel.hidden = true; document.querySelectorAll('.kmmenu').forEach(function (x) { x.classList.remove('on'); x.setAttribute('aria-expanded', 'false'); }); }
+  panel.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t || t.disabled) return;
+    if (t.dataset.kmtema) { temaSec(t.dataset.kmtema); try { KMHap(); } catch (x) { } return; }
+    if (t.dataset.kmgit) { kapa(); var n = document.querySelector('nav button[data-t="' + t.dataset.kmgit + '"]'); if (n) n.click(); }
+  });
+  document.addEventListener('click', function (e) { if (acik() && !panel.contains(e.target)) kapa(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && acik()) kapa(); });
+  window.addEventListener('resize', function () { if (acik()) kapa(); });
+  window.addEventListener('scroll', function () { if (acik()) kapa(); }, { passive: true });
+})();

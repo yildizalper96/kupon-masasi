@@ -3,7 +3,7 @@
  * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
  * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.
  * Surum degistirmek icin CACHE adini artir (eski onbellekler silinir). */
-const CACHE = 'km-v8';
+const CACHE = 'km-v9';
 // Takim/lig logolari ve oyuncu fotograflari (media.api-sports.io): onbellek oncelikli, kalici.
 // Gorsel bir kez indikten sonra her acilista aninda gelir; arka planda 7 gunde bir tazelenir.
 const IMG = 'km-img-v1';
@@ -11,7 +11,7 @@ const IMG_HOST = 'media.api-sports.io';
 const IMG_MAX = 1500, IMG_TAZE = 7 * 864e5;
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/config.js', 'js/cloud.js', 'js/data-shim.js', 'js/i18n-keys.js', 'js/app.js', 'js/fixtures-api.js', 'js/gestures.js', 'js/dokunma.js', 'js/extras.js',
+  'js/config.js', 'js/cloud.js', 'js/data-shim.js', 'js/i18n-keys.js', 'js/app.js', 'js/fixtures-api.js', 'js/gestures.js', 'js/dokunma.js', 'js/menu.js', 'js/extras.js',
   'icons/icon-192.png',
 ];
 
