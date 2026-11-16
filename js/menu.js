@@ -1,5 +1,5 @@
 // Sag ust menu (FotMob gibi): cizgi (hamburger) dugmesi -> acilir panel: Profil, Simulator, Gecmis, Tema (acik/koyu), Dil (Turkce; English gorunur ama secilemez).
-// Tema: varsayilan KOYU. Acik secilebilir. Giris yapan kullanicinin secimi saklanir (cihazda + bulutta data/users/<id>/prefs), cikis yapinca koyu.
+// Tema ve takip edilen ligler hesaba bagli (bulutta data/users/<id>/prefs). Cikis yapinca klasik gorunum: koyu tema, takip karti yok.
 (function () {
   var root = document.documentElement;
   // ---- tema
@@ -11,30 +11,51 @@
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
   function uid() { try { return (typeof FUID !== 'undefined' && FUID) || (typeof KPUID !== 'undefined' && KPUID) || null; } catch (e) { return null; } }
   async function db() { try { return (window.claude && claude.use) ? await claude.use('db') : null; } catch (e) { return null; } }
-  var tema = ls('km_tema') === 'light' ? 'light' : 'dark'; // km_tema yalniz giris yapmis kullanicida tutulur
+  // ---- hesap tercihleri: tema + takip edilen ligler (bulutta data/users/<id>/prefs = {tema, ligler}; cihazda yalniz giris yapmis kullanici icin onbellek)
+  function ligOku() { try { var a = JSON.parse(ls('km_ligtakip') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  var tema = ls('km_tema') === 'light' ? 'light' : 'dark';
+  var ligler = ligOku();
   temaUygula(tema);
-  function temaSec(t) {
-    tema = t; temaUygula(t);
-    var id = uid();
-    if (id) { ls('km_tema', t); db().then(function (d) { if (d) d.doc('data/users/' + id + '/prefs').set({ tema: t }).catch(function () { }); }); }
+  function solYenile() { try { if (typeof window.kmSolCiz === 'function') window.kmSolCiz(); } catch (e) { } }
+  function prefYaz() {
+    var id = uid(); if (!id) return;
+    ls('km_tema', tema); ls('km_ligtakip', JSON.stringify(ligler));
+    db().then(function (d) { if (d) d.doc('data/users/' + id + '/prefs').set({ tema: tema, ligler: ligler }).catch(function () { }); });
   }
-  // giris / cikis izleme: giriste kullanicinin kayitli temasi, cikista koyu
+  function temaSec(t) { tema = t; temaUygula(t); prefYaz(); }
+  function cikisDurumu() { ls('km_tema', null); ls('km_ligtakip', null); tema = 'dark'; ligler = []; temaUygula('dark'); solYenile(); }
+  // lig takibi (desktop.js sol sutun kullanir). Giris yoksa profil/giris sayfasina yonlendirir.
+  window.KMLig = {
+    liste: function () { return uid() ? ligler.slice() : []; },
+    degistir: function (c) {
+      if (!uid()) {
+        try { kToast('Ligleri takip etmek için giriş yap'); } catch (e) { }
+        var n = document.querySelector('nav button[data-t="u"]'); if (n) n.click();
+        return false;
+      }
+      var i = ligler.indexOf(c); if (i >= 0) ligler.splice(i, 1); else ligler.push(c);
+      prefYaz(); solYenile(); return true;
+    }
+  };
+  // giris / cikis izleme: giriste kullanicinin kayitli tercihleri, cikista klasik gorunum (koyu, takip yok)
   var sonId = null;
   setInterval(function () {
     var id = uid(); if (id === sonId) return;
     var once = sonId; sonId = id;
-    if (!id) { if (once) { ls('km_tema', null); tema = 'dark'; temaUygula('dark'); } return; }
+    if (!id) { if (once) cikisDurumu(); return; }
+    solYenile();
     db().then(function (d) {
       if (!d) return;
       d.doc('data/users/' + id + '/prefs').get().then(function (s) {
-        var t = s && s.exists && (s.data() || {}).tema;
-        if (t === 'light' || t === 'dark') { tema = t; ls('km_tema', t); temaUygula(t); }
-        else { ls('km_tema', tema); d.doc('data/users/' + id + '/prefs').set({ tema: tema }).catch(function () { }); }
+        var v = (s && s.exists && s.data()) || {};
+        if (v.tema === 'light' || v.tema === 'dark') tema = v.tema;
+        if (Array.isArray(v.ligler)) ligler = v.ligler.filter(function (x) { return typeof x === 'string'; });
+        temaUygula(tema); prefYaz(); solYenile();
       }).catch(function () { });
     });
   }, 1000);
-  // oturum dusmusse (giris yok) eski kayitli tema kalmasin: koyuya don
-  setTimeout(function () { if (!uid() && ls('km_tema')) { ls('km_tema', null); tema = 'dark'; temaUygula('dark'); } }, 10000);
+  // oturum dusmusse (giris yok) eski onbellek kalmasin
+  setTimeout(function () { if (!uid() && (ls('km_tema') || ls('km_ligtakip'))) cikisDurumu(); }, 10000);
 
   // ---- menu
   var IC = {
