@@ -26,7 +26,7 @@
     if (!s) return [app];
     var l = [], n = s.nextElementSibling; while (n) { l.push(n); n = n.nextElementSibling; } return l;
   }
-  function yaz(x, gecis) { hedefler.forEach(function (e) { e.style.transition = gecis || 'none'; e.style.transform = x === null ? '' : 'translate3d(' + x + 'px,0,0)'; }); }
+  function yaz(x, gecis) { hedefler.forEach(function (e) { e.style.willChange = x === null ? '' : 'transform'; e.style.transition = gecis || 'none'; e.style.transform = x === null ? '' : 'translate3d(' + x + 'px,0,0)'; }); }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0]; sx = t.clientX; sy = t.clientY; yatay = null; hedefler = [];
     uygun = e.touches.length === 1 && !ayaripKaydirilir(e.target) && !(e.target.closest && e.target.closest('nav,input,textarea,select,#kmarae,#kpq,#kmara'));
@@ -36,9 +36,10 @@
     var t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     if (yatay === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) { yatay = Math.abs(dx) > Math.abs(dy) * 1.3; if (yatay) hedefler = icerik(); }
     if (!yatay) return;
+    if (e.cancelable) e.preventDefault(); // tarayici sayfayi kendisi yana/asagi kaydirmasin (titreme ve yana kayma bunun yuzundendi)
     hedef = dx; // 1:1 takip
     if (!rafId) rafId = requestAnimationFrame(function () { rafId = 0; yaz(hedef); });
-  }, { passive: true });
+  }, { passive: false });
   function birak(e) {
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
     if (!yatay || !hedefler.length) { yatay = null; return; }
@@ -50,7 +51,7 @@
         void document.body.offsetWidth;
         yaz(0, 'transform .26s cubic-bezier(.2,.8,.2,1)');
       } else { hedefler = eski; yaz(0, 'transform .24s cubic-bezier(.2,.8,.2,1)'); }
-      var son = hedefler; setTimeout(function () { son.forEach(function (x) { x.style.transition = ''; x.style.transform = ''; }); }, 280);
+      var son = hedefler; setTimeout(function () { son.forEach(function (x) { x.style.transition = ''; x.style.transform = ''; x.style.willChange = ''; }); }, 280);
     });
   }
   document.addEventListener('touchend', birak, { passive: true });
