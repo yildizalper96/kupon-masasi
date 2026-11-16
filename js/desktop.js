@@ -357,7 +357,7 @@
     const T = window.KMTAM || {}, D = window.KMDAR || {}, ks = Object.keys(T).filter(k => T[k] !== k).sort((a, b) => b.length - a.length);
     if (!ks.length) return () => { };
     const es = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(ks.map(k => { const f = T[k], i = f.indexOf(k), on = i >= 0 ? f.slice(0, i) : '', son = i >= 0 ? f.slice(i + k.length) : ''; return (on ? '(?<!' + es(on) + ')' : '') + '(?<![\\p{L}\\d])' + es(k) + '(?![\\p{L}\\d])' + (son ? '(?!' + es(son) + ')' : ''); }).join('|'), 'gu');
+    const re = new RegExp(ks.map(k => { const f = T[k], i = f.indexOf(k), on = i >= 0 ? f.slice(0, i) : '', son = i >= 0 ? f.slice(i + k.length) : ''; return (on ? '(?<!' + es(on) + ')' : '') + '(?<![\\p{L}\\d])(?<!\\p{Lu}[\\p{L}.]+\\s)' + es(k) + '(?![\\p{L}\\d])(?!\\s+\\p{Lu}\\p{Ll})' + (son ? '(?!' + es(son) + ')' : ''); }).join('|'), 'gu');
     const tam = new Map(ks.map(k => [k, T[k]])), dar = new Map(ks.map(k => [T[k], D[k] || k]));
     const ATLA = /^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|NOSCRIPT)$/;
     let bek = [], zam = 0;
