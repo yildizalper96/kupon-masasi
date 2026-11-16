@@ -910,7 +910,7 @@
     const h = s.join(''); return h ? card('kmtbil', `<h3 class="kmb">${c ? 'Kulüp bilgileri' : 'Milli takım bilgileri'}</h3>${h}${TMKAY}`) : '';
   }
   // karsilikli maclar (Transfermarkt): API'nin HH verisi yoksa
-  const TMYAR = { GB1: 'Premier Lig', ES1: 'La Liga', IT1: 'Serie A', L1: 'Bundesliga', FR1: 'Ligue 1', TR1: 'Süper Lig', NL1: 'Eredivisie', PO1: 'Liga Portugal', BE1: 'Pro Lig', SC1: 'Premiership', SA1: 'Roshn Pro Lig', CL: 'Şampiyonlar Ligi', EL: 'Avrupa Ligi', UCOL: 'Konferans Ligi', ECLQ: 'Konferans Ligi eleme', CLQ: 'Şampiyonlar Ligi eleme', ELQ: 'Avrupa Ligi eleme', USC: 'Süper Kupa', TRP: 'Türkiye Kupası', FAC: 'FA Cup', CDR: 'Copa del Rey', CIT: 'Coppa Italia', DFB: 'DFB-Pokal', FRCH: 'Coupe de France' };
+  const TMYAR = { GB1: 'Premier League', ES1: 'LaLiga', IT1: 'Serie A', L1: 'Bundesliga', FR1: 'Ligue 1', TR1: 'Süper Lig', NL1: 'Eredivisie', PO1: 'Liga Portugal', BE1: 'Jupiler Pro League', SC1: 'Scottish Premiership', SA1: 'Saudi Pro League', CL: 'Şampiyonlar Ligi', EL: 'Avrupa Ligi', UCOL: 'Konferans Ligi', ECLQ: 'Konferans Ligi eleme', CLQ: 'Şampiyonlar Ligi eleme', ELQ: 'Avrupa Ligi eleme', USC: 'Süper Kupa', TRP: 'Türkiye Kupası', FAC: 'FA Cup', CDR: 'Copa del Rey', CIT: 'Coppa Italia', DFB: 'DFB-Pokal', FRCH: 'Coupe de France' };
   function tmH2h(m) {
     if (!window.KMTM) return null; const a = tmTakimId(m.h), b = tmTakimId(m.a); if (!a || !b) return null;
     const l = tmV('h' + a + '-' + b, () => KMTM.h2h(a, b)); if (!Array.isArray(l) || !l.length) return null;

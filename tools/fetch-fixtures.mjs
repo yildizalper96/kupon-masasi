@@ -17,16 +17,16 @@ if (!KEY) { console.error('HATA: API_FOOTBALL_KEY yok (.env).'); process.exit(1)
 // ---------- lig tablosu: uygulama kodu -> API-Football lig kimligi ----------
 export const LEAGUES = {
   // sistemde zaten olanlar
-  PL: [39, 'Premier Lig', 'İngiltere – Premier Lig', '#7c3aed'], LL: [140, 'La Liga', 'İspanya – La Liga', '#ea580c'],
+  PL: [39, 'Premier League', 'İngiltere – Premier League', '#7c3aed'], LL: [140, 'LaLiga', 'İspanya – LaLiga', '#ea580c'],
   SA: [135, 'Serie A', 'İtalya – Serie A', '#0ea5e9'], BL: [78, 'Bundesliga', 'Almanya – Bundesliga', '#dc2626'],
   L1: [61, 'Ligue 1', 'Fransa – Ligue 1', '#2563eb'], SL: [203, 'Süper Lig', 'Türkiye – Süper Lig', '#e11d48'],
   ERE: [88, 'Eredivisie', 'Hollanda – Eredivisie', '#f97316'], POR: [94, 'Liga Portugal', 'Portekiz – Liga Portugal', '#16a34a'],
-  BEL: [144, 'Pro Lig', 'Belçika – Jupiler Pro Lig', '#eab308'], SCO: [179, 'Premiership', 'İskoçya – Premiership', '#0369a1'],
-  KSA: [307, 'Roshn Pro Lig', 'Suudi Arabistan – Roshn Pro Lig', '#059669'],
+  BEL: [144, 'Jupiler Pro League', 'Belçika – Jupiler Pro League', '#eab308'], SCO: [179, 'Scottish Premiership', 'İskoçya – Scottish Premiership', '#0369a1'],
+  KSA: [307, 'Saudi Pro League', 'Suudi Arabistan – Saudi Pro League', '#059669'],
   CL: [2, 'Şampiyonlar Ligi', 'Avrupa – Şampiyonlar Ligi', '#1d4ed8'], EL: [3, 'Avrupa Ligi', 'Avrupa – UEFA Avrupa Ligi', '#f59e0b'],
   ECL: [848, 'Konferans Ligi', 'Avrupa – Konferans Ligi', '#22c55e'], UNL: [5, 'Milli Takımlar Ligi', 'Avrupa – UEFA Uluslar Ligi', '#1d4ed8'],
   // yeni: yerel kupalar ve Avrupa
-  FAC: [45, 'FA Cup', 'İngiltere – FA Cup', '#be123c'], EFL: [48, 'Lig Kupası', 'İngiltere – Lig Kupası', '#15803d'],
+  FAC: [45, 'FA Cup', 'İngiltere – FA Cup', '#be123c'], EFL: [48, 'EFL Cup', 'İngiltere – EFL Cup', '#15803d'],
   CDR: [143, 'Copa del Rey', 'İspanya – Copa del Rey', '#c2410c'], CIT: [137, 'Coppa Italia', 'İtalya – Coppa Italia', '#0284c7'],
   DFB: [81, 'DFB-Pokal', 'Almanya – DFB-Pokal', '#b91c1c'], CDF: [66, 'Coupe de France', 'Fransa – Coupe de France', '#1e40af'],
   TUK: [206, 'Türkiye Kupası', 'Türkiye – Türkiye Kupası', '#be123c'], KNV: [90, 'KNVB Beker', 'Hollanda – KNVB Beker', '#ea580c'],

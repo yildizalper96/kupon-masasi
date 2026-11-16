@@ -53,7 +53,7 @@ const api={
 };return api})();
 /* ==== /i18n ==== */
 I18N.init();
-const N={PL:"Premier Lig",LL:"La Liga",SA:"Serie A",BL:"Bundesliga",CL:"Şampiyonlar Ligi"};
+const N={PL:"Premier League",LL:"LaLiga",SA:"Serie A",BL:"Bundesliga",CL:"Şampiyonlar Ligi"};
 const R=`PL|10-31T12:30|Chelsea|Man United|53|23.9|23.1
 PL|10-31T15:00|Bournemouth|Leeds|45.4|27.3|27.3
 PL|10-31T15:00|Brentford|N. Forest|48|25.8|26.2
@@ -124,7 +124,7 @@ SL|11-01T13:00|Trabzonspor|Gaziantep
 SL|11-01T13:00|Başakşehir|Samsunspor
 SL|11-01T16:00|Kasımpaşa|Beşiktaş
 SL|11-02T17:00|Gençlerbirliği|Alanyaspor`.split("\n").forEach(l=>{const[c,t,h,a]=l.split("|"),m={c,t:new Date(`2026-${t}:00Z`),h,a};R.push(m)});
-const LN={PL:"İngiltere – Premier Lig",LL:"İspanya – La Liga",SA:"İtalya – Serie A",BL:"Almanya – Bundesliga",SL:"Türkiye – Süper Lig",CL:"Avrupa – Şampiyonlar Ligi"};
+const LN={PL:"İngiltere – Premier League",LL:"İspanya – LaLiga",SA:"İtalya – Serie A",BL:"Almanya – Bundesliga",SL:"Türkiye – Süper Lig",CL:"Avrupa – Şampiyonlar Ligi"};
 const CD={GAL:'Galatasaray',COR:'Çorum',GAZ:'Gaziantep',ALA:'Alanyaspor',GEN:'Gençlerbirliği',FEN:'Fenerbahçe',KAS:'Kasımpaşa',TRA:'Trabzonspor',KON:'Konyaspor',RIZ:'Rizespor',BJK:'Beşiktaş',EYU:'Eyüpspor',BAS:'Başakşehir',KOC:'Kocaelispor',AME:'Amedspor',ERZ:'Erzurumspor',SAM:'Samsunspor',GOZ:'Göztepe'},SLG={},LM={};
 `1|GAL|COR|2-2
 1|GAZ|ALA|1-1
@@ -313,7 +313,7 @@ L1|11-01T16:15|Paris FC|Monaco|41.9|26.8|31.3
 L1|11-01T19:45|Marseille|Toulouse|50|24.3|25.7
 L1|11-02T19:45|Lorient|Brest|39|28.7|32.3`.split("\n").forEach(l=>{const[c,t,h,a,x,y,z]=l.split("|"),q=+x+ +y+ +z;R.push({c,t:new Date(`2026-${t}:00Z`),h,a,p:[x/q,y/q,z/q]})});
 "PSG:1:17:5:2:1,Rennes:2:16:5:1:2,Lille:3:15:4:3:1,Monaco:4:15:4:3:1,Lyon:5:14:4:2:2,Paris FC:6:14:4:2:2,Lens:7:13:4:1:3,Marseille:8:12:4:0:4,Lorient:9:12:3:3:2,Nice:10:11:3:2:3,Toulouse:11:10:2:4:2,Auxerre:12:10:3:1:4,Brest:13:9:2:3:3,Angers:14:8:2:2:4,Le Mans:15:7:1:4:3,Strasbourg:16:7:2:1:5,Troyes:17:5:1:2:5,Le Havre:18:2:0:2:6".split(",").forEach(t=>{const a=t.split(":");TM[a[0]]={l:"L1",r:+a[1],p:+a[2],w:+a[3],d:+a[4],o:+a[5],f:null,a:null}});
-N.KSA="Suudi Pro Lig";C.KSA="#006c35";LN.KSA="Suudi Arabistan – Roshn Pro Lig (13. hafta ertelendi, yeni tarih yok)";
+N.KSA="Saudi Pro League";C.KSA="#006c35";LN.KSA="Suudi Arabistan – Roshn Pro Lig (13. hafta ertelendi, yeni tarih yok)";
 "Al Hilal:1:30:10:0:1:32:9,Al Qadsiah:2:28:9:1:2:32:12,Al Nassr:3:28:9:1:1:28:11,Al Ittihad:4:24:7:3:1:21:11,Neom:5:22:7:1:4:18:10,Al Ahli:6:21:7:0:4:28:19,Al Ettifaq:7:19:5:4:3:18:17,Diriyah:8:15:4:3:5:10:13,Al Khaleej:9:15:3:6:3:14:19,Al Shabab:10:14:3:5:3:20:15,Al Kholood:11:12:3:3:5:17:26,Al Riyadh:12:12:3:3:5:11:25,Al Fayha:13:11:2:5:5:16:20,Al Hazem:14:10:2:4:6:14:20,Al Faisaly:15:10:2:4:6:13:24,Al Fateh:16:6:1:3:8:10:25,Al Taawoun:17:5:0:5:7:6:20,Abha:18:3:0:3:8:7:19".split(",").forEach(t=>{const a=t.split(":");TM[a[0]]={l:"KSA",r:+a[1],p:+a[2],w:+a[3],d:+a[4],o:+a[5],f:+a[6],a:+a[7]}});
 const KM=(()=>{let f=0,p=0;Object.values(TM).forEach(t=>{if(t.l=='KSA'){f+=t.f;p+=t.w+t.d+t.o}});return f/p})();
 function ksa(m){const h=TM[m.h],a=TM[m.a],k=4,at=t=>((t.f+k*KM)/(t.w+t.d+t.o+k))/KM,df=t=>((t.a+k*KM)/(t.w+t.d+t.o+k))/KM,lh=KM*1.12*at(h)*df(a),la=KM/1.12*at(a)*df(h),A=pm(lh),B=pm(la);let p=[0,0,0];A.forEach((x,i)=>B.forEach((y,j)=>{p[i>j?0:i==j?1:2]+=x*y}));const q=p[0]+p[1]+p[2];m.p=p.map(v=>v/q);m.g=[lh,la]}
@@ -326,7 +326,7 @@ KSA|10-30T18:00|Al Shabab|Al Ahli
 KSA|10-31T13:30|Al Taawoun|Al Ettifaq
 KSA|10-31T14:55|Al Fayha|Al Faisaly
 KSA|10-31T18:00|Al Hilal|Al Fateh`.split("\n").forEach(l=>{const[c,t,h,a]=l.split("|"),m={c,t:new Date(`2026-${t}:00Z`),h,a};ksa(m);R.push(m)});
-N.BEL="Belçika Pro Lig";C.BEL="#c8102e";LN.BEL="Belçika – Jupiler Pro Lig";
+N.BEL="Jupiler Pro League";C.BEL="#c8102e";LN.BEL="Belçika – Jupiler Pro Lig";
 "Club Brugge:1:27:9:0:1:26:8,Union SG:2:26:8:2:0:29:7,Gent:3:25:8:1:1:19:6,Charleroi:4:24:8:0:2:21:12,Anderlecht:5:19:6:1:3:13:11,Genk:6:15:4:3:3:18:14,Lommel SK:7:15:4:3:3:13:11,Westerlo:8:14:4:2:4:25:25,Standard:9:12:3:3:4:15:16,Mechelen:10:12:3:3:4:13:18,Zulte Waregem:11:11:3:2:5:12:16,Antwerp:12:10:3:1:6:16:22,Beveren:13:10:3:1:6:13:20,OH Leuven:14:9:2:3:5:10:17,STVV:15:8:2:2:6:18:21,La Louvière:16:7:2:1:7:13:23,Cercle Brugge:17:6:1:3:6:13:22,Kortrijk:18:4:1:1:8:4:22".split(",").forEach(t=>{const a=t.split(":");TM[a[0]]={l:"BEL",r:+a[1],p:+a[2],w:+a[3],d:+a[4],o:+a[5],f:+a[6],a:+a[7]}});
 const KB=(()=>{let f=0,p=0;Object.values(TM).forEach(t=>{if(t.l=='BEL'){f+=t.f;p+=t.w+t.d+t.o}});return f/p})();
 function bel(m){const h=TM[m.h],a=TM[m.a],k=4,at=t=>((t.f+k*KB)/(t.w+t.d+t.o+k))/KB,df=t=>((t.a+k*KB)/(t.w+t.d+t.o+k))/KB,lh=KB*1.12*at(h)*df(a),la=KB/1.12*at(a)*df(h),A=pm(lh),B=pm(la);let p=[0,0,0];A.forEach((x,i)=>B.forEach((y,j)=>{p[i>j?0:i==j?1:2]+=x*y}));const q=p[0]+p[1]+p[2];m.p=p.map(v=>v/q);m.g=[lh,la]}
@@ -3360,7 +3360,7 @@ Bordeaux|Marseille~15.08.2021|Marseille|Bordeaux|2|2`,L1M={"Toulouse|Strasbourg"
 L1R.split('\n').forEach(l=>{const[h,a,x,y]=l.split('|').map((v,i)=>i<2?v:+v);[[h,a,x,y,1],[a,h,y,x,0]].forEach(([t2,o,f,c,H])=>{const g=SLG[t2]=SLG[t2]||[];g.push({w:g.length+1,H,o,f,c,r:f>c?'G':f==c?'B':'M'})})});
 L1H.split('\n').forEach(l=>{const[k,r]=l.split('~'),[d,h,a,x,y]=r.split('|');(HH[k]=HH[k]||[]).push({d,h,a,x:+x,y:+y})});
 R.filter(m=>m.c=='L1'&&m.t>new Date('2026-11-05T12:00:00Z')).forEach(m=>{m.mp=L1M[m.h+'|'+m.a]});
-/* NL/PT/BEL CSV */N.ERE="Eredivisie";C.ERE="#e8590c";LN.ERE="Hollanda – Eredivisie";N.POR="Portekiz Ligi";C.POR="#0b7a3b";LN.POR="Portekiz – Liga Portugal";
+/* NL/PT/BEL CSV */N.ERE="Eredivisie";C.ERE="#e8590c";LN.ERE="Hollanda – Eredivisie";N.POR="Liga Portugal";C.POR="#0b7a3b";LN.POR="Portekiz – Liga Portugal";
 const ERER=`Cambuur|Excelsior|0|4
 NEC Nijmegen|Telstar|1|2
 Go Ahead Eagles|Willem II|4|1
@@ -6945,7 +6945,7 @@ const NLF={ERE:`2026-11-06T19:00|Willem II|PEC Zwolle
 2026-11-08T20:30|Rio Ave|Braga
 2026-11-08T20:30|Estrela Amadora|Benfica`};
 ['ERE','POR'].forEach(lg=>NLF[lg].split('\n').forEach(l=>{const[t,h,a]=l.split('|'),m={c:lg,t:new Date(t+':00Z'),h,a};slp2(m);R.push(m)}));
-/* SCO CSV */N.SCO="İskoçya Ligi";C.SCO="#0e7490";LN.SCO="İskoçya – Premiership";
+/* SCO CSV */N.SCO="Scottish Premiership";C.SCO="#0e7490";LN.SCO="İskoçya – Premiership";
 const SCOR=`Dundee Utd|Rangers|1|1
 Falkirk|St Mirren|0|2
 Aberdeen|Hearts|2|1
@@ -10516,7 +10516,7 @@ else if(TV=='all'){const T=cs.filter(c=>c.tot).reduce((s,c)=>({w:s.w+c.tot.w,d:s
 else{const c=cm[TV];body=(c.rank?sr(c.rl,`${blu(c.rank+'.')} · ${c.pts} puan`):'')+(c.tot?sr('Maç / G-B-M',`${blu(c.tot.w+c.tot.d+c.tot.l)} · ${gbm(c.tot.w,c.tot.d,c.tot.l)}`)+sr('Atılan / yenen gol',`${c.tot.f}:${c.tot.a}`):"<div class='mut'>Bu yarışmada henüz oynanan maç yok.</div>")+(c.recs.length?`<div class='sr'><span>Son ${Math.min(5,c.recs.length)} ${c.lg?'lig maçı':'maç'}</span><span>${dots(c)}</span></div>`+pv(c.recs,1)+pv(c.recs,0):'')+inc(c)}
 return`<div class='box tmh'><div class='lg2'>${bd(n,1)}<div>${n}<small>${lgn}</small></div><button class='fav${FAV.has(n)?' on':''}' data-fav="${n}" aria-label='Favori'>${FAV.has(n)?'★':'☆'}</button></div>${tabs}${TV=='kd'?'':ps||''}${body}<div id='dlb' style='display:none'></div>${nx}</div>${nwh([n])}`}
 const LGA={CL:['Şampiyonlar Ligi','Şampiyonlar','UEFA Şampiyonlar Ligi','Champions League','UCL','Avrupa Şampiyonlar'],EL:['Avrupa Ligi','UEFA Avrupa Ligi','Europa League','UEL'],ECL:['Konferans Ligi','Avrupa Konferans Ligi','Conference League','UECL'],UNL:['Milli Takımlar Ligi','Uluslar Ligi','UEFA Uluslar Ligi','Nations League','Milli Takım','Milli Takımlar'],SL:['Süper Lig','Türkiye Süper Ligi','Türkiye','Türk Ligi','Türk','TFF','Trendyol Süper Lig'],PL:['Premier Lig','Premier League','İngiltere','İngiltere Ligi','İngiliz','England','EPL'],LL:['La Liga','LaLiga','İspanya','İspanya Ligi','İspanyol','Spain'],SA:['Serie A','İtalya','İtalya Ligi','İtalyan','Italy'],BL:['Bundesliga','Almanya','Almanya Ligi','Alman','Germany'],L1:['Ligue 1','Fransa','Fransa Ligi','Fransız','France'],POR:['Portekiz Ligi','Portekiz','Liga Portugal','Primeira Liga','Portugal','Portekiz Süper Ligi'],ERE:['Hollanda Ligi','Eredivisie','Hollanda','Hollanda Eredivisie','Netherlands','Dutch','Holland'],BEL:['Belçika Ligi','Belçika','Jupiler','Jupiler Pro League','Pro League','Belgium','Belçika Pro Ligi'],SCO:['İskoçya Ligi','İskoçya','Skoçya','Scottish Premiership','İskoç Premiership','Scotland','Premiership'],KSA:['Suudi Ligi','Suudi Arabistan','Suudi Pro Ligi','Saudi Pro League','Saudi','Roshn','Suudi Arabistan Ligi']};
-const LGNM={CL:'Şampiyonlar Ligi',EL:'Avrupa Ligi',ECL:'Konferans Ligi',UNL:'Milli Takımlar Ligi',SL:'Süper Lig',PL:'Premier Lig',LL:'La Liga',SA:'Serie A',BL:'Bundesliga',L1:'Ligue 1',POR:'Portekiz Ligi',ERE:'Hollanda Ligi',BEL:'Belçika Ligi',SCO:'İskoçya Ligi',KSA:'Suudi Ligi'};
+const LGNM={CL:'Şampiyonlar Ligi',EL:'Avrupa Ligi',ECL:'Konferans Ligi',UNL:'Milli Takımlar Ligi',SL:'Süper Lig',PL:'Premier League',LL:'LaLiga',SA:'Serie A',BL:'Bundesliga',L1:'Ligue 1',POR:'Liga Portugal',ERE:'Eredivisie',BEL:'Jupiler Pro League',SCO:'Scottish Premiership',KSA:'Saudi Pro League'};
 const LGAN=Object.fromEntries(Object.entries(LGA).map(([c,a])=>[c,a.map(x=>nzq(x))]));
 const lgm=q=>{q=nzq(q.trim());if(q.length<3)return[];const ex=[],pt=[];Object.entries(LGAN).forEach(([c,al])=>{if(!R.some(m=>m.c==c))return;if(al.includes(q))ex.push(c);else if(al.some(x=>x.startsWith(q)||x.split(' ').some(w=>w.startsWith(q))))pt.push(c)});return ex.length?ex:pt};
 let LGT='p';const LORD=['CL','EL','ECL','UNL','SL','PL','LL','BL','L1','SA','POR','ERE','BEL','SCO','KSA'];

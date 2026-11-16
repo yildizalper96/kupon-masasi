@@ -49,13 +49,21 @@
     if (nb && typeof tab !== 'undefined' && tab !== 'l') nb.click();
     try { Q = (window.kmLigQ ? window.kmLigQ(c) : LGNM[c]); QX = ''; const e = document.getElementById('q'); render(); if (e) e.value = LGNM[c] || Q; window.scrollTo(0, 0); } catch (e) { }
   }
+  // takip edilen ligler (FotMob gibi): satira gelince yildiz, tiklayinca takip; ustte "Takip Ettiğin Ligler" karti. Cihazda saklanir.
+  const TAKIP_K = 'km_ligtakip';
+  const takipler = () => { try { const a = JSON.parse(localStorage.getItem(TAKIP_K) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
+  const takipYaz = a => { try { localStorage.setItem(TAKIP_K, JSON.stringify(a)); } catch (e) { } };
+  const YILDIZ = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
+  const ligSatir = (c, tk) => `<li class="${tk.includes(c) ? 'dztk' : ''}"><button data-dzlg="${esc(c)}">${bayrak(c)}<span class="dzad">${esc(ligAdi(c))}</span></button><button type="button" class="dzyil" data-dztakip="${esc(c)}" aria-pressed="${tk.includes(c)}" aria-label="${tk.includes(c) ? 'Takibi bırak' : 'Takip et'}" title="${tk.includes(c) ? 'Takibi bırak' : 'Takip et'}">${YILDIZ}</button></li>`;
   function solCiz() {
     let kodlar = ONE;
     try { kodlar = ONE.filter(c => LGNM[c]); } catch (e) { }
-    sol.innerHTML = `<section class="dzk"><h3>Öne çıkan ligler</h3><ul class="dzlig">${kodlar.map(c =>
-      `<li><button data-dzlg="${esc(c)}">${bayrak(c)}${esc(ligAdi(c))}</button></li>`).join('')}</ul></section>
+    const tk = takipler().filter(c => { try { return LGNM[c] || LN[c]; } catch (e) { return false; } });
+    sol.innerHTML = (tk.length ? `<section class="dzk dztakipk"><h3>Takip Ettiğin Ligler</h3><ul class="dzlig">${tk.map(c => ligSatir(c, tk)).join('')}</ul></section>` : '') +
+      `<section class="dzk"><h3>Öne çıkan ligler</h3><ul class="dzlig">${kodlar.map(c => ligSatir(c, tk)).join('')}</ul></section>
       <section class="dzk dztumk"><button class="dztum" data-dztum aria-expanded="false">Tüm ligler<i class="dzok"></i></button><div class="dztumic" hidden></div></section>`;
     sol.querySelectorAll('[data-dzlg]').forEach(b => b.onclick = () => ligAc(b.dataset.dzlg));
+    sol.querySelectorAll('[data-dztakip]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = b.dataset.dztakip, a = takipler(), i = a.indexOf(c); if (i >= 0) a.splice(i, 1); else a.push(c); takipYaz(a); try { KMHap(); } catch (x) { } solCiz(); });
     const t = sol.querySelector('[data-dztum]'), ic = sol.querySelector('.dztumic');
     if (t && ic) t.onclick = () => {
       const acik = ic.hidden; ic.hidden = !acik; t.setAttribute('aria-expanded', String(acik)); t.parentElement.classList.toggle('acik', acik);
