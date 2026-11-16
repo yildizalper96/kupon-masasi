@@ -1362,6 +1362,53 @@
     if (sec) sec.insertAdjacentHTML('beforeend', `<div class="kmzl">${kul.map(k => `<span><i class="kmz-${k}"></i>${E(ZAD[k])}</span>`).join('')}</div>`);
     return t.innerHTML;
   }
+  // ---- Tablo filtreleri (FotMob: Tumu / Ic saha / Deplasman / Son 5 mac). Yalniz eksiksiz mac kaydi olan liglerde; xG ve fikstur zorlugu verisi yok.
+  function ligKayitlari(c) {
+    const m = new Map(), ekle = (n, H, f, a) => { if (!m.has(n)) m.set(n, []); m.get(n).push({ H, f, a, r: f > a ? 'G' : f < a ? 'M' : 'B' }); };
+    try {
+      const tk = Object.entries(TM).filter(([, v]) => v.l === c);
+      if (tk.length) {
+        if (typeof SLG === 'undefined' || !tk.every(([n, v]) => (SLG[n] || []).length === v.w + v.d + v.o)) return null;
+        tk.forEach(([n]) => SLG[n].forEach(r => ekle(n, !!r.H, +r.f, +r.c)));
+        return m;
+      }
+      let l = [];
+      if (c === 'CL' && typeof CLR !== 'undefined') l = CLR.map(r => ({ h: r.h, a: r.a, x: +r.x, y: +r.y }));
+      else if (typeof EUR !== 'undefined' && EUR[c]) l = String(EUR[c]).split('\n').map(z => { const [h, a, x, y] = z.split('|'); return { h, a, x: +x, y: +y }; });
+      l = l.filter(r => r.h && r.a && Number.isFinite(r.x) && Number.isFinite(r.y));
+      if (!l.length) return null;
+      l.forEach(r => { ekle(r.h, true, r.x, r.y); ekle(r.a, false, r.y, r.x); });
+      return m;
+    } catch (e) { return null; }
+  }
+  const TFILT = [['all', 'Tümü'], ['ev', 'İç Saha'], ['dep', 'Deplasman'], ['son5', 'Son 5 maç']];
+  let LTF = { c: '', f: 'all' };
+  function ligTabloFiltre(c, f) {
+    const K = ligKayitlari(c); if (!K) return '';
+    const sat = [];
+    K.forEach((l0, n) => {
+      const l = f === 'ev' ? l0.filter(x => x.H) : f === 'dep' ? l0.filter(x => !x.H) : f === 'son5' ? l0.slice(-5) : l0;
+      const v = { n, w: 0, d: 0, l: 0, f: 0, a: 0, p: 0, fm: l.slice(-5) };
+      l.forEach(x => { v.f += x.f; v.a += x.a; if (x.r === 'G') { v.w++; v.p += 3; } else if (x.r === 'B') { v.d++; v.p++; } else v.l++; });
+      sat.push(v);
+    });
+    sat.sort((x, y) => y.p - x.p || (y.f - y.a) - (x.f - x.a) || y.f - x.f || x.n.localeCompare(y.n, 'tr'));
+    const satir = (v, i) => {
+      const k = v.n, nx = R.filter(x => x.c === c && (x.h === k || x.a === k) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0], op = nx ? (nx.h === k ? nx.a : nx.h) : '';
+      const nxh = nx ? `<td class="nx" data-kmm="${E(key(nx))}" title="${E(nx.h + ' – ' + nx.a)} · ${E(uzunTarih(nx.t))}, ${hm(nx.t)}">${bd(op)}</td>` : '<td class="nx"></td>';
+      return `<tr><td>${i + 1}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.l}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
+        <td class="fm">${v.fm.map(r => `<i class="kmkare ${sonuc(r.r)}">${r.r}</i>`).join('')}</td>${nxh}</tr>`;
+    };
+    return card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><table><thead><tr><th>#</th><th class="tk">Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th><th>Sonraki</th></tr></thead><tbody>${sat.map(satir).join('')}</tbody></table>`);
+  }
+  function ligTabloSekme(c) {
+    if (LTF.c !== c) LTF = { c, f: 'all' };
+    const var_ = !!ligKayitlari(c);
+    const cips = var_ ? `<div class="kmtf-c">${TFILT.map(([k, ad]) => `<button type="button" data-kmtf="${k}" class="${LTF.f === k ? 'on' : ''}">${ad}</button>`).join('')}</div>` : '';
+    const govde = LTF.f === 'all' || !var_ ? ligTabloZ(c) : ligTabloFiltre(c, LTF.f);
+    if (!govde) return '';
+    return cips ? govde.replace(/(<section[^>]*class="[^"]*kmtablo[^"]*"[^>]*>)/, '$1' + cips) : govde;
+  }
   const haftaAd = rd => { const s = String(rd || ''); const m = /(\d+)\s*$/.exec(s); return /regular season|hafta/i.test(s) && m ? m[1] + '. Hafta' : (s || 'Maçlar'); };
   function ligTurlar(c) {
     const ms = R.filter(m => m.c === c).sort((a, b) => a.t - b.t); const l = [];
@@ -1411,15 +1458,16 @@
         if (LGS.c !== c) LGS = { c, s: 'o' };
         const bas = ligBaslik(c), karne = ligTahminKarti(c), tablo = ligTabloZ(c);
         const tabloYok = card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><p class="kmbos">Bu lig için puan durumu verisi yok.</p>`);
-        if (LGS.s === 'p') return bas + (tablo || tabloYok) + `<div class="mside">${ligHafta(c)}${karne}</div>`;
+        if (LGS.s === 'p') return bas + (ligTabloSekme(c) || tabloYok) + `<div class="mside">${ligHafta(c)}${karne}</div>`;
         if (LGS.s === 'm') return bas + ligMaclar(c) + `<div class="mside">${karne}</div>`;
         return bas + (tablo || '') + ligEnCoklar(c) + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
       } catch (e) { return eskiLeagueView(c); }
     };
     document.addEventListener('click', e => {
-      const t = e.target.closest && e.target.closest('[data-klt],[data-kmhf],[data-kmltakip]'); if (!t) return;
+      const t = e.target.closest && e.target.closest('[data-klt],[data-kmhf],[data-kmltakip],[data-kmtf]'); if (!t) return;
       e.preventDefault(); e.stopPropagation();
       if (t.dataset.klt) { LGS.s = t.dataset.klt; try { render(); window.scrollTo(0, 0); } catch (x) { } return; }
+      if (t.dataset.kmtf) { LTF.f = t.dataset.kmtf; try { render(); } catch (x) { } return; }
       if (t.dataset.kmhf) { LHF.i += +t.dataset.kmhf; try { render(); } catch (x) { } return; }
       if (t.dataset.kmltakip && window.KMLig) { if (window.KMLig.degistir(t.dataset.kmltakip)) { try { KMHap(); } catch (x) { } try { render(); } catch (x) { } } }
     }, true);
