@@ -3,7 +3,7 @@
  * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
  * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.
  * Surum degistirmek icin CACHE adini artir (eski onbellekler silinir). */
-const CACHE = 'km-v13';
+const CACHE = 'km-v14';
 // Takim/lig logolari ve oyuncu fotograflari (media.api-sports.io): onbellek oncelikli, kalici.
 // Gorsel bir kez indikten sonra her acilista aninda gelir; arka planda 7 gunde bir tazelenir.
 const IMG = 'km-img-v1';

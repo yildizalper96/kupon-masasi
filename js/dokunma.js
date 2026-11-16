@@ -22,11 +22,14 @@
   function ayaripKaydirilir(n) { while (n && n !== document.body) { if (n.scrollWidth > n.clientWidth + 2) { var o = getComputedStyle(n).overflowX; if (o === 'auto' || o === 'scroll') return true; } n = n.parentElement; } return false; }
   function icerik() { // mac/oyuncu/takim sayfasi: sekme seridinden (.kmyap) sonraki kardesler; yoksa tum #app
     var app = document.getElementById('app'); if (!app) return [];
-    var s = app.querySelector(':scope > .kmyap');
+    // mac/lig sayfasinda sekme seridi, ana sayfada gun seridi sabit kalir; yalniz altindaki icerik kayar
+    var s = app.querySelector(':scope > .kmyap') || app.querySelector(':scope > .kmgun');
     if (!s) return [app];
     var l = [], n = s.nextElementSibling; while (n) { l.push(n); n = n.nextElementSibling; } return l;
   }
-  function yaz(x, gecis) { hedefler.forEach(function (e) { e.style.willChange = x === null ? '' : 'transform'; e.style.transition = gecis || 'none'; e.style.transform = x === null ? '' : 'translate3d(' + x + 'px,0,0)'; }); }
+  function yaz(x, gecis) { var W = window.innerWidth || 375; hedefler.forEach(function (e) { e.style.willChange = x === null ? '' : 'transform,opacity'; e.style.transition = gecis ? gecis + ',opacity .26s' : 'none'; e.style.transform = x === null ? '' : 'translate3d(' + x + 'px,0,0)'; e.style.opacity = x === null ? '' : String(Math.max(0.35, 1 - Math.abs(x) / W * 0.9)); }); }
+  // 100px'ten sonra direnc: icerik parmagi izler ama ekran bosalmaz
+  function direnc(dx) { var a = Math.abs(dx); return (dx < 0 ? -1 : 1) * (a <= 100 ? a : 100 + (a - 100) * 0.35); }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0]; sx = t.clientX; sy = t.clientY; yatay = null; hedefler = [];
     uygun = e.touches.length === 1 && !ayaripKaydirilir(e.target) && !(e.target.closest && e.target.closest('nav,input,textarea,select,#kmarae,#kpq,#kmara'));
@@ -37,7 +40,7 @@
     if (yatay === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) { yatay = Math.abs(dx) > Math.abs(dy) * 1.3; if (yatay) hedefler = icerik(); }
     if (!yatay) return;
     if (e.cancelable) e.preventDefault(); // tarayici sayfayi kendisi yana/asagi kaydirmasin (titreme ve yana kayma bunun yuzundendi)
-    hedef = dx; // 1:1 takip
+    hedef = direnc(dx);
     if (!rafId) rafId = requestAnimationFrame(function () { rafId = 0; yaz(hedef); });
   }, { passive: false });
   function birak(e) {
@@ -51,7 +54,7 @@
         void document.body.offsetWidth;
         yaz(0, 'transform .26s cubic-bezier(.2,.8,.2,1)');
       } else { hedefler = eski; yaz(0, 'transform .24s cubic-bezier(.2,.8,.2,1)'); }
-      var son = hedefler; setTimeout(function () { son.forEach(function (x) { x.style.transition = ''; x.style.transform = ''; x.style.willChange = ''; }); }, 280);
+      var son = hedefler; setTimeout(function () { son.forEach(function (x) { x.style.transition = ''; x.style.transform = ''; x.style.willChange = ''; x.style.opacity = ''; }); }, 280);
     });
   }
   document.addEventListener('touchend', birak, { passive: true });
@@ -63,7 +66,7 @@
     var nav = document.querySelector('nav'); if (!nav) return;
     var lens = document.createElement('i'); lens.id = 'kmlens'; lens.setAttribute('aria-hidden', 'true'); nav.appendChild(lens);
     var bas = null, acik = null, gezdi = false, x0 = 0;
-    var altta = function (x, y) { var e = document.elementFromPoint(x, y); return e && e.closest ? e.closest('nav button') : null; };
+    var altta = function (x, y) { var e = document.elementFromPoint(x, y); return e && e.closest ? e.closest('nav button:not(.kmmenu)') : null; };
     var mercek = function (x) {
       var r = nav.getBoundingClientRect(), b = nav.querySelector('button'), w = b ? b.getBoundingClientRect().width : 64;
       var l = Math.max(r.left + 4, Math.min(r.right - w - 4, x - w / 2)) - r.left;

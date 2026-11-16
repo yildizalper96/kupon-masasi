@@ -88,13 +88,15 @@
 
   function dugme(cls) { var b = document.createElement('button'); b.type = 'button'; b.className = 'kmmenu ' + cls; b.setAttribute('aria-label', 'Menü'); b.setAttribute('aria-haspopup', 'dialog'); b.innerHTML = IC.menu; b.addEventListener('click', function (e) { e.stopPropagation(); acik() ? kapa() : ac(b); }); return b; }
   var hr = document.querySelector('header .hr'); if (hr) hr.appendChild(dugme('kmm-ust'));         // telefon/tablet: baslikta sag ust
-  var nav = document.querySelector('nav'); if (nav) nav.appendChild(dugme('kmm-nav'));              // masaustu: ust bardaki profil yerinde
+  var nav = document.querySelector('nav'); if (nav) { var nb = dugme('kmm-nav'); nb.innerHTML = '<b>' + IC.menu + '</b><span class="kmm-et">Menü</span>'; nav.appendChild(nb); } // masaustu: ust bar; telefon: alt barda Profil yerinde              // masaustu: ust bardaki profil yerinde
   var kaynak = null;
   function acik() { return !panel.hidden; }
   function ac(b) {
     kaynak = b; panel.hidden = false; temaUygula(tema);
     var r = b.getBoundingClientRect(), W = window.innerWidth;
-    if (W < 1100) { panel.style.left = '12px'; panel.style.right = '12px'; panel.style.top = (r.bottom + 8) + 'px'; }
+    panel.style.bottom = 'auto';
+    if (W < 1100 && b.closest('nav')) { panel.style.left = '12px'; panel.style.right = '12px'; panel.style.top = 'auto'; panel.style.bottom = (window.innerHeight - r.top + 10) + 'px'; }
+    else if (W < 1100) { panel.style.left = '12px'; panel.style.right = '12px'; panel.style.top = (r.bottom + 8) + 'px'; }
     else { panel.style.left = 'auto'; panel.style.right = Math.max(12, W - r.right) + 'px'; panel.style.top = (r.bottom + 10) + 'px'; }
     document.querySelectorAll('.kmmenu').forEach(function (x) { x.classList.add('on'); x.setAttribute('aria-expanded', 'true'); });
   }
