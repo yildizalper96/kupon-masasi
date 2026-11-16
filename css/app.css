@@ -420,6 +420,8 @@ input,button,select,textarea{font-family:var(--f)}
 .bd{position:relative}
 .bd .tlg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0}
 .bd.hl .tlg{opacity:1}
+/* logo yuklenirken bas harf gorunmesin (img varsa); yuklenemezse img kaldirilir ve harf geri gelir */
+.bd:has(>.tlg){color:transparent!important}
 .bd.hl{background:transparent!important;box-shadow:none!important;color:transparent!important;overflow:visible}
 
 /* ==== Tasarim v2 duzeltme 3 (kullanici, FotMob zarafeti): kucuk ve ince yazi, daha genis bosluk, kibar ogeler, 8px/6px kose ==== */
