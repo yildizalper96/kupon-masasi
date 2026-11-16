@@ -2255,3 +2255,14 @@ header .hr{position:relative}
 #kbar .kb-go{font-style:normal;font-size:22px;color:var(--mut);flex:none;line-height:1}
 body.kbar-on #app{padding-bottom:184px!important}
 @media(min-width:1100px){#kbar{left:auto;right:24px;bottom:24px;width:380px}body.kbar-on #app{padding-bottom:90px!important}}
+/* Neden tutmadi? (17 Kas 2026): tutmayan kupon kartinin icinde */
+.kw{margin:10px 0 4px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--hot) 9%,transparent);border:1px solid color-mix(in srgb,var(--hot) 30%,transparent)}
+.kw-h{font:700 14px var(--f);color:var(--ink);margin-bottom:4px}
+.kw-oz{font-size:12.5px;color:var(--mut);margin-bottom:6px}.kw-oz b{color:var(--ink)}
+.kw-r{padding:8px 0;border-top:1px dashed var(--ln);font-size:13.5px}
+.kw-r small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.kw-x{color:var(--hot);font-weight:800}
+.kw-tag{font-style:normal;font-size:11px;font-weight:700;color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,transparent);padding:1px 7px;border-radius:999px;margin-left:4px;white-space:nowrap}
+.kw-alt{margin-top:5px;font-size:12.5px;color:var(--mut)}.kw-alt b{color:var(--ok)}
+.kw-son{padding-top:8px;border-top:1px dashed var(--ln);font-size:13px;color:var(--ink)}.kw-son b{font-weight:800}
+.kw-not{font-size:11px;color:var(--mut);margin-top:6px}
