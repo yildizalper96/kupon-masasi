@@ -57,6 +57,9 @@
   // oturum dusmusse (giris yok) eski onbellek kalmasin
   setTimeout(function () { if (!uid() && (ls('km_tema') || ls('km_ligtakip'))) cikisDurumu(); }, 10000);
 
+  // ---- masaustu: Ligler listesi sayfasi yok (ligler sol sutundan acilir); bu sayfaya gelinirse Maclar'a don
+  if (typeof window.ligView === 'function') { var eskiLig = window.ligView; window.ligView = function () { if (window.matchMedia('(min-width:1100px)').matches) { setTimeout(function () { var n = document.querySelector('nav button[data-t="k"]'); if (n) n.click(); }, 0); return ''; } return eskiLig.apply(this, arguments); }; }
+
   // ---- menu
   var IC = {
     menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
@@ -71,7 +74,6 @@
   panel.innerHTML =
     '<div class="kmp-ust">' +
       '<button type="button" data-kmgit="u">' + IC.u + '<span>Profil</span></button>' +
-      '<button type="button" data-kmgit="c">' + IC.c + '<span>Simülatör</span></button>' +
       '<button type="button" data-kmgit="g">' + IC.g + '<span>Geçmiş</span></button>' +
     '</div>' +
     '<div class="kmp-sat"><b>Tema</b><span class="kmp-tema">' +
