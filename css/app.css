@@ -2416,7 +2416,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .mside .kman-on .kman-ot span i{display:inline-block;margin-right:6px;vertical-align:middle}
 /* Gunun one cikanlari (17 Kas 2026): ana sayfa basi */
 .hro{padding:16px!important}
-.hro-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.hro-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:0}
 .hro-h h3{margin:0;font:700 17px var(--f)}.hro-h small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
 .hro-gv{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent);color:var(--ink);cursor:pointer;text-align:left;min-height:0!important}
 .hro-gv>b{font:800 22px var(--f);color:var(--ok)}
