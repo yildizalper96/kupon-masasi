@@ -2333,12 +2333,6 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-ek{flex:none;padding:8px 14px;border-radius:999px;border:1.5px solid var(--acc,var(--ok));background:transparent;color:var(--acc,var(--ok));font:700 13px var(--f);cursor:pointer;white-space:nowrap}
 .kman-ek.on{background:var(--ok);border-color:var(--ok);color:#fff}
 .kman-st{flex:none;font-style:normal;font:700 13px var(--f)}.kman-st.ok{color:var(--ok)}.kman-st.miss{color:var(--hot)}
-/* one cikanlar */
-.kman-oc ul{list-style:none;padding:0}
-.kman-oc li{position:relative;padding:9px 0 9px 20px;border-top:1px solid var(--ln);font-size:13.5px;color:var(--ink);line-height:1.45}
-.kman-oc li:first-child{border-top:0}
-.kman-oc li::before{content:'';position:absolute;left:2px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--acc,var(--mut))}
-.kman-oc li.c0::before{background:var(--ok)}.kman-oc li.c2::before{background:var(--hot)}
 /* form karsilastirmasi */
 .kman-th{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
 .kman-th>div{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:10px 6px;border-radius:14px;background:var(--sf2,rgba(127,127,127,.08));min-width:0}
@@ -2359,8 +2353,46 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-gc small{display:block;font-size:10.5px;color:var(--mut);margin-top:2px}
 .kman-gr>.kman-gc:last-child u{background:var(--acc,var(--ok))}
 /* aralarindaki maclar */
-.kman-hs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-bottom:8px}
-.kman-hs>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--sf2,rgba(127,127,127,.08))}
-.kman-hs b{font:800 20px var(--f)}.kman-hs small{font-size:11.5px;color:var(--mut)}
 .kman-hk{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;font-size:12.5px;color:var(--mut);padding:6px 0 8px}
 .kman-hk b{color:var(--ink)}
+/* one cikanlar: ikonlu satirlar */
+.kman-ocl{display:flex;flex-direction:column;gap:8px}
+.kman-ocr{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--sf2,rgba(127,127,127,.08))}
+.kman-oci{position:relative;flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--acc,#8b8cf8);background:color-mix(in srgb,var(--acc,#8b8cf8) 16%,transparent)}
+.kman-oci svg{width:20px;height:20px}
+.kman-ocr.c0 .kman-oci{color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,transparent)}
+.kman-ocr.c2 .kman-oci{color:var(--hot);background:color-mix(in srgb,var(--hot) 16%,transparent)}
+.kman-ocb{position:absolute;right:-5px;bottom:-5px;display:flex}.kman-ocb .bd{width:18px!important;height:18px!important;font-size:0!important;box-shadow:0 0 0 2px var(--sf2,#24262b)!important}
+.kman-ocr p{flex:1;min-width:0;margin:0;font-size:13.5px;line-height:1.4;color:var(--ink)}
+.kman-ocv{flex:none;font:800 15px var(--f);font-variant-numeric:tabular-nums;color:var(--ink);padding:4px 10px;border-radius:999px;background:var(--sf,rgba(0,0,0,.2))}
+.kman-ocr.c0 .kman-ocv{color:var(--ok)}.kman-ocr.c2 .kman-ocv{color:var(--hot)}
+/* oneri notu + son maclar */
+.kman-ot span em{font-style:normal;font-weight:700;color:var(--ink)}
+.kman-on-n{margin:5px 0 0;font-size:12px;font-weight:600}.kman-on-n.ok{color:var(--warn)}.kman-on-n.warn{color:var(--hot)}
+/* aralarindaki maclar: logo ve beraberlik ikonu ayni boyda, ayni hizada */
+.kman-hs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-bottom:8px}
+.kman-hs>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:12px 4px;border-radius:14px;background:var(--sf2,rgba(127,127,127,.08))}
+.kman-hsi{height:30px;display:flex;align-items:center;justify-content:center}
+.kman-hsi .bd{width:28px!important;height:28px!important}
+.kman-hsb{width:28px;border-radius:50%;background:var(--sf,rgba(0,0,0,.25));color:var(--mut);height:28px;margin:1px 0}
+.kman-hsb svg{width:16px;height:16px}
+.kman-hs b{font:800 20px var(--f);line-height:1.2}.kman-hs small{font-size:11.5px;color:var(--mut)}
+/* masaustu: mobildeki gibi tek parca ve iri gorunum */
+@media(min-width:1100px){
+  .kman .kmb{font-size:19px!important}
+  .kman .kmb small{font-size:13.5px}
+  .kman-oi{padding:16px 18px}
+  .kman-ot b{font-size:17px}.kman-ot span{font-size:13.5px}
+  .kman-ek{padding:11px 20px;font-size:15px}
+  .kman-ocr{padding:12px 16px;gap:16px}.kman-oci{width:44px;height:44px}.kman-oci svg{width:22px;height:22px}
+  .kman-ocr p{font-size:16px}.kman-ocv{font-size:17px}
+  .kman-th>div{padding:16px 8px;gap:8px}.kman-th b{font-size:17px}.kman-th .bd{width:34px!important;height:34px!important}
+  .kman .kmoz-f .kmhap{min-width:28px;height:28px;font-size:13.5px;border-radius:8px}.kman .kmoz-f{gap:5px}
+  .kman-cr{padding:14px 0}.kman-cr span{font-size:15px}.kman-cr b{font-size:18px}
+  .kman-gr{padding:14px 0;gap:16px}.kman-gr>span{font-size:16px}.kman-gh>div{font-size:14.5px}.kman-gh .bd{width:30px!important;height:30px!important}
+  .kman-gc b{font-size:18px}.kman-gc i{height:6px;max-width:150px}.kman-gc small{font-size:12.5px}
+  .kman-hs>div{padding:16px 6px}.kman-hsi{height:40px}.kman-hsi .bd,.kman-hsb{width:38px!important;height:38px!important}.kman-hsb svg{width:20px;height:20px}
+  .kman-hs b{font-size:26px}.kman-hs small{font-size:13.5px}.kman-hk{font-size:15px}
+  .kman .kmh2s{font-size:15.5px}
+  .kman-n,.kman-uy{font-size:13px}
+}

@@ -285,9 +285,9 @@
   // Bahisci icin ilk ve varsayilan sekme: modelin onerileri (kupona ekle), one cikanlar, form karsilastirmasi, gol pazarlari (son maclar vs model), aralarindaki maclar.
   // Yalniz mevcut veriden hesaplanir (formListesi, HH, tabloSatir, model olasiliklari); veri yoksa ilgili bolum gizlenir.
   function anzIst(n, m) {
-    const l = formListesi(n, m); const o = { n, ok: 0, rs: [], g: 0, b: 0, mg: 0, at: 0, ye: 0, cs: 0, fts: 0, u15: 0, u25: 0, u35: 0, kg: 0, yer: { g: 0, b: 0, m: 0, ok: 0 } };
+    const l = formListesi(n, m); const o = { n, ok: 0, rs: [], ms: [], g: 0, b: 0, mg: 0, at: 0, ye: 0, cs: 0, fts: 0, u15: 0, u25: 0, u35: 0, kg: 0, yer: { g: 0, b: 0, m: 0, ok: 0 } };
     l.forEach(r => { const p = String(r.sk).split('-').map(s => +s.trim()); if (p.length !== 2 || p.some(isNaN)) return; const ev = r.ev === n, ben = ev ? p[0] : p[1], ka = ev ? p[1] : p[0], t = ben + ka;
-      o.ok++; o.rs.push(r.r); o.at += ben; o.ye += ka; if (ka === 0) o.cs++; if (ben === 0) o.fts++; if (t > 1.5) o.u15++; if (t > 2.5) o.u25++; if (t > 3.5) o.u35++; if (ben > 0 && ka > 0) o.kg++;
+      o.ok++; o.rs.push(r.r); o.ms.push([ben, ka]); o.at += ben; o.ye += ka; if (ka === 0) o.cs++; if (ben === 0) o.fts++; if (t > 1.5) o.u15++; if (t > 2.5) o.u25++; if (t > 3.5) o.u35++; if (ben > 0 && ka > 0) o.kg++;
       if (r.r === 'G') o.g++; else if (r.r === 'B') o.b++; else o.mg++;
       if (ev === (n === m.h)) { o.yer.ok++; o.yer[r.r === 'G' ? 'g' : r.r === 'B' ? 'b' : 'm']++; } });
     return o.ok ? o : null;
@@ -296,28 +296,48 @@
     const f1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', ','), yz = (a, b) => b ? Math.round(a / b * 100) : 0;
     const A = anzIst(m.h, m), B = anzIst(m.a, m), s = stt(m), bitti = s.k === 'ft', RK = ['düşük', 'orta', 'yüksek'], rk = p => p >= .7 ? 0 : p >= .55 ? 1 : 2;
     const out = [];
-    // 1) modelin onerileri
+    // 1) modelin onerileri: once sistemin kayitli secimleri (pops, %55-87), 3'ten azsa son maclarda sik gerceklesen orta/yuksek riskli secimlerle tamamlanir (sonuc/KG turunden ikinci secim yok; gol baraji ise ihtimal farki >=%12 ise eklenir)
     try {
-      const po = (typeof pops === 'function' ? pops(m) : []).slice(0, 3), mk = [m.c, m.h, m.a].join('|');
-      if (!m.np && po.length) out.push(card('kman kman-on', `<h3 class="kmb">Modelin önerileri <small>${bitti ? 'maç öncesi' : 'en olası 3 seçim'}</small></h3>${po.map(x => {
-        const r = rk(x.p), od = typeof kodd === 'function' ? kodd(m, x.k) : null, ad = typeof labx === 'function' ? labx(x.k, m) : x.k, z = bitti && typeof pso === 'function' ? pso(m, x) : '', ic = typeof KPD !== 'undefined' && KPD.some(l => l.mk === mk && l.k === x.k);
-        return `<div class="kman-oi r${r}"><div class="kman-ot"><b>${E(ad)}</b><span><i></i>%${Math.round(x.p * 100)} · ${RK[r]} risk${od ? ' · tahmini oran ' + (+od).toFixed(2) : ''}</span></div>${z === 'hit' ? '<em class="kman-st ok">✓ Tuttu</em>' : z === 'miss' ? '<em class="kman-st miss">✗ Tutmadı</em>' : bitti ? '' : `<button class="kman-ek${ic ? ' on' : ''}" data-ka="${E(mk)}" data-kk="${E(x.k)}">${ic ? '✓ Kuponda' : '+ Kupona ekle'}</button>`}</div>`; }).join('')}`));
+      const mk = [m.c, m.h, m.a].join('|');
+      // gecmis: ev sahibinin maclari (o, rakip) ve deplasmanin maclari (rakip, o) bu macin yonune cevrilir
+      const gm = [...(A ? A.ms.map(([b, k]) => [b, k]) : []), ...(B ? B.ms.map(([b, k]) => [k, b]) : [])];
+      const gec = k => { let h = 0, n = 0; gm.forEach(([x, y]) => { try { const v = hit(k, x, y); if (v === true || v === false) { n++; if (v) h++; } } catch (e) { } }); return n >= 3 ? { h, n } : null; };
+      const aile = k => /^(1|X|2|1X|X2|12)$/.test(k) ? 'mac' : /^[ÜA]\d/.test(k) ? 'gol' : /^KG/.test(k) ? 'kg' : /^E[GA]/.test(k) ? 'ev' : /^D[GA]/.test(k) ? 'dep' : k;
+      const sec = (typeof pops === 'function' ? pops(m) : []).slice(0, 3).map(x => ({ k: x.k, p: x.p }));
+      if (!m.np && sec.length < 3 && typeof kprob === 'function') {
+        const ADAY = ['1', 'X', '2', '1X', 'X2', '12', 'Ü1.5', 'Ü2.5', 'Ü3.5', 'A2.5', 'A3.5', 'KG Var', 'KG Yok', 'EG1', 'EG2', 'DG1', 'DG2'];
+        const ad = ADAY.filter(k => !sec.some(x => x.k === k)).map(k => { const p = kprob(m, k), g = gec(k); return { k, p, g, s: p ? p + (g ? (g.h / g.n - .5) * .3 : 0) : 0 }; }).filter(o => o.p && o.p >= .45 && o.p <= .87 && o.g && o.g.h / o.g.n >= .5).sort((a, b) => b.s - a.s);
+        for (const o of ad) { if (sec.length >= 3) break; if (sec.some(x => aile(x.k) === aile(o.k) && (/^(mac|kg)$/.test(aile(o.k)) || Math.abs(x.p - o.p) < .12))) continue; sec.push({ k: o.k, p: o.p, ek: 1 }); }
+      }
+      if (!m.np && sec.length) out.push(card('kman kman-on', `<h3 class="kmb">Modelin önerileri <small>${sec.length === 1 ? 'en olası seçim' : 'en olası ' + sec.length + ' seçim'}${bitti ? ' · maç öncesi' : ''}</small></h3>${sec.map(x => {
+        const r = rk(x.p), od = typeof kodd === 'function' ? kodd(m, x.k) : null, ad = typeof labx === 'function' ? labx(x.k, m) : x.k, z = bitti && typeof pso === 'function' ? pso(m, x) : '', ic = typeof KPD !== 'undefined' && KPD.some(l => l.mk === mk && l.k === x.k), g = gec(x.k), oran = g ? g.h / g.n : null;
+        const not = oran == null ? '' : r > 0 && oran >= .6 ? `<p class="kman-on-n ok">${r === 2 ? 'Yüksek' : 'Orta'} risk, ama son maçlarda sık gerçekleşti (${g.h}/${g.n}).</p>` : r === 0 && oran <= .4 ? `<p class="kman-on-n warn">Model düşük risk görüyor, ama son maçlarda az gerçekleşti (${g.h}/${g.n}).</p>` : '';
+        return `<div class="kman-oi r${r}"><div class="kman-ot"><b>${E(ad)}</b><span><i></i>%${Math.round(x.p * 100)} · ${RK[r]} risk${od ? ' · tahmini oran ' + (+od).toFixed(2) : ''}${g ? ` · son maçlarda <em>${g.h}/${g.n}</em>` : ''}</span>${not}</div>${z === 'hit' ? '<em class="kman-st ok">✓ Tuttu</em>' : z === 'miss' ? '<em class="kman-st miss">✗ Tutmadı</em>' : bitti ? '' : `<button class="kman-ek${ic ? ' on' : ''}" data-ka="${E(mk)}" data-kk="${E(x.k)}">${ic ? '✓ Kuponda' : '+ Kupona ekle'}</button>`}</div>`; }).join('')}<p class="kman-n">Son maçlarda: iki takımın son maçlarında bu seçimin kaç kez gerçekleştiği.</p>`));
     } catch (e) { }
     // 2) one cikanlar
+    // [renk 0 iyi / 1 notr / 2 kotu, ikon, metin, sagdaki deger, logo takimi]
+    const IK = {
+      up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>', down: '<path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/>',
+      top: '<circle cx="12" cy="12" r="9"/><path d="M12 7l3 2-1 4h-4l-1-4z"/><path d="M12 3v4M21 10l-6-1M18 19l-4-6M6 19l4-6M3 10l6-1"/>',
+      kalk: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', ates: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/>',
+      kilit: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', vs: '<path d="M4 4l7 7M20 4l-7 7M4 20l5-5M20 20l-5-5"/><path d="M3 9l6-6M21 9l-6-6"/>',
+      kupa: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4h-4z"/>', kg: '<circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/>'
+    };
+    const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IK[k]}</svg>`;
     const mad = [];
     [A, B].forEach(t => { if (!t || t.ok < 3) return; const N = E(t.n);
-      if (t.g >= t.ok - 1 && t.g >= 3) mad.push([0, `<b>${N}</b> son ${t.ok} maçın ${t.g} tanesini kazandı.`]); else if (t.g === 0) mad.push([2, `<b>${N}</b> son ${t.ok} maçta hiç kazanamadı.`]);
-      if (t.at / t.ok >= 2) mad.push([0, `<b>${N}</b> maç başı ${f1(t.at / t.ok)} gol atıyor.`]); if (t.ye / t.ok >= 2) mad.push([2, `<b>${N}</b> maç başı ${f1(t.ye / t.ok)} gol yiyor.`]);
-      if (t.cs >= 3) mad.push([0, `<b>${N}</b> son ${t.ok} maçın ${t.cs} tanesinde gol yemedi.`]); if (t.fts >= 3) mad.push([2, `<b>${N}</b> son ${t.ok} maçın ${t.fts} tanesinde gol atamadı.`]); });
+      if (t.g >= t.ok - 1 && t.g >= 3) mad.push([0, 'up', `<b>${N}</b> son ${t.ok} maçın ${t.g} tanesini kazandı.`, `${t.g}/${t.ok}`, t.n]); else if (t.g === 0) mad.push([2, 'down', `<b>${N}</b> son ${t.ok} maçta hiç kazanamadı.`, `0/${t.ok}`, t.n]);
+      if (t.at / t.ok >= 2) mad.push([0, 'top', `<b>${N}</b> maç başı ${f1(t.at / t.ok)} gol atıyor.`, f1(t.at / t.ok), t.n]); if (t.ye / t.ok >= 2) mad.push([2, 'top', `<b>${N}</b> maç başı ${f1(t.ye / t.ok)} gol yiyor.`, f1(t.ye / t.ok), t.n]);
+      if (t.cs >= 3) mad.push([0, 'kalk', `<b>${N}</b> son ${t.ok} maçın ${t.cs} tanesinde gol yemedi.`, `${t.cs}/${t.ok}`, t.n]); if (t.fts >= 3) mad.push([2, 'kilit', `<b>${N}</b> son ${t.ok} maçın ${t.fts} tanesinde gol atamadı.`, `${t.fts}/${t.ok}`, t.n]); });
     if (A && B) { const n = A.ok + B.ok, u = A.u25 + B.u25, kg = A.kg + B.kg;
-      if (u / n >= .7) mad.push([1, `İki takımın son ${n} maçının <b>${u}</b> tanesi 2,5 üst bitti.`]); else if (u / n <= .3) mad.push([1, `İki takımın son ${n} maçının yalnız <b>${u}</b> tanesi 2,5 üst bitti; düşük skor eğilimi.`]);
-      if (kg / n >= .7) mad.push([1, `Son ${n} maçın <b>${kg}</b> tanesinde iki takım da gol attı.`]); }
+      if (u / n >= .7) mad.push([1, 'ates', `İki takımın son ${n} maçının <b>${u}</b> tanesi 2,5 üst bitti.`, `${u}/${n}`]); else if (u / n <= .3) mad.push([1, 'kilit', `İki takımın son ${n} maçının yalnız <b>${u}</b> tanesi 2,5 üst bitti; düşük skor eğilimi.`, `${u}/${n}`]);
+      if (kg / n >= .7) mad.push([1, 'kg', `Son ${n} maçın <b>${kg}</b> tanesinde iki takım da gol attı.`, `${kg}/${n}`]); }
     let hh = null; try { hh = HH[[m.h, m.a].sort().join('|')]; } catch (e) { }
     if (Array.isArray(hh) && hh.length >= 3) { const kz = n => hh.filter(r => (r.h === n && r.x > r.y) || (r.a === n && r.y > r.x)).length, a = kz(m.h), b = kz(m.a);
-      if (a / hh.length >= .6) mad.push([1, `Aralarındaki son ${hh.length} maçın ${a} tanesini <b>${E(m.h)}</b> kazandı.`]); else if (b / hh.length >= .6) mad.push([1, `Aralarındaki son ${hh.length} maçın ${b} tanesini <b>${E(m.a)}</b> kazandı.`]); }
+      if (a / hh.length >= .6) mad.push([1, 'vs', `Aralarındaki son ${hh.length} maçın ${a} tanesini <b>${E(m.h)}</b> kazandı.`, `${a}/${hh.length}`, m.h]); else if (b / hh.length >= .6) mad.push([1, 'vs', `Aralarındaki son ${hh.length} maçın ${b} tanesini <b>${E(m.a)}</b> kazandı.`, `${b}/${hh.length}`, m.a]); }
     const tb = tabloSatir(m.c) || [], ra = tb.find(x => x.n === m.h), rb = tb.find(x => x.n === m.a);
-    if (ra && rb && Math.abs(ra.r - rb.r) >= 6) mad.push([1, `Ligde <b>${E(ra.r < rb.r ? m.h : m.a)}</b> ${Math.min(ra.r, rb.r)}., rakibi ${Math.max(ra.r, rb.r)}. sırada.`]);
-    if (mad.length) out.push(card('kman kman-oc', `<h3 class="kmb">Öne çıkanlar</h3><ul>${mad.slice(0, 6).map(([c, t]) => `<li class="c${c}">${t}</li>`).join('')}</ul>`));
+    if (ra && rb && Math.abs(ra.r - rb.r) >= 6) mad.push([1, 'kupa', `Ligde <b>${E(ra.r < rb.r ? m.h : m.a)}</b> ${Math.min(ra.r, rb.r)}., rakibi ${Math.max(ra.r, rb.r)}. sırada.`, `${Math.min(ra.r, rb.r)}. – ${Math.max(ra.r, rb.r)}.`, ra.r < rb.r ? m.h : m.a]);
+    if (mad.length) out.push(card('kman kman-oc', `<h3 class="kmb">Öne çıkanlar <small>${Math.min(mad.length, 6)} önemli nokta</small></h3><div class="kman-ocl">${mad.slice(0, 6).map(([c, ik, t, v, tm]) => `<div class="kman-ocr c${c}"><span class="kman-oci">${svg(ik)}${tm ? `<span class="kman-ocb">${bd(tm)}</span>` : ''}</span><p>${t}</p>${v ? `<b class="kman-ocv">${v}</b>` : ''}</div>`).join('')}</div>`));
     // 3) form karsilastirmasi
     if (A || B) {
       const hp = t => t ? `<span class="kmoz-f">${t.rs.map(r => `<i class="kmhap ${sonuc(r)}">${r}</i>`).join('')}</span>` : '<span class="mut">veri yok</span>';
@@ -327,8 +347,8 @@
         sat('G · B · M', v(A, t => `${t.g} · ${t.b} · ${t.mg}`) || '–', v(B, t => `${t.g} · ${t.b} · ${t.mg}`) || '–', v(A, t => (t.g * 3 + t.b) / t.ok), v(B, t => (t.g * 3 + t.b) / t.ok)),
         sat('Attığı gol / maç', v(A, t => f1(t.at / t.ok)) || '–', v(B, t => f1(t.at / t.ok)) || '–', v(A, t => t.at / t.ok), v(B, t => t.at / t.ok)),
         sat('Yediği gol / maç', v(A, t => f1(t.ye / t.ok)) || '–', v(B, t => f1(t.ye / t.ok)) || '–', v(A, t => t.ye / t.ok), v(B, t => t.ye / t.ok), 1),
-        sat('Gol yemediği maç', v(A, t => `${t.cs}/${t.ok}`) || '–', v(B, t => `${t.cs}/${t.ok}`) || '–', v(A, t => t.cs / t.ok), v(B, t => t.cs / t.ok)),
-        sat('Gol atamadığı maç', v(A, t => `${t.fts}/${t.ok}`) || '–', v(B, t => `${t.fts}/${t.ok}`) || '–', v(A, t => t.fts / t.ok), v(B, t => t.fts / t.ok), 1),
+        sat('Gol attığı maç', v(A, t => `${t.ok - t.fts}/${t.ok}`) || '–', v(B, t => `${t.ok - t.fts}/${t.ok}`) || '–', v(A, t => (t.ok - t.fts) / t.ok), v(B, t => (t.ok - t.fts) / t.ok)),
+        sat('Gol yediği maç', v(A, t => `${t.ok - t.cs}/${t.ok}`) || '–', v(B, t => `${t.ok - t.cs}/${t.ok}`) || '–', v(A, t => (t.ok - t.cs) / t.ok), v(B, t => (t.ok - t.cs) / t.ok), 1),
         (A && A.yer.ok) || (B && B.yer.ok) ? sat('Evinde · deplasmanda', A && A.yer.ok ? `${A.yer.g}G ${A.yer.b}B ${A.yer.m}M` : '–', B && B.yer.ok ? `${B.yer.g}G ${B.yer.b}B ${B.yer.m}M` : '–', A && A.yer.ok ? (A.yer.g * 3 + A.yer.b) / A.yer.ok : null, B && B.yer.ok ? (B.yer.g * 3 + B.yer.b) / B.yer.ok : null) : '',
       ];
       out.push(card('kman kman-fk', `<h3 class="kmb">Form karşılaştırması <small>son maçlar</small></h3><div class="kman-th"><div>${bd(m.h)}<b>${E(m.h)}</b>${hp(A)}</div><div>${bd(m.a)}<b>${E(m.a)}</b>${hp(B)}</div></div>${rows.join('')}<p class="kman-n">Yeşil: o satırda daha iyi olan taraf.</p>`));
@@ -338,12 +358,12 @@
       const pz = [['Ü1.5', '1,5 üst (2+ gol)', 'u15'], ['Ü2.5', '2,5 üst (3+ gol)', 'u25'], ['Ü3.5', '3,5 üst (4+ gol)', 'u35'], ['KG Var', 'Karşılıklı gol', 'kg']];
       const hc = (v, ok) => v == null ? '<div class="kman-gc"><b>–</b></div>' : `<div class="kman-gc"><b>%${v}</b><i><u style="width:${v}%"></u></i>${ok ? `<small>${ok}</small>` : ''}</div>`;
       const rw = pz.map(([k, ad, f]) => { const mp = !m.np && typeof kprob === 'function' ? kprob(m, k) : null; return `<div class="kman-gr"><span>${ad}</span>${hc(A ? yz(A[f], A.ok) : null, A ? A[f] + '/' + A.ok : '')}${hc(B ? yz(B[f], B.ok) : null, B ? B[f] + '/' + B.ok : '')}${hc(mp ? Math.round(mp * 100) : null, '')}</div>`; }).join('');
-      out.push(card('kman kman-gp', `<h3 class="kmb">Gol pazarları</h3><div class="kman-gr kman-gh"><span></span><div>${bd(m.h)}</div><div>${bd(m.a)}</div><div>Model</div></div>${rw}<p class="kman-n">Takım sütunları: son maçlarında o pazarın kaç kez tuttuğu. Model: bu maç için tahmini ihtimal.</p>`));
+      out.push(card('kman kman-gp', `<h3 class="kmb">Gol pazarları</h3><div class="kman-gr kman-gh"><span></span><div>${bd(m.h)}</div><div>${bd(m.a)}</div><div>Tahmin</div></div>${rw}<p class="kman-n">Takım sütunları: son maçlarında o pazarın kaç kez tuttuğu. Tahmin: bu maç için modelin verdiği ihtimal.</p>`));
     }
     // 5) aralarindaki maclar
     if (Array.isArray(hh) && hh.length) {
       const kz = n => hh.filter(r => (r.h === n && r.x > r.y) || (r.a === n && r.y > r.x)).length, br = hh.filter(r => r.x === r.y).length, gl = hh.reduce((a, r) => a + (+r.x || 0) + (+r.y || 0), 0), u = hh.filter(r => (+r.x) + (+r.y) > 2.5).length, kg = hh.filter(r => +r.x > 0 && +r.y > 0).length;
-      out.push(card('kman kman-hh', `<h3 class="kmb">Aralarındaki maçlar <small>son ${hh.length}</small></h3><div class="kman-hs"><div>${bd(m.h)}<b>${kz(m.h)}</b><small>Galibiyet</small></div><div><span class="kmx">B</span><b>${br}</b><small>Beraberlik</small></div><div>${bd(m.a)}<b>${kz(m.a)}</b><small>Galibiyet</small></div></div><div class="kman-hk"><span>Maç başı <b>${f1(gl / hh.length)}</b> gol</span><span>2,5 üst <b>${u}/${hh.length}</b></span><span>Karşılıklı gol <b>${kg}/${hh.length}</b></span></div>${hh.slice(0, 5).map(r => `<div class="kmh2s"><small>${E(r.d || '')}</small><span class="${r.x > r.y ? 'b' : ''}">${E(r.h)}${bd(r.h)}</span><i class="kmh2sk">${r.x} - ${r.y}</i><span class="${r.y > r.x ? 'b' : ''}">${bd(r.a)}${E(r.a)}</span></div>`).join('')}`));
+      out.push(card('kman kman-hh', `<h3 class="kmb">Aralarındaki maçlar <small>son ${hh.length}</small></h3><div class="kman-hs"><div><span class="kman-hsi">${bd(m.h)}</span><b>${kz(m.h)}</b><small>Galibiyet</small></div><div><span class="kman-hsi kman-hsb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 10h10M7 14h10"/></svg></span><b>${br}</b><small>Beraberlik</small></div><div><span class="kman-hsi">${bd(m.a)}</span><b>${kz(m.a)}</b><small>Galibiyet</small></div></div><div class="kman-hk"><span>Maç başı <b>${f1(gl / hh.length)}</b> gol</span><span>2,5 üst <b>${u}/${hh.length}</b></span><span>Karşılıklı gol <b>${kg}/${hh.length}</b></span></div>${hh.slice(0, 5).map(r => `<div class="kmh2s"><small>${E(r.d || '')}</small><span class="${r.x > r.y ? 'b' : ''}">${E(r.h)}${bd(r.h)}</span><i class="kmh2sk">${r.x} - ${r.y}</i><span class="${r.y > r.x ? 'b' : ''}">${bd(r.a)}${E(r.a)}</span></div>`).join('')}`));
     }
     if (!out.length) return card('kman', '<h3 class="kmb">Analiz</h3><p class="kmbos">Bu maç için analiz verisi yok.</p>');
     return out.join('') + '<p class="kman-uy">İstatistiksel analiz; bahis tavsiyesi değildir. Hiçbir bahis risksiz değildir.</p>';
