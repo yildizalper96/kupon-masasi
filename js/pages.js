@@ -314,7 +314,7 @@
       if (!m.np && sec.length) out.push(card('kman kman-on', `<h3 class="kmb">Modelin önerileri <small>${sec.length === 1 ? 'en olası seçim' : 'en olası ' + sec.length + ' seçim'}${bitti ? ' · maç öncesi' : ''}</small></h3>${sec.map(x => {
         const r = rk(x.p), od = typeof kodd === 'function' ? kodd(m, x.k) : null, ad = typeof labx === 'function' ? labx(x.k, m) : x.k, z = bitti && typeof pso === 'function' ? pso(m, x) : '', ic = typeof KPD !== 'undefined' && KPD.some(l => l.mk === mk && l.k === x.k), g = gec(x.k), oran = g ? g.h / g.n : null;
         const not = oran == null ? '' : r > 0 && oran >= .6 ? `<p class="kman-on-n ok">${r === 2 ? 'Yüksek' : 'Orta'} risk, ama son maçlarda sık gerçekleşti (${g.h}/${g.n}).</p>` : r === 0 && oran <= .4 ? `<p class="kman-on-n warn">Model düşük risk görüyor, ama son maçlarda az gerçekleşti (${g.h}/${g.n}).</p>` : '';
-        return `<div class="kman-oi r${r}"><div class="kman-ot"><b>${E(ad)}</b><span><i></i>%${Math.round(x.p * 100)} · ${RK[r]} risk${od ? ' · tahmini oran ' + (+od).toFixed(2) : ''}${g ? ` · son maçlarda <em>${g.h}/${g.n}</em>` : ''}</span>${not}</div>${z === 'hit' ? '<em class="kman-st ok">✓ Tuttu</em>' : z === 'miss' ? '<em class="kman-st miss">✗ Tutmadı</em>' : bitti ? '' : `<button class="kman-ek${ic ? ' on' : ''}" data-ka="${E(mk)}" data-kk="${E(x.k)}">${ic ? '✓ Kuponda' : '+ Kupona ekle'}</button>`}</div>`; }).join('')}<p class="kman-n">Son maçlarda: iki takımın son maçlarında bu seçimin kaç kez gerçekleştiği.</p>`));
+        return `<div class="kman-oi r${r}"><div class="kman-ot"><b>${E(ad)}</b><span><i></i>%${Math.round(x.p * 100)} · ${RK[r]} risk${od ? ' · tahmini oran ' + (+od).toFixed(2) : ''}${g ? ` · son maçlarda <em>${g.h}/${g.n}</em>` : ''}</span>${not}</div>${z === 'hit' ? '<em class="kman-st ok">✓ Tuttu</em>' : z === 'miss' ? '<em class="kman-st miss">✗ Tutmadı</em>' : bitti ? '' : `<button class="kman-ek${ic ? ' on' : ''}" data-ka="${E(mk)}" data-kk="${E(x.k)}">${ic ? '✓ Kuponda' : '+ Kupona ekle'}</button>`}</div>`; }).join('')}${(() => { const g = window.kmMstat && kmMstat(30), l = window.kmMstat && kmMstat(30, m.c); return g ? `<div class="kman-gv">Modelin son 30 gündeki tutma oranı <b>%${Math.round(g.p * 100)}</b> <small>(${g.h}/${g.n})</small>${l && l.n >= 10 ? ` · bu ligde <b>%${Math.round(l.p * 100)}</b> <small>(${l.h}/${l.n})</small>` : ""}</div>` : ""; })()}<p class="kman-n">Son maçlarda: iki takımın son maçlarında bu seçimin kaç kez gerçekleştiği.</p>`));
     } catch (e) { }
     if (mod === 'oneri') return out.join('');
     // 2) one cikanlar: her takimin kendi tarafinda madde listesi (en dikkat cekici 5 madde, sagda deger); renk: 0 iyi, 1 notr, 2 kotu
@@ -568,7 +568,7 @@
       // telefon: tek akis (FotMob mobil sirasi); sag sutun kartlari Bilgiler sekmesinin icinde
       let ana;
       if (dt === 'a') ana = kimKazanir(m) + analizSekmesi(m);
-      else if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + macBilgiKarti(m) + stadKarti(x.venue) + hakemKarti(x.ref || hakemTm(m)) + tabloLig(m.c, [m.h, m.a]) + sonrakiMac(m) + formKarti(m) + kimKazanir(m) + h2hKarti(m) + p.tbx + (typeof kpBox === 'function' ? kpBox(m) : '') + bilgiKarti(m) + p.nwb;
+      else if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + macBilgiKarti(m) + stadKarti(x.venue) + hakemKarti(x.ref || hakemTm(m)) + tabloLig(m.c, [m.h, m.a]) + sonrakiMac(m) + formKarti(m) + kimKazanir(m) + h2hKarti(m) + analizSekmesi(m, 'oneri') + (typeof kpBox === 'function' ? kpBox(m) : '') + bilgiKarti(m) + p.nwb;
       else if (dt === 'z' && tabloSatir(m.c).length) ana = tabloLig(m.c, [m.h, m.a]);
       else if (dt === 'k') ana = kadroKarti(m);
       else if (dt === 'i') ana = istatistikSekmesi(m);
@@ -576,7 +576,7 @@
       else ana = `<div class="kmeski">${p.kalan}</div>`;
       return sahaFoto(macBaslikMobil(m) + ana);
     }
-    const yan =`<div class="mside">${kimKazanir(m)}${dt === 'a' ? analizSekmesi(m, 'oneri') : ''}${p.tbx}${stadKarti(x.venue)}${hakemKarti(x.ref || hakemTm(m))}${bilgiKarti(m)}${p.nwb}</div>`;
+    const yan =`<div class="mside">${kimKazanir(m)}${dt === 'a' || dt === 'p' ? analizSekmesi(m, 'oneri') : ''}${stadKarti(x.venue)}${hakemKarti(x.ref || hakemTm(m))}${bilgiKarti(m)}${p.nwb}</div>`;
     let ana;
     if (dt === 'a') ana = analizSekmesi(m, 'oneriYok');
     else if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + kadroKarti(m) + formKarti(m) + sonrakiMac(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
