@@ -2382,13 +2382,12 @@ body.kbar-on #app{padding-bottom:184px!important}
   .kman-n,.kman-uy{font-size:13px}
 }
 /* Form rozeti baloncugu (17 Kas 2026): masaustunde ustune gelince, telefonda dokununca mac bilgisi */
-.kman-tip{position:relative;cursor:pointer;outline:none}
-.kman-tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);white-space:nowrap;background:var(--ink);color:var(--bg);font:600 12px/1.3 var(--f);padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .12s,transform .12s;z-index:6}
-.kman-tip:first-child::after{left:0;transform:translate(0,4px)}.kman-tip:last-child::after{left:auto;right:0;transform:translate(0,4px)}
-.kman-tip[data-tip=""]::after{display:none}
-.kman-tip.tipac::after,.kman-tip:focus-visible::after{opacity:1;transform:translate(-50%,0)}
-.kman-tip:first-child.tipac::after,.kman-tip:last-child.tipac::after,.kman-tip:first-child:focus-visible::after,.kman-tip:last-child:focus-visible::after{transform:none}
-@media(hover:hover){.kman-tip:hover::after{opacity:1;transform:translate(-50%,0)}.kman-tip:first-child:hover::after,.kman-tip:last-child:hover::after{transform:none}}
+.kman-tip{position:relative;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.kman-tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--bg);font:600 12px/1.3 var(--f);padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35);pointer-events:none;z-index:6;display:none}
+.kman-tip:first-child::after{left:0;transform:none}.kman-tip:last-child::after{left:auto;right:0;transform:none}
+.kman-tip.tipac::after{display:block}
+.kman-tip[data-tip=""]::after{display:none!important}
+@media(hover:hover) and (pointer:fine){.kman-tip:hover::after{display:block}}
 .kman-tip.tipac{box-shadow:0 0 0 2px var(--ink)}
 .kman-th>div{overflow:visible}
 .kman-hsb{background:transparent!important;color:var(--acc,#8b8cf8)}
@@ -2403,10 +2402,9 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-occ li{position:relative;display:flex;align-items:baseline;gap:10px;padding:8px 0 8px 14px;border-top:1px solid var(--ln);font-size:13.5px;line-height:1.4;color:var(--ink)}
 .kman-occ li:first-child{border-top:0}
 .kman-occ li::before{content:'';position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--mut)}
-.kman-occ li.c0::before{background:var(--ok)}.kman-occ li.c2::before{background:var(--hot)}
 .kman-occ li span{flex:1;min-width:0}
 .kman-occ li b{flex:none;font:800 14px var(--f);font-variant-numeric:tabular-nums;color:var(--ink)}
-.kman-occ li.c0 b{color:var(--ok)}.kman-occ li.c2 b{color:var(--hot)}
+
 @media(max-width:700px){.kman-ocg{grid-template-columns:1fr}}
 /* masaustu sag sutundaki oneri karti */
 .mside .kman-on .kman-oi{flex-wrap:wrap;gap:10px}
