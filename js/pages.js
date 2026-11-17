@@ -285,13 +285,15 @@
   // Bahisci icin ilk ve varsayilan sekme: modelin onerileri (kupona ekle), one cikanlar, form karsilastirmasi, gol pazarlari (son maclar vs model), aralarindaki maclar.
   // Yalniz mevcut veriden hesaplanir (formListesi, HH, tabloSatir, model olasiliklari); veri yoksa ilgili bolum gizlenir.
   function anzIst(n, m) {
-    const l = formListesi(n, m); const o = { n, ok: 0, rs: [], ms: [], g: 0, b: 0, mg: 0, at: 0, ye: 0, cs: 0, fts: 0, u15: 0, u25: 0, u35: 0, kg: 0, yer: { g: 0, b: 0, m: 0, ok: 0 } };
+    const l = formListesi(n, m); const o = { n, ok: 0, rs: [], ms: [], det: [], g: 0, b: 0, mg: 0, at: 0, ye: 0, cs: 0, fts: 0, u15: 0, u25: 0, u35: 0, kg: 0, yer: { g: 0, b: 0, m: 0, ok: 0 } };
     l.forEach(r => { const p = String(r.sk).split('-').map(s => +s.trim()); if (p.length !== 2 || p.some(isNaN)) return; const ev = r.ev === n, ben = ev ? p[0] : p[1], ka = ev ? p[1] : p[0], t = ben + ka;
-      o.ok++; o.rs.push(r.r); o.ms.push([ben, ka]); o.at += ben; o.ye += ka; if (ka === 0) o.cs++; if (ben === 0) o.fts++; if (t > 1.5) o.u15++; if (t > 2.5) o.u25++; if (t > 3.5) o.u35++; if (ben > 0 && ka > 0) o.kg++;
+      o.ok++; o.rs.push(r.r); o.ms.push([ben, ka]); o.det.push(r.ev + ' ' + String(r.sk).replace(/\s*-\s*/, ' - ') + ' ' + r.dep + (r.t ? ' · ' + new Date(r.t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '')); o.at += ben; o.ye += ka; if (ka === 0) o.cs++; if (ben === 0) o.fts++; if (t > 1.5) o.u15++; if (t > 2.5) o.u25++; if (t > 3.5) o.u35++; if (ben > 0 && ka > 0) o.kg++;
       if (r.r === 'G') o.g++; else if (r.r === 'B') o.b++; else o.mg++;
       if (ev === (n === m.h)) { o.yer.ok++; o.yer[r.r === 'G' ? 'g' : r.r === 'B' ? 'b' : 'm']++; } });
     return o.ok ? o : null;
   }
+  // form rozeti baloncugu: telefonda dokununca acilir/kapanir (masaustunde CSS :hover)
+  document.addEventListener('click', e => { const t = e.target.closest && e.target.closest('.kman-tip'); document.querySelectorAll('.kman-tip.tipac').forEach(x => { if (x !== t) x.classList.remove('tipac'); }); if (t) t.classList.toggle('tipac'); }, true);
   function analizSekmesi(m) {
     const f1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', ','), yz = (a, b) => b ? Math.round(a / b * 100) : 0;
     const A = anzIst(m.h, m), B = anzIst(m.a, m), s = stt(m), bitti = s.k === 'ft', RK = ['düşük', 'orta', 'yüksek'], rk = p => p >= .7 ? 0 : p >= .55 ? 1 : 2;
@@ -340,7 +342,7 @@
     if (mad.length) out.push(card('kman kman-oc', `<h3 class="kmb">Öne çıkanlar <small>${Math.min(mad.length, 6)} önemli nokta</small></h3><div class="kman-ocl">${mad.slice(0, 6).map(([c, ik, t, v, tm]) => `<div class="kman-ocr c${c}"><span class="kman-oci">${svg(ik)}${tm ? `<span class="kman-ocb">${bd(tm)}</span>` : ''}</span><p>${t}</p>${v ? `<b class="kman-ocv">${v}</b>` : ''}</div>`).join('')}</div>`));
     // 3) form karsilastirmasi
     if (A || B) {
-      const hp = t => t ? `<span class="kmoz-f">${t.rs.map(r => `<i class="kmhap ${sonuc(r)}">${r}</i>`).join('')}</span>` : '<span class="mut">veri yok</span>';
+      const hp = t => t ? `<span class="kmoz-f">${t.rs.map((r, i) => `<i class="kmhap ${sonuc(r)} kman-tip" tabindex="0" data-tip="${E(t.det[i] || '')}">${r}</i>`).join('')}</span>` : '<span class="mut">veri yok</span>';
       const sat = (ad, va, vb, na, nb, az) => { const iy = na == null || nb == null || na === nb ? 0 : (az ? na < nb : na > nb) ? 1 : 2; return `<div class="kman-cr"><b class="${iy === 1 ? 'iy' : ''}">${va}</b><span>${ad}</span><b class="${iy === 2 ? 'iy' : ''}">${vb}</b></div>`; };
       const v = (t, f) => t ? f(t) : null, rows = [
         ra || rb ? sat('Lig sırası · puan', ra ? `${ra.r}. · ${ra.p}` : '–', rb ? `${rb.r}. · ${rb.p}` : '–', ra ? ra.r : null, rb ? rb.r : null, 1) : '',
@@ -363,7 +365,7 @@
     // 5) aralarindaki maclar
     if (Array.isArray(hh) && hh.length) {
       const kz = n => hh.filter(r => (r.h === n && r.x > r.y) || (r.a === n && r.y > r.x)).length, br = hh.filter(r => r.x === r.y).length, gl = hh.reduce((a, r) => a + (+r.x || 0) + (+r.y || 0), 0), u = hh.filter(r => (+r.x) + (+r.y) > 2.5).length, kg = hh.filter(r => +r.x > 0 && +r.y > 0).length;
-      out.push(card('kman kman-hh', `<h3 class="kmb">Aralarındaki maçlar <small>son ${hh.length}</small></h3><div class="kman-hs"><div><span class="kman-hsi">${bd(m.h)}</span><b>${kz(m.h)}</b><small>Galibiyet</small></div><div><span class="kman-hsi kman-hsb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 10h10M7 14h10"/></svg></span><b>${br}</b><small>Beraberlik</small></div><div><span class="kman-hsi">${bd(m.a)}</span><b>${kz(m.a)}</b><small>Galibiyet</small></div></div><div class="kman-hk"><span>Maç başı <b>${f1(gl / hh.length)}</b> gol</span><span>2,5 üst <b>${u}/${hh.length}</b></span><span>Karşılıklı gol <b>${kg}/${hh.length}</b></span></div>${hh.slice(0, 5).map(r => `<div class="kmh2s"><small>${E(r.d || '')}</small><span class="${r.x > r.y ? 'b' : ''}">${E(r.h)}${bd(r.h)}</span><i class="kmh2sk">${r.x} - ${r.y}</i><span class="${r.y > r.x ? 'b' : ''}">${bd(r.a)}${E(r.a)}</span></div>`).join('')}`));
+      out.push(card('kman kman-hh', `<h3 class="kmb">Aralarındaki maçlar <small>son ${hh.length}</small></h3><div class="kman-hs"><div><span class="kman-hsi">${bd(m.h)}</span><b>${kz(m.h)}</b><small>Galibiyet</small></div><div><span class="kman-hsi kman-hsb" title="Beraberlik"><svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.4" r="3.6"/><path d="M12 2.1l1.4 1-.55 1.7h-1.7l-.55-1.7z" fill="currentColor" stroke="none"/><g transform="translate(0 6)"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 8"/><path d="m21 7 1 8h-2"/><path d="M3 7 2 15l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 8h8"/></g></svg></span><b>${br}</b><small>Beraberlik</small></div><div><span class="kman-hsi">${bd(m.a)}</span><b>${kz(m.a)}</b><small>Galibiyet</small></div></div><div class="kman-hk"><span>Maç başı <b>${f1(gl / hh.length)}</b> gol</span><span>2,5 üst <b>${u}/${hh.length}</b></span><span>Karşılıklı gol <b>${kg}/${hh.length}</b></span></div>${hh.slice(0, 5).map(r => `<div class="kmh2s"><small>${E(r.d || '')}</small><span class="${r.x > r.y ? 'b' : ''}">${E(r.h)}${bd(r.h)}</span><i class="kmh2sk">${r.x} - ${r.y}</i><span class="${r.y > r.x ? 'b' : ''}">${bd(r.a)}${E(r.a)}</span></div>`).join('')}`));
     }
     if (!out.length) return card('kman', '<h3 class="kmb">Analiz</h3><p class="kmbos">Bu maç için analiz verisi yok.</p>');
     return out.join('') + '<p class="kman-uy">İstatistiksel analiz; bahis tavsiyesi değildir. Hiçbir bahis risksiz değildir.</p>';

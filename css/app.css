@@ -2379,13 +2379,10 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-hs b{font:800 20px var(--f);line-height:1.2}.kman-hs small{font-size:11.5px;color:var(--mut)}
 /* masaustu: mobildeki gibi tek parca ve iri gorunum */
 @media(min-width:1100px){
-  .kman .kmb{font-size:19px!important}
-  .kman .kmb small{font-size:13.5px}
-  .kman-oi{padding:16px 18px}
-  .kman-ot b{font-size:17px}.kman-ot span{font-size:13.5px}
-  .kman-ek{padding:11px 20px;font-size:15px}
-  .kman-ocr{padding:12px 16px;gap:16px}.kman-oci{width:44px;height:44px}.kman-oci svg{width:22px;height:22px}
-  .kman-ocr p{font-size:16px}.kman-ocv{font-size:17px}
+  .kman .kmb{font-size:17px!important}
+  .kman .kmb small{font-size:12.5px}
+  .kman-ot b{font-size:15px}.kman-ot span{font-size:12.5px}
+  .kman-ocr p{font-size:14px}.kman-ocv{font-size:15px}
   .kman-th>div{padding:16px 8px;gap:8px}.kman-th b{font-size:17px}.kman-th .bd{width:34px!important;height:34px!important}
   .kman .kmoz-f .kmhap{min-width:28px;height:28px;font-size:13.5px;border-radius:8px}.kman .kmoz-f{gap:5px}
   .kman-cr{padding:14px 0}.kman-cr span{font-size:15px}.kman-cr b{font-size:18px}
@@ -2396,3 +2393,16 @@ body.kbar-on #app{padding-bottom:184px!important}
   .kman .kmh2s{font-size:15.5px}
   .kman-n,.kman-uy{font-size:13px}
 }
+/* Form rozeti baloncugu (17 Kas 2026): masaustunde ustune gelince, telefonda dokununca mac bilgisi */
+.kman-tip{position:relative;cursor:pointer;outline:none}
+.kman-tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);white-space:nowrap;background:var(--ink);color:var(--bg);font:600 12px/1.3 var(--f);padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .12s,transform .12s;z-index:6}
+.kman-tip:first-child::after{left:0;transform:translate(0,4px)}.kman-tip:last-child::after{left:auto;right:0;transform:translate(0,4px)}
+.kman-tip[data-tip=""]::after{display:none}
+.kman-tip.tipac::after,.kman-tip:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+.kman-tip:first-child.tipac::after,.kman-tip:last-child.tipac::after,.kman-tip:first-child:focus-visible::after,.kman-tip:last-child:focus-visible::after{transform:none}
+@media(hover:hover){.kman-tip:hover::after{opacity:1;transform:translate(-50%,0)}.kman-tip:first-child:hover::after,.kman-tip:last-child:hover::after{transform:none}}
+.kman-tip.tipac{box-shadow:0 0 0 2px var(--ink)}
+.kman-th>div{overflow:visible}
+.kman-hsb{background:transparent!important;color:var(--acc,#8b8cf8)}
+.kman-hsb svg{width:26px!important;height:28px!important}
+@media(min-width:1100px){.kman-hsb svg{width:32px!important;height:34px!important}}
