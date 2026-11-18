@@ -6,6 +6,7 @@
 // Not   : bahisci adi ve ham oran SAKLANMAZ; yalnizca bahiscilerin ortalama, marji cikarilmis olasiliklari.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pace } from './api-pace.mjs';
 import { normalize, halves } from './match-phases.mjs';
 import { addMatch } from './season-agg.mjs';
 
@@ -25,7 +26,7 @@ async function api(p) {
   const wait = lastReq + gapMs - Date.now();
   if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait));
   lastReq = Date.now();
-  const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
+  await pace(); const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
   const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 500;
   used++;
   const j = await r.json();

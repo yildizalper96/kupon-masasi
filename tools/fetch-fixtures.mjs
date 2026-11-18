@@ -4,6 +4,7 @@
 // Anahtar .env'den okunur (API_FOOTBALL_KEY), asla yazdirilmaz.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pace } from './api-pace.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
@@ -116,7 +117,7 @@ async function api(p) {
   const wait = lastReq + gapMs - Date.now();
   if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait));
   lastReq = Date.now();
-  const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
+  await pace(); const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
   const perMin = Number(r.headers.get('x-ratelimit-limit'));
   if (Number.isFinite(perMin) && perMin > 0) gapMs = Math.ceil(60000 / perMin) + 500;
   used++;

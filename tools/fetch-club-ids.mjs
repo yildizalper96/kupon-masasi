@@ -5,6 +5,7 @@
 // Kullanim: node tools/fetch-club-ids.mjs [--max=20] [--reserve=60]   (kota /status ile kontrol edilir; --max=0 yalnizca yerel eslestirme)
 import fs from 'node:fs';
 import path from 'node:path';
+import { pace } from './api-pace.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
 const MAX = +arg('max', 20), RESERVE = +arg('reserve', 60);
@@ -32,7 +33,7 @@ if (MAX > 0) {
   for (const [lg, season, key] of JOBS) {
     if (AT[key]) continue; if (used >= MAX || (remaining === null ? 0 : remaining) - used <= RESERVE) break;
     const wait = lastReq + gapMs - Date.now(); if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait)); lastReq = Date.now();
-    const r = await fetch(`${HOST}/teams?league=${lg}&season=${season}`, { headers: { 'x-apisports-key': KEY } }); const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 500;
+    await pace(); const r = await fetch(`${HOST}/teams?league=${lg}&season=${season}`, { headers: { 'x-apisports-key': KEY } }); const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 500;
     used++; const j = await r.json(); const er = j.errors && (Array.isArray(j.errors) ? j.errors : Object.values(j.errors));
     if (er && er.length) { console.log('lig', lg, 'hata:', JSON.stringify(j.errors).slice(0, 80)); if (/rate|limit|token|request/i.test(JSON.stringify(j.errors))) break; AT[key] = []; continue; }
     AT[key] = (j.response || []).filter(x => x.team && !x.team.national).map(x => [x.team.id, x.team.name]);
