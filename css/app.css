@@ -2463,3 +2463,9 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-th .kman-tip:first-child::after{left:0;transform:none;text-align:left}
 .kman-th .kman-tip:last-child::after{left:auto;right:0;transform:none;text-align:right}
 .kman-th .kman-tip:hover,.kman-th .kman-tip.tipac{z-index:61}
+/* Masaustu mac satiri: takimlar + skor satirin ortasinda dursun (sol durum sutunu ile sag rozet sutunu ayni genislikte) */
+@media(min-width:1100px){
+  #dz .mr{grid-template-columns:clamp(104px,19%,172px) minmax(0,1fr) 64px minmax(0,1fr) clamp(104px,19%,172px)!important}
+  #dz .mr .lt{justify-self:start;margin-left:6px;width:46px!important}
+  #dz .mr .pr{justify-self:end;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
