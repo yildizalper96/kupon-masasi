@@ -50,7 +50,7 @@
     const sek = [['a', 'Analiz'], ['p', 'Bilgiler'], ['k', 'Kadro'], ['i', 'İstatistik'], ['z', 'Tablo'], ['m', 'Maçlar'], ['s', 'Seriler']];
     return `<div class="kmc kmh">
       <div class="kmh-ust"><button class="kmgeri" data-bk="1">${ic.geri}<span>Maçlar</span></button>
-        <div class="kmh-lig">${ligLg(m.c, 'orta')}${E(ligAd(m.c))}${x.round || m.rd ? ' · ' + E(x.round || m.rd) : ''}</div><span></span></div>
+        <div class="kmh-lig" data-kmgolig="${E(m.c)}">${ligLg(m.c, 'orta')}${E(ligAd(m.c))}${x.round || m.rd ? ' · ' + E(x.round || m.rd) : ''}</div><span></span></div>
       <div class="kmh-bilgi">${bilgi.join('')}</div>
       <div class="kmh-skor">
         <div class="kmtk ev"><div><b data-tm="${E(m.h)}">${E(m.h)}</b><small>${alt(m.h)}</small></div>${bd(m.h, 1)}</div>
@@ -687,7 +687,7 @@
     if (!t) return '';
     const rec = (typeof SLG !== 'undefined' && SLG[n]) || [];
     const yer = H => { const l = rec.filter(r => r.H === H); if (!l.length) return ''; const w = l.filter(r => r.r === 'G').length, d = l.filter(r => r.r === 'B').length; return `<div class="kmsr"><span>${H ? 'Evinde' : 'Deplasmanda'}</span><b>${w}G ${d}B ${l.length - w - d}M</b></div>`; };
-    return card('kmsezon', `<h3 class="kmb">Sezon istatistikleri</h3><div class="kmsr"><span>Lig sırası</span><b>${t.r}.</b></div><div class="kmsr"><span>Puan</span><b>${t.p}</b></div><div class="kmsr"><span>G / B / M</span><b>${t.w} / ${t.d} / ${t.o}</b></div><div class="kmsr"><span>Atılan / Yenilen</span><b>${t.f} / ${t.a}</b></div>${yer(1)}${yer(0)}`);
+    return card('kmsezkart', `<h3 class="kmb">Sezon istatistikleri</h3><div class="kmsr"><span>Lig sırası</span><b>${t.r}.</b></div><div class="kmsr"><span>Puan</span><b>${t.p}</b></div><div class="kmsr"><span>G / B / M</span><b>${t.w} / ${t.d} / ${t.o}</b></div><div class="kmsr"><span>Atılan / Yenilen</span><b>${t.f} / ${t.a}</b></div>${yer(1)}${yer(0)}`);
   }
   function maclarKutusu(n) {
     const tum = R.filter(x => x.h === n || x.a === n).sort((a, b) => a.t - b.t);
@@ -1640,6 +1640,13 @@
     if (e.key === 'Enter') { aramaKapat(); try { push(); det = null; PMV = null; tab = 'k'; Q = e.target.value; QX = ''; render(); } catch (x) { } }
   }, true);
   window.addEventListener('focusin', e => { if (MQ.matches && e.target && e.target.id === 'q' && e.target.value.trim()) aramaGoster(); });
+  // lig adina dokunma: lig sayfasina git (Maclar listesi lig basligi, mac sayfasi ust satiri)
+  document.addEventListener('click', e => {
+    const t = e.target.closest && e.target.closest('[data-kmgolig]'); if (!t) return;
+    e.preventDefault(); e.stopPropagation();
+    const c = t.dataset.kmgolig;
+    try { push(); det = null; PMV = null; Q = (window.kmLigQ ? window.kmLigQ(c) : LGNM[c]) || LGNM[c] || ''; QX = ''; LGT = 'p'; tab = 'k'; const q = document.getElementById('q'); if (q) q.value = LGNM[c] || Q; render(); window.scrollTo(0, 0); } catch (x) { }
+  }, true);
   document.addEventListener('click', e => {
     const k = document.getElementById('kmar'); if (!k || k.hidden) return;
     const s = e.target.closest && e.target.closest('[data-kmars]');

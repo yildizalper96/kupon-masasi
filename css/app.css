@@ -2454,3 +2454,12 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kmlf{padding:12px 14px;gap:8px;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr)}
 .kmlf span{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2;min-width:0}
 .kmlf span.b{text-align:right}
+
+/* Lig adina dokununca lige git (Maclar listesi basligi, mac sayfasi ust satiri) */
+[data-kmgolig]{cursor:pointer}
+[data-kmgolig]:hover{text-decoration:underline;text-underline-offset:3px}
+/* Form rozeti ipucu: ekip adinin ustune binmesin, rozetlerin altinda ac; uzun metin satir kirar; her seyin ustunde */
+.kman-th .kman-tip::after{bottom:auto;top:calc(100% + 8px);white-space:normal;width:max-content;max-width:min(240px,64vw);z-index:60;text-align:center}
+.kman-th .kman-tip:first-child::after{left:0;transform:none;text-align:left}
+.kman-th .kman-tip:last-child::after{left:auto;right:0;transform:none;text-align:right}
+.kman-th .kman-tip:hover,.kman-th .kman-tip.tipac{z-index:61}
