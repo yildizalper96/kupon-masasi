@@ -996,12 +996,17 @@
   }
   function tmMilli(n) { return window.KMTM ? tmV('n' + n, () => KMTM.nation(n)) : null; }
   function tmTakimId(n) { const c = tmKulup(n); if (c && c.id) return c.id; const t = tmMilli(n); return t && t.id ? String(t.id) : null; }
+  // dis kaynakli lig (window.KMLX, data/standings/<LIG>.json): Transfermarkt verisi yoksa stadyum ve teknik direktor
+  function disKulup(n) {
+    const l = TM[n] && TM[n].l, sd = l && window.KMLX && window.KMLX[l], r = sd && (sd.rows || []).find(x => x.n === n);
+    return r && (r.st || r.co) ? { st: r.st, se: r.cap, co: r.co, dis: 1 } : null;
+  }
   function takimBilgiKarti(n) {
-    const c = tmKulup(n), t = c ? null : tmMilli(n); const s = [];
+    const c = tmKulup(n) || disKulup(n), t = c ? null : tmMilli(n); const s = [];
     const sr = (a, b) => b == null || b === '' ? '' : `<div class="kmsr"><span>${a}</span><b>${b}</b></div>`;
-    if (c) s.push(sr('Stadyum', c.st ? E(c.st) + (c.se ? ` <small>${Number(c.se).toLocaleString('tr-TR')} kişi</small>` : '') : ''), sr('Kadro değeri', c.mv ? E(degerYaz(c.mv)) : ''), sr('Yaş ortalaması', c.ag ? String(c.ag).replace('.', ',') : ''), sr('Yabancı oyuncu', c.fo != null ? '%' + String(c.fo).replace('.', ',') : ''), sr('Milli oyuncu', c.nt), sr('En sık diziliş', c.dz ? E(String(c.dz).replace(/\s*flat|\s*diamond/i, '')) : ''));
+    if (c) s.push(sr('Stadyum', c.st ? E(c.st) + (c.se ? ` <small>${Number(c.se).toLocaleString('tr-TR')} kişi</small>` : '') : ''), sr('Kadro değeri', c.mv ? E(degerYaz(c.mv)) : ''), sr('Yaş ortalaması', c.ag ? String(c.ag).replace('.', ',') : ''), sr('Yabancı oyuncu', c.fo != null ? '%' + String(c.fo).replace('.', ',') : ''), sr('Teknik direktör', c.dis && c.co ? E(c.co) : ''), sr('Milli oyuncu', c.nt), sr('En sık diziliş', c.dz ? E(String(c.dz).replace(/\s*flat|\s*diamond/i, '')) : ''));
     else if (t) s.push(sr('FIFA sırası', t.rk ? t.rk + '.' : ''), sr('Kadro değeri', t.mv ? E(degerYaz(t.mv)) : ''), sr('Yaş ortalaması', t.ag ? String(t.ag).replace('.', ',') : ''), sr('Kadro', t.sz ? t.sz + ' oyuncu' : ''));
-    const h = s.join(''); return h ? card('kmtbil', `<h3 class="kmb">${c ? 'Kulüp bilgileri' : 'Milli takım bilgileri'}</h3>${h}${TMKAY}`) : '';
+    const h = s.join(''); return h ? card('kmtbil', `<h3 class="kmb">${c ? 'Kulüp bilgileri' : 'Milli takım bilgileri'}</h3>${h}${c && c.dis ? '<p class="kmkay">Kaynak: Wikipedia</p>' : TMKAY}`) : '';
   }
   // karsilikli maclar (Transfermarkt): API'nin HH verisi yoksa
   const TMYAR = { GB1: 'Premier League', ES1: 'LaLiga', IT1: 'Serie A', L1: 'Bundesliga', FR1: 'Ligue 1', TR1: 'Süper Lig', NL1: 'Eredivisie', PO1: 'Liga Portugal', BE1: 'Jupiler Pro League', SC1: 'Scottish Premiership', SA1: 'Saudi Pro League', CL: 'Şampiyonlar Ligi', EL: 'Avrupa Ligi', UCOL: 'Konferans Ligi', ECLQ: 'Konferans Ligi eleme', CLQ: 'Şampiyonlar Ligi eleme', ELQ: 'Avrupa Ligi eleme', USC: 'Süper Kupa', TRP: 'Türkiye Kupası', FAC: 'FA Cup', CDR: 'Copa del Rey', CIT: 'Coppa Italia', DFB: 'DFB-Pokal', FRCH: 'Coupe de France' };
