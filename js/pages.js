@@ -17,7 +17,12 @@
   const KY = s => { s = String(s == null ? '' : s); const m = [...new Set((s.match(KYM) || []).map(x => x.replace(/^api-football$/i, 'API-Football')))]; if (m.length) return m.join(', '); const t = s.split(/[;|(,]|.s|.$/)[0].trim(); return t || 'kayıtlı veri'; };
   window.KMKAY = KY;
   const key = m => [m.c, m.h, m.a].join('|');
-  const xm = m => (X.matches && X.matches[key(m)]) || {};
+  // dis kaynakli lig (window.KMLX, data/standings/<LIG>.json): ev sahibinin stadyumu (Wikipedia); ek veri dosyasinda varsa o gecerli
+  function disMac(m) {
+    const sd = window.KMLX && window.KMLX[m.c], r = sd && (sd.rows || []).find(x => x.n === m.h);
+    return r && r.st ? { venue: { name: r.st, city: r.city || '', cap: r.cap || 0, surface: r.surface || '' } } : null;
+  }
+  const xm = m => { const e = (X.matches && X.matches[key(m)]) || {}; if (e.venue) return e; const d = disMac(m); return d ? Object.assign({}, d, e) : e; };
   const xt = n => (X.teams && X.teams[n]) || {};
   const card = (cls, inner) => `<section class="kmc ${cls || ''}">${inner}</section>`;
   const today = () => dk(new Date());
@@ -245,10 +250,22 @@
       <details class="kmeksd"><summary>Sakat ve cezalı oyuncular</summary><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div></details>
       <p class="kmkay">Kaynak: API-Football</p>`);
   }
+  // kulup maclari (PS: Transfermarkt sezon kadrosu): resmi ilk 11 yokken iki takimin kadrosu mevkiye gore
+  function kulupKadroKarti(m) {
+    const A = PS[m.c + '|' + m.h], B = PS[m.c + '|' + m.a];
+    if (!(A && A.p && A.p.length) && !(B && B.p && B.p.length)) return '';
+    const GR = [['K', 'Kaleciler'], ['D', 'Defans'], ['O', 'Orta saha'], ['F', 'Forvetler']];
+    const col = (n, t) => {
+      if (!t || !t.p || !t.p.length) return `<div><p class="kmbos">${E(n)} için kadro verisi yok.</p></div>`;
+      const pl = t.p.filter(x => x[1] > 0).sort((a, b) => b[2] - a[2]);
+      return `<div><p style="margin:0 0 6px"><b>${E(n)}</b> <span style="opacity:.65">· ${pl.length} oyuncu</span></p>` + GR.map(([g, ad]) => { const l = pl.filter(x => x[6] === g); return l.length ? `<p style="margin:6px 0;font-size:13px;line-height:1.55"><b>${ad}:</b> ${l.map(x => E(x[0]) + (x[7] ? ` (${x[7]})` : '')).join(', ')}</p>` : ''; }).join('') + '</div>';
+    };
+    return card('kmkadro', `<h3 class="kmb">Takım kadroları</h3><div class="kmiki">${col(m.h, A)}${col(m.a, B)}</div><p class="kmkay">Bu sezon lig maçında forma giyen oyuncular (parantez: forma numarası), en çok süre alandan başlayarak. Resmi ilk 11 açıklanınca (genelde maçtan 1 saat önce) sahada görünür. Kaynak: Transfermarkt.</p>`);
+  }
   function kadroKarti(m) {
     try { const raw = window.KMX && typeof KMX.luRaw === 'function' && KMX.luRaw(m); if (raw) { const h = hamSaha(m, raw); if (h) return h; } } catch (e) { }
     const lu = LU[key(m)];
-    if (!lu) return davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
+    if (!lu) return davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
@@ -475,12 +492,27 @@
     return `<div class="kmois"><span class="${ust === 1 ? 'on' : ''}" style="--tc:${EVR}">${f(a)}</span><em>${E(ad)}</em><span class="${ust === 2 ? 'on' : ''}" style="--tc:${DPR}">${f(b)}</span></div>`;
   }
   function istatGrup(baslik, satirlar) { const h = satirlar.join(''); return h ? `<div class="kmisg"><h4>${E(baslik)}</h4>${h}</div>` : ''; }
+  // kulup maclari: maca ait istatistik yokken iki takimin sezon ozeti (TM tablo satiri + PS oyuncu istatistikleri)
+  function kulupIstatKarti(m) {
+    const f1 = v => (Math.round(v * 10) / 10).toFixed(1).replace('.', ',');
+    const kol = n => {
+      const t = TM[n], s = PS[m.c + '|' + n]; if (!t || !s || !s.p) return null;
+      const ok = t.w + t.d + t.o, top = (i, k) => s.p.filter(x => x[i] > 0).sort((a, b) => b[i] - a[i]).slice(0, k);
+      const sr = (a, b) => `<div class="kmsr"><span>${a}</span><b>${b}</b></div>`;
+      const ls = (ad, l, i) => l.length ? sr(ad, l.map(x => `${E(x[0])} ${x[i]}`).join(', ')) : '';
+      const sari = s.p.reduce((u, x) => u + (x[5] || 0), 0);
+      return `<div><p style="margin:0 0 6px"><b>${E(n)}</b></p>${sr('Lig sırası · puan', `${t.r}. · ${t.p}`)}${sr('G · B · M', `${t.w} · ${t.d} · ${t.o}`)}${sr('Attığı gol / maç', f1(t.f / ok))}${sr('Yediği gol / maç', f1(t.a / ok))}${ls('En golcüler', top(3, 3), 3)}${ls('En çok asist', top(4, 3), 4)}${sr('Sarı kart', sari)}</div>`;
+    };
+    const a = kol(m.h), b = kol(m.a); if (!a && !b) return '';
+    return card('kmistat', `<h3 class="kmb">Sezon istatistikleri</h3><div class="kmiki">${a || ''}${b || ''}</div><p class="kmkay">Bu maça ait istatistikler maç başladıktan sonra kaynak verdikçe görünür. Kaynak: Transfermarkt, ge.globo.</p>`);
+  }
   function istatistikSekmesi(m) {
     const st = stxOf(m), th = devreVeri(m);
     if (DV !== 'tum' && !(th && Array.isArray(th[DV]) && th[DV].length)) DV = 'tum';
     const t = DV !== 'tum' ? th[DV] : (st && Array.isArray(st.t) ? st.t : []);
     const px0 = pxVeri(m), px = DV === 'tum' ? px0 : (px0 ? { tam: false, h: [], a: [] } : null);
     const secici = th ? `<div class="kmdvs">${[['tum', 'Tümü'], ['1', '1.'], ['2', '2.']].filter(([k]) => k === 'tum' || (Array.isArray(th[k]) && th[k].length)).map(([k, l]) => `<button data-kmdv="${k}" class="${DV === k ? 'on' : ''}">${l}</button>`).join('')}</div>` : '';
+    if (!t.length && !px && kulupIstatKarti(m)) return kulupIstatKarti(m);
     if (!t.length && !px) return card('kmistat', `<h3 class="kmb">İstatistikler</h3><p class="kmbos">Bu maç için istatistik verisi yok. Maç başladıktan sonra kaynak verdikçe görünür.</p>`);
     const T = re => { const r = t.find(x => re.test(x[0])); return r ? [r[1], r[2]] : null; };
     const S = (ad, re, o) => { const v = T(re); return v ? istatSatir(ad, v[0], v[1], o) : ''; };
