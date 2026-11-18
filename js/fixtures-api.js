@@ -47,6 +47,33 @@
           (sd.rows || []).forEach(function (r) { if (!TM[r.n] || TM[r.n].l === sc) TM[r.n] = { l: sc, r: r.r, p: r.p, w: r.w, d: r.d, o: r.l, f: r.f, a: r.a, fm: r.form || '' }; });
           window.KMLX = window.KMLX || {};
           window.KMLX[sc] = sd;
+          // oyuncu istatistikleri (dis kaynak: Transfermarkt): PS kaydi [ad, mac, dk, gol, asist, sari, mevki, forma no] -> Kadro ve Oyuncu istatistikleri sekmeleri
+          // app.js refresh() PS'yi sonuc dosyasindan yeniden yukler; bu yuzden her yuklemeden sonra kmPsDis() yeniden uygular
+          if (sd.players) {
+            window.kmPsDis = function () {
+              if (typeof PS === 'undefined') return;
+              Object.keys(sd.players).forEach(function (t) {
+                var v = sd.players[t];
+                PS[sc + '|' + t] = { src: sd.playersSrc || 'Transfermarkt', at: sd.playersAt || '', kr: v.kr || 'yok', p: v.p, m: [] };
+              });
+            };
+            window.kmPsDis();
+          }
+          // sezon maclari (dis kaynak: ge.globo; puan tablosuyla birebir dogrulandi): lig kaydi SLG (form, son maclar), mac listesi R ve skorlar RES
+          if (Array.isArray(sd.matches) && typeof SLG !== 'undefined') {
+            var seen = {};
+            sd.matches.forEach(function (m) { [m.h, m.a].forEach(function (n) { if (!seen[n]) { seen[n] = 1; SLG[n] = []; } }); });
+            var haveR = new Set(R.map(function (m) { return m.c + '|' + m.h + '|' + m.a; }));
+            sd.matches.forEach(function (m) {
+              var rs = function (f, c) { return f > c ? 'G' : f < c ? 'M' : 'B'; };
+              SLG[m.h].push({ w: m.r, H: 1, o: m.a, f: m.x, c: m.y, r: rs(m.x, m.y) });
+              SLG[m.a].push({ w: m.r, H: 0, o: m.h, f: m.y, c: m.x, r: rs(m.y, m.x) });
+              var k = sc + '|' + m.h + '|' + m.a;
+              if (!haveR.has(k)) { haveR.add(k); R.push({ c: sc, t: new Date(m.t), h: m.h, a: m.a, p: [1 / 3, 1 / 3, 1 / 3], np: true }); }
+              if (!RES[k]) RES[k] = m.x + '-' + m.y;
+            });
+          }
+
         } catch (e) { }
       }
 

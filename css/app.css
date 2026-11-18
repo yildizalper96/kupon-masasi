@@ -2450,3 +2450,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .hro-gv small{display:inline!important;margin-left:4px;font-size:11.5px!important}
 @media(min-width:1100px){#dz .stk{margin:0 0 10px!important}}
 @media(max-width:700px){.hro-w{font-size:13px}.hro-gv{flex:1;justify-content:center}.hro-gv span{font-size:11.5px!important}.hro-gv small{font-size:11px!important}}
+/* Hafta fiksturu (lig sayfasi sag sutun): uzun takim adlari (Vasco da Gama, Atletico Paranaense) soldan kesilmesin; sigmazsa ikinci satira insin */
+.kmlf{padding:12px 14px;gap:8px;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr)}
+.kmlf span{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2;min-width:0}
+.kmlf span.b{text-align:right}
