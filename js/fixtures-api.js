@@ -9,21 +9,6 @@
   var FXAT = '';
   var FIN = { FT: 1, AET: 1, PEN: 1 };
 
-  // Lig sayfasi ek kutusu (puan tablosunun altinda): kupa bolgeleri, son 5 mac, gol/asist/gol yemeyen kaleci, teknik direktor/stadyum
-  function kmLigEkstra(sd) {
-    var e = function (x) { return String(x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-    var rows = sd.rows || [];
-    var lst = function (t, a) { return a && a.length ? '<div class="lgx-b"><b>' + t + '</b>' + a.map(function (x, i) { return '<div><span>' + e(x[0]) + ' <small>' + e(x[1]) + '</small></span><b>' + x[2] + '</b></div>'; }).join('') + '</div>' : ''; };
-    var form = rows.map(function (r) { return '<div class="lgx-r"><span data-tm="' + e(r.n) + '">' + e(r.n) + '</span><span class="lgx-f">' + (r.form || '').split('').map(function (c) { return '<i class="' + c + '">' + c + '</i>'; }).join('') + '</span><span class="lgx-m">%' + r.pct + '</span></div>'; }).join('');
-    var tech = rows.filter(function (r) { return r.co; }).map(function (r) { return '<div class="lgx-r"><span data-tm="' + e(r.n) + '">' + e(r.n) + '</span><span class="lgx-m">' + e(r.co) + '</span><span class="lgx-m">' + e(r.st) + (r.cap ? ' · ' + r.cap.toLocaleString('tr') : '') + '</span></div>'; }).join('');
-    return '<div class="box lgx"><h3>Lig bilgileri</h3>' + (sd.zones ? '<div class="mut">' + e(sd.zones) + '</div>' : '') +
-      '<h4>Son 5 maç (G galibiyet, B beraberlik, M mağlubiyet) · puan yüzdesi</h4>' + form +
-      '<div class="lgx-g">' + lst('Gol krallığı', sd.scorers) + lst('Asist', sd.assists) + lst('Gol yemeyen kaleci', sd.cs) + '</div>' +
-      '<h4>Teknik direktör ve stadyum</h4>' + tech +
-      '<div class="mut">Kaynak: ' + e(sd.src || '') + '. Tablo dış kaynaktan girilmiştir; maçlar bittikçe güncellenmeyebilir.</div></div>';
-  }
-
-
   async function loadFixtures(force) {
     try {
       var db = await claude.use('db');
@@ -59,9 +44,9 @@
           var ss = await db.doc('standings/' + sc).get();
           if (!ss.exists) continue;
           var sd = ss.data();
-          (sd.rows || []).forEach(function (r) { if (!TM[r.n] || TM[r.n].l === sc) TM[r.n] = { l: sc, r: r.r, p: r.p, w: r.w, d: r.d, o: r.l, f: r.f, a: r.a }; });
+          (sd.rows || []).forEach(function (r) { if (!TM[r.n] || TM[r.n].l === sc) TM[r.n] = { l: sc, r: r.r, p: r.p, w: r.w, d: r.d, o: r.l, f: r.f, a: r.a, fm: r.form || '' }; });
           window.KMLX = window.KMLX || {};
-          window.KMLX[sc] = (function (sd) { return function () { return kmLigEkstra(sd); }; })(sd);
+          window.KMLX[sc] = sd;
         } catch (e) { }
       }
 

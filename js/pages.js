@@ -646,6 +646,7 @@
   function formYar(c, n) {
     const ren = (gf, ga) => gf > ga ? 'G' : gf < ga ? 'M' : 'B';
     try {
+      if (TM[n] && TM[n].l === c && !son5(n).length && TM[n].fm) return TM[n].fm.split('').map(x => ({ r: x, t: 'Son 5 maç (dış kaynak: ge.globo)' }));
       if (TM[n] && TM[n].l === c) return son5(n).map(r => ({ r: r.r, t: (r.H ? n + ' ' + r.f + '-' + r.c + ' ' + r.o : r.o + ' ' + r.c + '-' + r.f + ' ' + n) }));
       let l = [];
       if (c === 'CL' && typeof CLR !== 'undefined') l = CLR.filter(r => r.h === n || r.a === n).map(r => ({ h: r.h, a: r.a, x: +r.x, y: +r.y }));
@@ -1375,6 +1376,13 @@
     return card('kmec3', `<div class="kmuc">${pu.length ? kol('En çok puan alan', pu) : kol('En çok süre alan', top(e => +e.ps.p[2]))}${kol('En çok gol atan', top(e => +e.ps.p[3]))}${kol('En çok asist yapan', top(e => +e.ps.p[4]))}</div>
       <p class="kmkay">Kaynak: ${E(KY(kay))}</p>`);
   }
+  // dis kaynakli lig (data/standings/<LIG>.json -> window.KMLX): oyuncu verisi yokken en coklar kutusu; ligEnCoklar ile ayni gorunum (foto yok, bas harf)
+  function ligEnCoklarDis(c) {
+    const sd = window.KMLX && window.KMLX[c]; if (!sd || !sd.scorers) return '';
+    const sat = x => { const [a, b] = renk(x[1]); return `<div class="kmec"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(x[0]))}</i></span><div><b>${E(x[0])}</b><small>${bd(x[1])}${E(x[1])}</small></div><em>${x[2]}</em></div>`; };
+    const kol = (ad, l) => `<div><h4>${ad}</h4>${l && l.length ? l.slice(0, 3).map(sat).join('') : '<p class="kmbos">Veri yok.</p>'}</div>`;
+    return card('kmec3', `<div class="kmuc">${kol('En çok gol atan', sd.scorers)}${kol('En çok asist yapan', sd.assists)}${kol('En çok gol yemeyen kaleci', sd.cs)}</div><p class="kmkay">Kaynak: ${E(sd.src || '')}</p>`);
+  }
   // lig tahmin karnesi: uygulamanin lgStats hesabiyla ayni (LGR kayitlari + pso sonucu), risk bandina gore
   function ligTahminKarti(c) { return tahminKarnesi(R.filter(x => x.c === c), ligAd(c), 'Bu lig için kayıtlı tahmin yok.'); }
   function tahminKarnesi(ML, alt, bos) {
@@ -1553,7 +1561,7 @@
         const tabloYok = card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><p class="kmbos">Bu lig için puan durumu verisi yok.</p>`);
         if (LGS.s === 'p') return bas + (ligTabloSekme(c) || tabloYok) + `<div class="mside">${ligHafta(c)}${karne}</div>`;
         if (LGS.s === 'm') return bas + ligMaclar(c) + `<div class="mside">${karne}</div>`;
-        return bas + (tablo || '') + ligEnCoklar(c) + (window.KMLX && window.KMLX[c] ? window.KMLX[c]() : '') + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
+        return bas + (tablo || '') + (ligEnCoklar(c) || ligEnCoklarDis(c)) + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
       } catch (e) { return eskiLeagueView(c); }
     };
     document.addEventListener('click', e => {
