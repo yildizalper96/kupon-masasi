@@ -31,7 +31,11 @@ async function api(p) {
   used++;
   const j = await r.json();
   const er = j.errors && (Array.isArray(j.errors) ? j.errors : Object.values(j.errors));
-  if (er && er.length) throw new Error(p + ' -> ' + JSON.stringify(j.errors));
+  if (er && er.length) {
+    // 429 / rateLimit: yavasla (ilerlemeli bekleme); 2. kez olursa calismayi durdur (askiya almayi onle)
+    if (/rateLimit|Too many/i.test(JSON.stringify(j.errors))) { globalThis.__rl = (globalThis.__rl || 0) + 1; if (globalThis.__rl >= 2) { console.error('Hiz siniri 2 kez asildi, calisma durduruldu.'); process.exit(0); } await new Promise(r => setTimeout(r, 65000)); }
+    throw new Error(p + ' -> ' + JSON.stringify(j.errors));
+  }
   return j;
 }
 const left = () => (remaining === null ? 99 : remaining) - used;
