@@ -288,6 +288,28 @@ if (process.argv.includes('--live')) {
   process.exit(0);
 }
 
+// ---------- ID MODU: node tools/fetch-fixtures.mjs --ids=1528971-1528991 | --ids=1,2,3 ----------
+// Tarih penceresi disinda kalan (ucretsiz plan) gecmis maclari tek tek /fixtures?id= ile alip latest.json'a ekler (mac basina 1 istek).
+if (process.argv.some(a => a.startsWith('--ids='))) {
+  const spec = arg('ids', ''), ids = spec.split(',').flatMap(p => { const [x, y] = p.split('-').map(Number); return y ? Array.from({ length: y - x + 1 }, (_, i) => x + i) : [x]; }).filter(Number.isFinite);
+  const latestPath = path.join(outDir, 'latest.json'), prev = JSON.parse(fs.readFileSync(latestPath, 'utf8')), byId = new Map(prev.m.map(m => [m.id, m]));
+  let add = 0, upd = 0, other = 0;
+  for (const id of ids) {
+    if (remaining !== null && remaining <= 12) { console.log('Kota yedege indi, durdu.'); break; }
+    const j = await api('/fixtures?id=' + id + '&timezone=UTC'), x = j.response && j.response[0];
+    if (!x) continue;
+    const m = toMatch(x);
+    if (!m) { other++; continue; }
+    const old = byId.get(m.id);
+    if (old) { Object.assign(old, { st: m.st, el: m.el, sc: m.sc }); upd++; } else { prev.m.push(m); byId.set(m.id, m); add++; }
+    console.log(id, m.t, m.h, m.sc ? m.sc.join('-') : '-', m.a, m.st);
+  }
+  prev.m.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c)); prev.at = new Date().toISOString();
+  fs.writeFileSync(latestPath, JSON.stringify(prev)); finAdd(prev.m); tidSave();
+  console.log('Eklenen ' + add + ', guncellenen ' + upd + ', hedef disi ' + other + '. Harcanan istek: ' + used + ', kalan: ' + remaining);
+  process.exit(0);
+}
+
 const matches = [];
 console.log(`Tarih araligi: ${dates[0]} .. ${dates[dates.length - 1]} (${dates.length} istek)`);
 for (const d of dates) {

@@ -1553,7 +1553,7 @@
         const tabloYok = card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><p class="kmbos">Bu lig için puan durumu verisi yok.</p>`);
         if (LGS.s === 'p') return bas + (ligTabloSekme(c) || tabloYok) + `<div class="mside">${ligHafta(c)}${karne}</div>`;
         if (LGS.s === 'm') return bas + ligMaclar(c) + `<div class="mside">${karne}</div>`;
-        return bas + (tablo || '') + ligEnCoklar(c) + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
+        return bas + (tablo || '') + ligEnCoklar(c) + (window.KMLX && window.KMLX[c] ? window.KMLX[c]() : '') + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
       } catch (e) { return eskiLeagueView(c); }
     };
     document.addEventListener('click', e => {

@@ -2450,3 +2450,15 @@ body.kbar-on #app{padding-bottom:184px!important}
 .hro-gv small{display:inline!important;margin-left:4px;font-size:11.5px!important}
 @media(min-width:1100px){#dz .stk{margin:0 0 10px!important}}
 @media(max-width:700px){.hro-w{font-size:13px}.hro-gv{flex:1;justify-content:center}.hro-gv span{font-size:11.5px!important}.hro-gv small{font-size:11px!important}}
+/* Lig ek kutusu (Brezilya vb.: dis kaynakli puan tablosu) */
+.lgx h4{margin:14px 0 6px;font:700 13px var(--f);color:var(--mut)}
+.lgx-r{display:grid;grid-template-columns:minmax(0,1.2fr) auto minmax(0,1fr);gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--ln);font:500 13px var(--f)}
+.lgx-r>span:first-child{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgx-m{color:var(--mut);font-size:12px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgx-f{display:inline-flex;gap:3px}.lgx-f i{font:700 10px/16px var(--f);width:16px;height:16px;border-radius:50%;text-align:center;font-style:normal;color:#fff;background:var(--mut)}
+.lgx-f i.G{background:var(--ok)}.lgx-f i.M{background:var(--hot)}.lgx-f i.B{background:var(--warn)}
+.lgx-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:6px}
+.lgx-b>b{display:block;margin:12px 0 4px;font:700 13px var(--f);color:var(--mut)}
+.lgx-b>div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--ln);font:500 13px var(--f)}
+.lgx-b small{color:var(--mut)}
+@media(max-width:700px){.lgx-g{grid-template-columns:1fr}.lgx-r{grid-template-columns:minmax(0,1fr) auto}.lgx-r>.lgx-m:last-child{grid-column:1/-1;text-align:left}}

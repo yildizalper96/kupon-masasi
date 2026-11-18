@@ -68,15 +68,21 @@ const age = at => (at ? now - Date.parse(at) : Infinity);
 
 // aday maclar: baslamasina HOURS saat kala ile baslamasindan 3 saat sonrasi arasi
 const cand = latest.m
-  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(30) && t < now + HRS(HOURS); })
+  .filter(m => { const t = Date.parse(m.t); return t > now - HRS(+arg('back', 30)) && t < now + HRS(HOURS); })
   .sort((a, b) => a.t.localeCompare(b.t));
 console.log(`Aday mac: ${cand.length}`);
 
 // ---- takim kimlikleri: ucretsiz plan "ids" parametresine izin vermez; gun basina tek istek (/fixtures?date=) ----
-const needIds = cand.filter(m => !(D.m[m.id] && D.m[m.id].hid));
+let needIds = cand.filter(m => !(D.m[m.id] && D.m[m.id].hid));
+// takim kimlikleri data/teams/ids.json'da varsa istek harcama (tarih penceresi disindaki gecmis maclar icin de calisir)
+try {
+  const T = JSON.parse(fs.readFileSync(path.join(root, 'data/teams/ids.json'), 'utf8')).t || {};
+  for (const m of needIds) if (T[m.h] && T[m.a]) D.m[m.id] = Object.assign(D.m[m.id] || {}, { k: `${m.c}|${m.h}|${m.a}`, c: m.c, h: m.h, a: m.a, t: m.t, hid: T[m.h], aid: T[m.a] });
+} catch {}
+needIds = cand.filter(m => !(D.m[m.id] && D.m[m.id].hid));
 for (const day of [...new Set(needIds.map(m => m.t.slice(0, 10)))]) {
   if (!canSpend()) break;
-  const j = await api('/fixtures?date=' + day + '&timezone=UTC');
+  let j; try { j = await api('/fixtures?date=' + day + '&timezone=UTC'); } catch (e) { console.log('Tarih sorgusu atlandi: ' + day); continue; }
   for (const x of j.response) {
     const m = needIds.find(c => c.id === x.fixture.id); if (!m) continue;
     D.m[m.id] = Object.assign(D.m[m.id] || {}, { k: `${m.c}|${m.h}|${m.a}`, c: m.c, h: m.h, a: m.a, t: m.t, hid: x.teams.home.id, aid: x.teams.away.id });
