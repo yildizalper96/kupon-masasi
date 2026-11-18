@@ -308,7 +308,7 @@
     const el = document.createElement('div'); el.className = 'kmgun';
     el.innerHTML = l.map(d => `<button type="button" data-kmgun="${esc(d)}" class="${d === cur ? 'on' : ''}">${esc(gunEt(d))}</button>`).join('');
     stk.before(el);
-    el.querySelectorAll('[data-kmgun]').forEach(b => b.onclick = () => { try { day = b.dataset.kmgun; render(); } catch (e) { } });
+    el.querySelectorAll('[data-kmgun]').forEach(b => b.onclick = () => { try { day = b.dataset.kmgun; window.__dayAuto = 0; render(); } catch (e) { } });
     const on = el.querySelector('.on'); if (on) el.scrollLeft = on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2;
   }
   // Ligler sayfasi (telefon): buyuk baslik + "Lig bul" kutusu, liste ada gore suzulur
