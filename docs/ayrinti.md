@@ -1,4 +1,4 @@
-# Kupon Masası
+# Simuleto (eski ad: Kupon Masası)
 
 Futbol maç analizi ve iddaa kuponu simülatörü. Kullanıcı Türkçe konuşur: cevaplar Türkçe ve kısa olsun.
 Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis risksiz değildir."
@@ -24,7 +24,7 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 - Test (Aşama 1): 7 dilde 5 sekme tarandı, NaN/undefined/hata yok; kupon localStorage'a yazılıyor.
 
 ## Yayın
-- ASIL SİTE (11 Kas 2026'dan beri): https://yildizalper96.github.io/kupon-masasi/ — GitHub Pages, repo herkese açık (github.com/yildizalper96/kupon-masasi). GitHub Actions veriyi otomatik çeker ve yayınlar (secret `API_FOOTBALL_KEY` tanımlı, Pages kaynağı "GitHub Actions"). İlk çalıştırma doğrulandı: akış başarılı, veri taze, gizli yollar 404, uygulama tarayıcıda hatasız. Kod değişikliği: commit + `git push` (GitHub girişi için kullanıcının terminali gerekebilir; git yolu `C:\Program Files\Git\cmd\git.exe`).
+- ASIL SİTE (11 Kas 2026'dan beri; 19 Kas 2026'dan beri https://simuleto.com/, Cloudflare DNS + GitHub Pages özel alan adı + HTTPS, eski github.io adresi yönlenir): https://yildizalper96.github.io/kupon-masasi/ — GitHub Pages, repo herkese açık (github.com/yildizalper96/kupon-masasi). GitHub Actions veriyi otomatik çeker ve yayınlar (secret `API_FOOTBALL_KEY` tanımlı, Pages kaynağı "GitHub Actions"). İlk çalıştırma doğrulandı: akış başarılı, veri taze, gizli yollar 404, uygulama tarayıcıda hatasız. Kod değişikliği: commit + `git push` (GitHub girişi için kullanıcının terminali gerekebilir; git yolu `C:\Program Files\Git\cmd\git.exe`).
 - Eski Netlify sitesi (elle yükleme, otomatik güncellenmez, kota ayda ~20 yayın): https://serene-cassata-8c864a.netlify.app — emekliye ayrılabilir.
 - Not: arayüzdeki "Son güncelleme" yazısı elle yazılan `results/latest.json` saatini gösterir (8 Kas 20:18), API çekimini göstermez.
 - Yayın paketi `yayin/` klasörü (git'e girmez). İçeriği: index.html, css/, js/, data/{results,lineups,players} ve data/history/all.json. Girmeyenler: yedek/, tools/, data/kupon (kişisel kupon adları), data/history/rules ve applied (iç kurallar).
@@ -82,7 +82,7 @@ Uygulama bahis yaptırmaz; analiz ve **simülasyon** aracıdır. "Hiçbir bahis 
 
 ## Supabase PROJESİ BAĞLANDI (12 Kas 2026)
 - Proje: `kupon-masasi`, ref `rrlmrwmhexwrujlweubh`, URL https://rrlmrwmhexwrujlweubh.supabase.co, bölge East US (Ohio), Free plan. `js/config.js` içinde bu URL ve publishable anahtar (herkese açık tasarım) var. Secret/service_role anahtarı hiçbir yerde yok ve yazılmaz.
-- Panelde yapıldı (kullanıcı): `supabase/schema.sql` çalıştırıldı (Success), "Confirm email" KAPALI, Site URL ve Redirect URL = https://yildizalper96.github.io/kupon-masasi/, anonim giriş kapalı, Google kapalı.
+- Panelde yapıldı (kullanıcı): `supabase/schema.sql` çalıştırıldı (Success), "Confirm email" KAPALI, Site URL ve Redirect URL = https://yildizalper96.github.io/kupon-masasi/ (19 Kas 2026: Site URL https://simuleto.com/, Redirect URL'lerde ikisi birden), anonim giriş kapalı, Google kapalı.
 - Doğrulandı (yalnızca public anahtarla, hesap açmadan): shared_coupons herkese okunur (200 []), misafir yazamaz (RLS 401), misafir user_docs'ta boş liste görür (RLS), `/auth/v1/settings`: kayıt açık, autoconfirm true, anonim false, google false.
 - Sertleştirme YAPILDI ve doğrulandı (12 Kas 2026): `revoke all on public.user_docs from anon; revoke insert, update, delete on public.shared_coupons from anon;` Misafir user_docs okuma/yazma artık 401 (42501 izin yok), shared_coupons okuma 200, yazma 401. (`supabase/schema.sql` 4. bölümde.)
 - GERÇEK HESAPLA UÇTAN UCA TEST GEÇTİ (12 Kas 2026, kullanıcı yaptı): misafir kupon+favori → hesap açma → çıkış → giriş (geri geldi) → TELEFONDAN girişte de kupon ve favori takım duruyor (gerçek cihaz değişikliği). Panelde `user_docs` ~2 satır (tahmini sayı, içerik açılmadı), Authentication > Users'ta tek gerçek kullanıcı ("10 estimated" yanlış tahmin). Çıkışta cihazdaki `kmdb:data/users/*` kopyaları silinir (cloud.js signOut).

@@ -126,7 +126,7 @@ header .hr{gap:10px;justify-content:flex-start}
 .brand{display:flex;align-items:center;gap:6px;color:var(--acc);flex:none}
 .brand .lg{width:27px;height:27px}
 .brand b{font:700 17px/1 var(--n);letter-spacing:.2px;color:var(--ink);text-transform:lowercase}
-.brand b i{font-style:normal;color:var(--acc);margin-left:3px}
+.brand b i{font-style:normal;color:var(--acc)}
 header .sb{flex:1;min-width:0;margin:0!important;padding:0 12px!important;height:34px;gap:7px;background:rgba(255,255,255,.07)!important}
 header .sb input{font-size:16px!important;width:100%;min-width:0}
 main{padding:4px 10px 150px!important}

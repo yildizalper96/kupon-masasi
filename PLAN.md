@@ -1,4 +1,4 @@
-# Kupon Masası: bağımsız uygulama planı
+# Simuleto (eski ad: Kupon Masası): bağımsız uygulama planı
 
 Hedef: claude.ai'a bağımlı tek dosyayı, kendi adresinde çalışan gerçek bir web uygulamasına (PWA) çevirmek. Telefona "Ana ekrana ekle" ile uygulama gibi kurulur. Mağaza en sona.
 
