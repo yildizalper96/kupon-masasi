@@ -1,4 +1,4 @@
-/* Kupon Masasi service worker.
+/* Simuleto service worker.
  * Strateji: ag oncelikli (network-first). Cevrimiciyken her zaman guncel kod ve veri gelir
  * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
  * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.

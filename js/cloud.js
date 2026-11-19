@@ -1,4 +1,4 @@
-/* Kupon Masasi bulut katmani: Supabase ile giris (e-posta+sifre, Google) ve satir bazli veri erisimi.
+/* Simuleto bulut katmani: Supabase ile giris (e-posta+sifre, Google) ve satir bazli veri erisimi.
  * Kutuphane kullanmaz; dogrudan Supabase'in /auth/v1 ve /rest/v1 adreslerine fetch atar.
  * config.js bos ise KMCLOUD.on === false ve uygulama eskisi gibi misafir modunda calisir.
  *

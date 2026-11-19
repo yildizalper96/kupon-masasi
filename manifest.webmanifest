@@ -1,6 +1,6 @@
 {
-  "name": "Kupon Masası",
-  "short_name": "Kupon Masası",
+  "name": "Simuleto",
+  "short_name": "Simuleto",
   "description": "Maç öncesi analiz ve kupon simülasyonu. Bahis yaptırmaz; hiçbir bahis risksiz değildir.",
   "lang": "tr",
   "start_url": "./",
