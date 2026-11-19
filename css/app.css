@@ -1399,7 +1399,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   nav button.on{background:var(--sf2)!important;color:var(--brand)!important}
   #kmara{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:64px;height:64px;border-radius:50%;z-index:20;background:color-mix(in srgb,var(--sf) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--ln);color:var(--ink);display:grid;place-items:center;box-shadow:0 6px 24px rgba(0,0,0,.22);cursor:pointer;padding:0}
   #kmara svg{width:26px;height:26px}
-  body.kmaraac #kmara{color:var(--ok)}
+  body.kmaraac #kmara{color:var(--brand)}
   #dz{padding:4px 10px 0!important}
   #dz>main#app{padding-bottom:112px!important}
   /* kartlar */
@@ -2154,7 +2154,7 @@ header .hr{position:relative}
 #kmpanel[hidden]{display:none}
 .kmp-ust{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:6px 4px 12px;border-bottom:1px solid var(--ln)}
 .kmp-ust button{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:72px;justify-content:center;border:0;border-radius:12px;background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer}
-.kmp-ust button svg{color:var(--ok)}
+.kmp-ust button svg{color:var(--brand)}
 .kmp-ust button:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .kmp-sat{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:56px;padding:4px 10px;border-bottom:1px solid var(--ln)}
 .kmp-sat:last-child{border-bottom:0}
@@ -2176,7 +2176,7 @@ header .hr{position:relative}
 .dzlig li>.dzyil{position:absolute!important;right:10px;left:auto!important;top:50%;transform:translateY(-50%);width:34px!important;height:22px!important;min-width:0!important;min-height:0!important;padding:0!important;gap:0!important;border-radius:999px;border:0;background:color-mix(in srgb,var(--ink) 16%,transparent);color:color-mix(in srgb,var(--ink) 75%,transparent);display:inline-flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s,background .12s,color .12s;cursor:pointer}
 .dzlig li:hover>.dzyil,.dzlig li>.dzyil:focus-visible{opacity:1}
 .dzlig li>.dzyil:hover{background:var(--ink)!important;color:var(--sf)!important}
-.dzlig li.dztk>.dzyil{opacity:1;color:var(--ok)}
+.dzlig li.dztk>.dzyil{opacity:1;color:var(--brand)}
 .dzlig li.dztk>.dzyil:hover{background:var(--ink)!important;color:var(--sf)!important}
 
 /* "Aramayi temizle" dugmesi gosterilmez (geri dugmesi kalir) */
