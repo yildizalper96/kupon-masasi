@@ -203,3 +203,6 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 
 ## Logo kimlikleri güncellemesi (14 Kas 2026)
 - `data/teams/ids.json`'a 12 takım eklendi (3 istek, /teams?league=308|145|95&season=2024): Abha, Al Faisaly, Al Hazem (API adı Al-Hazm), Neom, Beveren, La Louvière, Lommel SK (API adı Lommel United), Zulte Waregem, Torreense, Académico Viseu, Alverca, Marítimo. Hâlâ logosuz (20): Diriyah (2024 listesinde yok, 2025'te çıktı), Le Mans, Viking, Ferencváros, Lech Poznań, Levski Sofia, Lillestrøm, OFI Crete, Olympiacos, Aarhus, CSKA Sofia, Jablonec, Kairat Almaty, Kauno Žalgiris, Mjällby, Nordsjælland, Riga, Thun, Excelsior (Eerste 89), Falkirk (İskoçya Championship 180). Bunlar için /teams?league=<kupa id>&season=2024 (CL 2, EL 3, ECL 848) ya da /teams?search= gerekir.
+
+## Sayfa adresleri (19 Kas 2026)
+`js/adres.js` (en son yuklenir): her sayfa kendi hash adresini alir: `#/lig/<kod>`, `#/takim/<ad>`, `#/oyuncu/<anahtar>/<ad>`, `#/mac/<lig>/<ev>/<dep>`, `#/ara/<metin>`, `#/simulator`, `#/profil`, `#/gecmis`. render sarmalanir, adres durumdan (tab/Q/QX/det) uretilir; tek adim geri/ileri uygulamanin NAVS/FWD yigini ile (kaydirma geri gelir), uzun atlama ve dogrudan link adresten kurulur. `#access_token` (Google girisi) adresine dokunulmaz. Sayfa ici sekmeler (Tablo, Kadro vb.) adrese yazilmaz.
