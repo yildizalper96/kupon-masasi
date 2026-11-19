@@ -307,10 +307,13 @@
   }
 
   async function boot() {
-    var n = await loadFixtures(true);
-    var dl = await loadDetails(); var mg = mergeDetails();
+    var n = false, dl = false, mg = false;
+    var bekle = window.__fxWait;
+    var emniyet = setTimeout(function () { if (window.__fxWait) { window.__fxWait = false; try { render(); } catch (e) {} } }, 7000);
+    try { n = await loadFixtures(true); dl = await loadDetails(); mg = mergeDetails(); } catch (e) {}
+    clearTimeout(emniyet); window.__fxWait = false;
     staleNote();
-    if (n || dl || mg) {
+    if (n || dl || mg || bekle) {
       try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {}
       try { var y = window.scrollY; render(); window.scrollTo(0, y); } catch (e) {}
     }

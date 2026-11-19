@@ -1701,7 +1701,7 @@
   // ortak tiklamalar (yakalama asamasinda, uygulamanin belge dinleyicisinden once)
   document.addEventListener('click', e => {
     const mm = e.target.closest && e.target.closest('[data-kmm]');
-    if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = 'a'; PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
+    if (mm && !e.target.closest('[data-tm]')) { e.preventDefault(); try { push(); det = mm.dataset.kmm; dt = dtFor(det); PMV = null; render(); scrollTo(0, 0); } catch (x) { } return; }
     if (e.target.closest && e.target.closest('[data-kmpgeri]')) { e.preventDefault(); try { if (!back()) { Q = ''; QX = ''; render(); } } catch (x) { } return; }
     const tms = e.target.closest && e.target.closest('[data-kmtms]');
     if (tms) { if (!tms.disabled) { TMS.i = Math.max(0, TMS.i + 10 * (+tms.dataset.kmtms)); render(); } return; }
