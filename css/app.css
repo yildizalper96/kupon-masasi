@@ -1363,8 +1363,8 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   html,body{background:var(--bg)!important}
   /* ust bar: marka solda; sagda Canli + takvim hapi ve filtre dairesi; arama alttaki dairede */
   header,body::before{background:var(--bg)!important}
-  header{border:0!important;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 4px!important}
-  header .hr{display:flex!important;align-items:center;gap:8px!important;min-height:52px}
+  header{border:0!important;padding:4px 12px 2px!important}
+  header .hr{display:flex!important;align-items:center;gap:8px!important;min-height:44px}
   header .brand{flex:1;min-width:0;font-size:21px}
   header .sb{display:none!important}
   .kmust{display:flex;align-items:center;gap:8px;flex:none}
