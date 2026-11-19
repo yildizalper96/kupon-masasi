@@ -123,10 +123,10 @@ h3{letter-spacing:.2px}.box>h4{margin:2px 0 8px;font:700 15px var(--n);color:var
 header{padding:6px 12px 6px!important;border:0!important}
 header .hr{gap:10px;justify-content:flex-start}
 #rs{font:500 10.5px var(--f)!important;color:var(--mut);text-align:right;padding:3px 4px 0!important;line-height:1}
-.brand{display:flex;align-items:center;gap:6px;color:var(--acc);flex:none}
-.brand .lg{width:27px;height:27px}
+.brand{display:flex;align-items:center;gap:6px;color:var(--brand,var(--acc));flex:none}
+.brand .lg{width:30px;height:30px}
 .brand b{font:700 17px/1 var(--n);letter-spacing:.2px;color:var(--ink);text-transform:lowercase}
-.brand b i{font-style:normal;color:var(--acc)}
+.brand b i{font-style:normal;color:var(--brand,var(--acc))}
 header .sb{flex:1;min-width:0;margin:0!important;padding:0 12px!important;height:34px;gap:7px;background:rgba(255,255,255,.07)!important}
 header .sb input{font-size:16px!important;width:100%;min-width:0}
 main{padding:4px 10px 150px!important}
@@ -172,8 +172,8 @@ html,body{touch-action:pan-x pan-y!important;-webkit-text-size-adjust:100%}input
    FotMob ruhunda duz ve sakin palet. Pastel yesil = olumlu/kazanma ihtimali (--ok), pastel kirmizi = risk (--hot).
    Yeni tokenlar (--sf2, --okbg, --hotbg, --warnbg) sonraki dilimlerde kullanilacak. */
 :root{--bg:#f2f3f5;--sf:#ffffff;--sf2:#f6f7f9;--ink:#15181d;--mut:#6b7280;--ln:#e7e9ed;--ok:#1e9e62;--okbg:#e4f5ec;--warn:#b7791f;--warnbg:#fbf1df;--hot:#cf4c4c;--hotbg:#fbeaea;--acc:#12354a;--bl:#3d7fd6}
-@media all{/*koyu tema: varsayilan, data-theme=light degilse*/:root:not([data-theme="light"]){--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#8f9bff;--bl:#6ea8f5}}
-:root[data-theme="dark"]{--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#8f9bff;--bl:#6ea8f5}
+@media all{/*koyu tema: varsayilan, data-theme=light degilse*/:root:not([data-theme="light"]){--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#9D9BF2;--bl:#6ea8f5}}
+:root[data-theme="dark"]{--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#9D9BF2;--bl:#6ea8f5}
 
 /* ==== Tasarim v2 dilim 2: masaustu uc sutun (>=1100px) + alt menu tokenlari ==== */
 #dzl,#dzr{display:none}
@@ -187,7 +187,7 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   header{border-bottom:1px solid var(--ln)!important;padding:0!important}
   header .hr{max-width:var(--dzw);margin:0 auto;height:68px;padding:0 24px;gap:28px!important;align-items:center}
   header .brand{font-size:22px}
-  header .brand .lg{width:30px;height:30px}
+  header .brand .lg{width:33px;height:33px}
   header .sb{flex:0 1 380px!important;height:42px!important;border-radius:999px!important;background:var(--sf2)!important;padding:0 16px!important}
   /* alt menu ust bara tasinir: duz yazi linkleri */
   nav{top:0!important;bottom:auto!important;left:auto!important;right:max(24px,calc((100vw - var(--dzw))/2 + 24px))!important;height:68px;width:auto;background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:0!important;gap:26px!important;align-items:center;z-index:11;border-radius:0!important}
@@ -433,7 +433,7 @@ input,button,select,textarea{font-family:var(--f)}
   /* ust bar */
   header .hr{height:64px}
   header .brand{font-size:19px}
-  header .brand .lg{width:26px;height:26px}
+  header .brand .lg{width:29px;height:29px}
   header .sb{height:38px!important;border-radius:var(--rb)!important;flex-basis:340px!important}
   header .sb input{font-size:14px!important}
   nav button{font:600 15px var(--f)!important}
@@ -1342,7 +1342,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
 @media(max-width:1099px){
   header,body::before{background:var(--sf)!important}
   header{border-bottom:1px solid var(--ln)!important}
-  header .brand,header .brand b{color:var(--ink)}
+  header .brand{color:var(--brand,var(--ink))}header .brand b{color:var(--ink)}
   header .sb{background:var(--sf2)!important;border-radius:999px!important}
 }
 @media(max-width:1099px){
@@ -2479,3 +2479,18 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kmkdt-t th .kmsrt.on i{opacity:1;color:var(--ok)}
 .kmkdt-t th .kmsrt:hover{background:var(--sf2,rgba(127,127,127,.12))}
 .kmkdt-t th .kmsrt:focus-visible{outline:2px solid var(--acc)}
+/*marka rengi: koyu temada pastel periwinkle, acik temada okunur koyu ton (kontrast 4.9:1)*/
+:root{--brand:#5F7FD0}
+@media all{:root:not([data-theme="light"]){--brand:#8EAAEB}}
+:root[data-theme="dark"]{--brand:#8EAAEB}
+
+/* ==== Final logo (19 Kas 2026): Inter Bold "simulet" + top simgesi "o" harfinde; acilis gostergesi #kmld ==== */
+.brand{font-size:20px}
+.brand b.wm{font:700 1em/1 var(--f);letter-spacing:-.035em;color:var(--ink);text-transform:none;display:inline-flex;align-items:baseline;white-space:nowrap}
+.brand .wm .o{width:.63em;height:.63em;margin-left:.045em;transform:translateY(.012em);color:var(--brand,var(--acc));flex:none;overflow:visible}
+.brand .wm use,#kmld use{fill:currentColor;stroke:currentColor;stroke-width:16;stroke-linejoin:round}
+#kmld{position:fixed;inset:0;display:none;place-items:center;pointer-events:none;z-index:5;opacity:0;animation:kmldin .3s ease-out .35s forwards}
+#kmld svg{width:64px;height:64px;color:var(--brand,var(--acc));overflow:visible}
+@keyframes kmldin{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){#kmld{animation:none;opacity:1}}
+@media(min-width:1100px){header .brand{font-size:25px}}

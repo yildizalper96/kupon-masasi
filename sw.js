@@ -5,7 +5,7 @@
  * Veri (data/*.json): AG ONCELIKLI, son basarili cevap kalici "km-data" onbellegine yazilir. Sayfa acilista bu kopyayi
  *   aninda kullanir, hemen ardindan agdan tazesini ister (index.html acilis betigi).
  * Yerelde (localhost) her sey ag oncelikli: gelistirirken degisiklik hemen gorunur. */
-const CACHE = 'km-v16'; // build-site.mjs yayinda km-<ozet> yapar
+const CACHE = 'km-v19'; // build-site.mjs yayinda km-<ozet> yapar
 const DATA = 'km-data';
 const YEREL = /^(localhost|127\.0\.0\.1)$/.test(self.location.hostname);
 // Takim/lig logolari ve oyuncu fotograflari (media.api-sports.io): onbellek oncelikli, kalici.
