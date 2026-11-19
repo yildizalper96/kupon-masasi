@@ -172,8 +172,8 @@ html,body{touch-action:pan-x pan-y!important;-webkit-text-size-adjust:100%}input
    FotMob ruhunda duz ve sakin palet. Pastel yesil = olumlu/kazanma ihtimali (--ok), pastel kirmizi = risk (--hot).
    Yeni tokenlar (--sf2, --okbg, --hotbg, --warnbg) sonraki dilimlerde kullanilacak. */
 :root{--bg:#f2f3f5;--sf:#ffffff;--sf2:#f6f7f9;--ink:#15181d;--mut:#6b7280;--ln:#e7e9ed;--ok:#1e9e62;--okbg:#e4f5ec;--warn:#b7791f;--warnbg:#fbf1df;--hot:#cf4c4c;--hotbg:#fbeaea;--acc:#12354a;--bl:#3d7fd6}
-@media all{/*koyu tema: varsayilan, data-theme=light degilse*/:root:not([data-theme="light"]){--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#9D9BF2;--bl:#6ea8f5}}
-:root[data-theme="dark"]{--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#9D9BF2;--bl:#6ea8f5}
+@media all{/*koyu tema: varsayilan, data-theme=light degilse*/:root:not([data-theme="light"]){--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#8EAAEB;--bl:#6ea8f5}}
+:root[data-theme="dark"]{--bg:#000000;--sf:#1b1c1f;--sf2:#242529;--ink:#f3f4f6;--mut:#a0a6b0;--ln:#2c2e33;--ok:#6fd09b;--okbg:rgba(111,208,155,.13);--warn:#e8b05c;--warnbg:rgba(232,176,92,.13);--hot:#f08a8a;--hotbg:rgba(240,138,138,.13);--acc:#8EAAEB;--bl:#6ea8f5}
 
 /* ==== Tasarim v2 dilim 2: masaustu uc sutun (>=1100px) + alt menu tokenlari ==== */
 #dzl,#dzr{display:none}
@@ -193,7 +193,7 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   nav{top:0!important;bottom:auto!important;left:auto!important;right:max(24px,calc((100vw - var(--dzw))/2 + 24px))!important;height:68px;width:auto;background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:0!important;gap:26px!important;align-items:center;z-index:11;border-radius:0!important}
   nav button{flex:none!important;flex-direction:row!important;font:700 16px var(--f)!important;padding:8px 0!important;border-radius:0!important;background:none!important;border-bottom:2px solid transparent!important;color:var(--mut)!important}
   nav button b{display:none!important}
-  nav button.on{background:none!important;color:var(--ink)!important;border-bottom-color:var(--ok)!important}
+  nav button.on{background:none!important;color:var(--ink)!important;border-bottom-color:var(--brand)!important}
   nav button[data-t="u"]{width:38px;height:38px;border-radius:50%!important;background:var(--sf2)!important;justify-content:center;font-size:0!important;border:0!important}
   nav button[data-t="u"] b{display:flex!important}
   nav button[data-t="u"] svg{width:20px;height:20px}
@@ -274,7 +274,7 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   #dz .dgl i{width:16px;height:16px;margin:3px auto 0;border-radius:50%;border:2px solid var(--mut2,var(--mut))}
   #dz .dtab{gap:30px;padding:0 24px;border-top:1px solid var(--ln)}
   #dz .dtab button{color:var(--mut);font:600 16px var(--f);padding:16px 0 13px;border-bottom:3px solid transparent}
-  #dz .dtab button.on{color:var(--ink);border-color:var(--ok)}
+  #dz .dtab button.on{color:var(--ink);border-color:var(--brand)}
   /* 1-X-2 karti */
   #dz .dpb>.bar,#dz .dpb>.mut{display:none}
   #dz .u3d{display:block}
@@ -312,7 +312,7 @@ nav button.on{background:var(--sf2)!important;color:var(--ink)!important}
   #dz .evl .ev.ra>.pill{grid-column:6;justify-self:start}
   #dz .evl .ev.ra>.et{grid-column:7;align-items:flex-start;text-align:left}
   #dz .evl .ev .et b{font-weight:600}
-  #dz .evl .ev .on{color:var(--ok)}
+  #dz .evl .ev .on{color:var(--brand)}
   #dz .evl .ev .of{color:var(--mut)}
   #dz .evl .ev.evk-s .of{color:var(--hot)}
   #dz .evl .pill{background:var(--okbg);color:var(--ok);border-radius:999px;padding:2px 9px}
@@ -568,7 +568,7 @@ input,button,select,textarea{font-family:var(--f)}
   .kmsek{display:flex;gap:32px;padding:0 24px;border-top:1px solid var(--ln)}
   .kmh .kmsek{border-top:0}
   .kmsek button{border:0;background:none;color:var(--mut);font:500 15px var(--f);padding:16px 0 13px;border-bottom:3px solid transparent;cursor:pointer}
-  .kmsek button.on{color:var(--ink);font-weight:600;border-color:var(--ok)}
+  .kmsek button.on{color:var(--ink);font-weight:600;border-color:var(--brand)}
   /* kadro karti: yatay saha */
   .kmkb{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:16px 24px;border-bottom:1px solid var(--ln)}
   .kmkb>div{display:flex;align-items:center;gap:12px;font-size:14px}
@@ -938,7 +938,7 @@ input,button,select,textarea{font-family:var(--f)}
 @media(min-width:0px){
   .kmtablo td.nx[data-kmm]{cursor:pointer}
   .kmtablo td.nx[data-kmm] .bd{transition:transform .12s, box-shadow .12s}
-  .kmtablo td.nx[data-kmm]:hover .bd{transform:scale(1.15);box-shadow:0 0 0 2px var(--ok)}
+  .kmtablo td.nx[data-kmm]:hover .bd{transform:scale(1.15);box-shadow:0 0 0 2px var(--brand)}
   .kmtablo .fm i[title]{cursor:default}
   .kmlyan .kmb small{font-weight:400;color:var(--mu);font-size:11px;margin-left:4px}
 }
@@ -1057,7 +1057,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmeti svg{width:16px;height:16px}
   .kmety b{display:block;font:600 14px var(--f)}
   .kmety b i{font-style:normal}
-  .kmety b i.on{color:var(--ok)}
+  .kmety b i.on{color:var(--brand)}
   .kmety small{display:block;color:var(--mut);font-size:12.5px}
   .kmety b.gir{color:var(--ok);font-weight:500}
   .kmety b.cik{color:var(--hot);font-weight:500}
@@ -1378,7 +1378,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmtakvim b{position:absolute;left:0;right:0;top:12px;text-align:center;font:700 10.5px var(--f)}
   .kmfil{width:44px;height:44px;border-radius:50%;background:var(--sf);border:1px solid var(--ln);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
   .kmfil svg{width:20px;height:20px}
-  .kmfil.on{color:var(--ok);border-color:var(--ok)}
+  .kmfil.on{color:var(--brand);border-color:var(--brand)}
   .kmarakapa{display:none;border:0;background:none;color:var(--acc);font:600 15px var(--f);padding:8px 4px;cursor:pointer}
   body.kmaraac header .brand,body.kmaraac .kmust{display:none!important}
   body.kmaraac header .sb{display:flex!important;flex:1 1 auto!important;height:44px!important;border-radius:999px!important;background:var(--sf)!important;border:1px solid var(--ln)!important}
@@ -1396,7 +1396,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   nav button{flex:1 1 0!important;min-width:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;border-radius:999px!important;font:600 10.5px var(--f)!important;padding:0!important;min-height:0!important;height:100%!important;letter-spacing:-.01em;white-space:nowrap}
   nav button b{display:flex!important;width:auto!important;height:auto!important;background:none!important}
   nav button svg{width:23px!important;height:23px!important}
-  nav button.on{background:var(--sf2)!important;color:var(--ok)!important}
+  nav button.on{background:var(--sf2)!important;color:var(--brand)!important}
   #kmara{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:64px;height:64px;border-radius:50%;z-index:20;background:color-mix(in srgb,var(--sf) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--ln);color:var(--ink);display:grid;place-items:center;box-shadow:0 6px 24px rgba(0,0,0,.22);cursor:pointer;padding:0}
   #kmara svg{width:26px;height:26px}
   body.kmaraac #kmara{color:var(--ok)}
@@ -1458,7 +1458,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmyap .kmsek{display:flex!important;gap:24px!important;overflow-x:auto!important;padding:0 16px!important;margin:0!important;border:0!important;scrollbar-width:none;flex-wrap:nowrap!important}
   .kmyap .kmsek::-webkit-scrollbar{display:none}
   .kmyap .kmsek button{flex:none!important;background:none!important;border:0!important;padding:12px 0 14px!important;font:600 16px var(--f)!important;color:var(--mut)!important;white-space:nowrap;border-radius:0!important}
-  .kmyap .kmsek button.on{color:var(--ink)!important;font-weight:800!important;box-shadow:inset 0 -2px 0 var(--ok)}
+  .kmyap .kmsek button.on{color:var(--ink)!important;font-weight:800!important;box-shadow:inset 0 -2px 0 var(--brand)}
   /* olaylar: ev solda (dakika, ikon, yazi), deplasman sagda (yazi, ikon, dakika) */
   .kmetk .kmetw{padding:2px 0 8px!important}
   .kmet{display:flex!important;align-items:center;gap:12px!important;padding:11px 16px!important;margin:0!important}
@@ -1475,7 +1475,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmet .kmety b.gir{color:var(--ok)!important}
   .kmet .kmety b.cik{color:var(--hot)!important;font-weight:400!important}
   .kmet .kmety i{font-style:normal}
-  .kmet .kmety i.on{color:var(--ok)}
+  .kmet .kmety i.on{color:var(--brand)}
   .kmetay{margin:8px 0!important;font:700 14px var(--f)!important;color:var(--ink)!important;gap:12px!important}
   .kmetay span{border:2px solid var(--ln);border-radius:999px;padding:6px 12px}
   /* bilgi kartlari */
@@ -1487,7 +1487,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmmb-i svg{width:20px;height:20px}
   .kmstad{padding:6px 0 4px!important}
   .kmstad-b{display:flex!important;align-items:center;gap:12px;padding:12px 16px!important}
-  .kmstad-b svg{width:40px;height:40px;padding:10px;border-radius:50%;background:var(--sf2);color:var(--ok);flex:none}
+  .kmstad-b svg{width:40px;height:40px;padding:10px;border-radius:50%;background:var(--sf2);color:var(--brand);flex:none}
   .kmstad-b b{font:600 15px var(--f)}
   .kmstad-b small{display:block;color:var(--mut);font-size:13.5px}
   .kmstad .kmsr{display:flex!important;justify-content:space-between;padding:12px 16px!important;border-top:1px solid var(--ln);font-size:14.5px}
@@ -1497,7 +1497,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   /* puan tablosu: Kisa / Tam / Form */
   .kmtv{display:flex;gap:4px;margin:12px 12px 0;padding:4px;background:var(--sf2);border-radius:999px}
   .kmtv button{flex:1;border:0;background:none;border-radius:999px;padding:9px 0;font:600 14px var(--f);color:var(--ink);cursor:pointer}
-  .kmtv button.on{background:var(--sf);color:var(--ok);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .kmtv button.on{background:var(--sf);color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.15)}
   #app .kmtablo .kmb{display:flex!important;align-items:center;gap:10px}
   #app .kmtablo .kmb .kmlo{width:24px!important;height:24px!important}
   .kmtablo{overflow:hidden!important}
@@ -1554,7 +1554,7 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
   .kmisg h4{font:700 16px var(--f)!important;text-align:center;padding:16px 16px 4px!important;margin:0!important}
   .kmdvs{display:flex!important;gap:4px;margin:12px;padding:4px;background:var(--sf2);border-radius:999px}
   .kmdvs button{flex:1;border:0;background:none;border-radius:999px;padding:9px 0;font:600 14px var(--f);color:var(--ink)}
-  .kmdvs button.on{background:var(--sf);color:var(--ok)}
+  .kmdvs button.on{background:var(--sf);color:var(--brand)}
   .kmotw{overflow-x:auto}
   /* kadro: dikey saha (ev ustte, deplasman altta), yedekler iki sutun */
   .kmkadro .kmkb{display:flex!important;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px!important;background:var(--sf2);flex-wrap:nowrap}
@@ -1758,14 +1758,14 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
     border:1px solid rgba(255,255,255,.10)!important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)!important}
   nav button{color:rgba(255,255,255,.92)!important;font:600 11.5px var(--f)!important;gap:4px!important}
   nav button svg{width:25px!important;height:25px!important}
-  nav button.on{background:rgba(0,0,0,.38)!important;color:var(--ok)!important}
+  nav button.on{background:rgba(0,0,0,.38)!important;color:var(--brand)!important}
   #kmara{right:12px!important;bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 20px))!important;width:66px!important;height:66px!important;
     background:rgba(38,38,42,.52)!important;-webkit-backdrop-filter:blur(22px) saturate(180%)!important;backdrop-filter:blur(22px) saturate(180%)!important;
     border:1px solid rgba(255,255,255,.10)!important;color:#fff!important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)!important}
   #kmara svg{width:28px!important;height:28px!important}
   :root[data-theme="light"] nav,:root[data-theme="light"] #kmara{background:rgba(255,255,255,.62)!important;border-color:rgba(0,0,0,.08)!important;box-shadow:0 10px 30px rgba(0,0,0,.14)!important}
   :root[data-theme="light"] nav button{color:rgba(20,20,24,.86)!important}
-  :root[data-theme="light"] nav button.on{background:rgba(0,0,0,.07)!important;color:#1f9d5c!important}
+  :root[data-theme="light"] nav button.on{background:rgba(0,0,0,.07)!important;color:var(--brand)!important}
   :root[data-theme="light"] #kmara{color:#16181c!important}
   body.kmaraacik nav,body.kmaraacik #kmara{display:none!important}
   /* tam ekran arama */
@@ -1864,12 +1864,12 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
     border:1px solid rgba(255,255,255,.16)!important;box-shadow:0 8px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.04)!important}
   nav button{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
   nav button svg{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.4))}
-  nav button.on{background:rgba(0,0,0,.42)!important;color:#7be08f!important;text-shadow:none}
+  nav button.on{background:rgba(0,0,0,.42)!important;color:var(--brand)!important;text-shadow:none}
   #kmara{color:#fff!important}
   :root[data-theme="light"] nav,:root[data-theme="light"] #kmara{background:rgba(255,255,255,.34)!important;border-color:rgba(255,255,255,.6)!important;box-shadow:0 8px 28px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.7)!important}
   :root[data-theme="light"] nav button{color:#16181c!important;text-shadow:0 1px 1px rgba(255,255,255,.6)}
   :root[data-theme="light"] nav button svg{filter:none}
-  :root[data-theme="light"] nav button.on{background:rgba(0,0,0,.08)!important;color:#1f9d5c!important}
+  :root[data-theme="light"] nav button.on{background:rgba(0,0,0,.08)!important;color:var(--brand)!important}
   /* lig logolari: beyaz daire icinde ortali, tasmadan */
   #app .kmlo>img,#kmarae .kmlo>img{position:absolute!important;inset:12%!important;width:76%!important;height:76%!important;object-fit:contain!important}
   #app>.kmth .kmth-u>.kmlo>img{inset:14%!important;width:72%!important;height:72%!important}
@@ -1961,7 +1961,7 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
 .kpc-f{display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px 14px}
 .kpc-b{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--ln);background:var(--sf2);color:var(--ink);font:600 12.5px var(--f);cursor:pointer;white-space:nowrap}
 .kpc-b:hover{border-color:var(--mut)}
-.kpc-b.on{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.kpc-b.on{color:var(--brand);border-color:color-mix(in srgb,var(--brand) 45%,transparent)}
 .kpc-b.del{color:var(--hot)}
 .kpc-kk{height:24px;padding:0 10px;font-size:11.5px;margin-left:4px}
 .betw{margin:0 0 6px}
@@ -2161,9 +2161,9 @@ header .hr{position:relative}
 .kmp-sat>b{display:flex;align-items:center;gap:10px;font:600 15px var(--f)}
 .kmp-tema,.kmp-dils{display:flex;gap:6px}
 .kmp-tema button{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
-.kmp-tema button.on{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.kmp-tema button.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 14%,transparent)}
 .kmp-dils button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer}
-.kmp-dils button.on{border-color:var(--ok);color:var(--ok)}
+.kmp-dils button.on{border-color:var(--brand);color:var(--brand)}
 .kmp-dils button:disabled{opacity:.4;cursor:not-allowed}
 /* masaustu ust bar: Gecmis ve Simulator sag ustteki menude (js/menu.js) */
 @media(min-width:1100px){nav button[data-t="g"],nav button[data-t="l"]{display:none!important}}
@@ -2186,7 +2186,7 @@ header .hr{position:relative}
 .kmlh2-b{margin-left:auto;display:flex;align-items:center;gap:10px}
 .kmsezon{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--ln);font:600 14px var(--f);color:var(--ink)}
 .kmltk{min-height:36px;padding:0 18px;border-radius:999px;border:0;background:var(--ink);color:var(--sf);font:700 14px var(--f);cursor:pointer}
-.kmltk.on{background:transparent;color:var(--ok);border:1px solid var(--ok)}
+.kmltk.on{background:transparent;color:var(--brand);border:1px solid var(--brand)}
 .kmtablo tbody tr[class*="kmz-"] td:first-child{box-shadow:inset 3px 0 0 var(--kmz)}
 .kmz-cl{--kmz:#22c55e}.kmz-clq{--kmz:#16a34a}.kmz-el{--kmz:#3b82f6}.kmz-ecl{--kmz:#06b6d4}.kmz-po{--kmz:#f59e0b}.kmz-dus{--kmz:#ef4444}
 .kmzl{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px 4px;font:500 13px var(--f);color:var(--mut)}
@@ -2298,7 +2298,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .rfl::-webkit-scrollbar{display:none}
 .rfl button{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer;white-space:nowrap}
 .rfl button em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--mut);background:var(--sf2,rgba(127,127,127,.12));border-radius:999px;padding:1px 7px}
-.rfl button.on{background:var(--ok);border-color:var(--ok);color:#fff}.rfl button.on em{background:rgba(255,255,255,.22);color:#fff}
+.rfl button.on{background:var(--brand);border-color:var(--brand);color:var(--sf)}.rfl button.on em{background:rgba(0,0,0,.18);color:var(--sf)}
 .rfl button:disabled{opacity:.4;cursor:default}
 @media(max-width:1099px){.rfl{padding:0 0 10px}}
 /* Kupon kutusu: ayni macin secimleri tek mac basligi altinda (17 Kas 2026) */
@@ -2333,7 +2333,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-ot span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-top:3px;flex-wrap:wrap}
 .kman-ot i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}.kman-oi.r1 .kman-ot i{background:var(--warn)}.kman-oi.r2 .kman-ot i{background:var(--hot)}
 .kman-ek{flex:none;padding:8px 14px;border-radius:999px;border:1.5px solid var(--acc,var(--ok));background:transparent;color:var(--acc,var(--ok));font:700 13px var(--f);cursor:pointer;white-space:nowrap}
-.kman-ek.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.kman-ek.on{background:var(--brand);border-color:var(--brand);color:var(--sf)}
 .kman-st{flex:none;font-style:normal;font:700 13px var(--f)}.kman-st.ok{color:var(--ok)}.kman-st.miss{color:var(--hot)}
 /* form karsilastirmasi */
 .kman-th{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
@@ -2476,7 +2476,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kmkdt-t th .kmsrt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font:inherit;color:inherit;white-space:nowrap;border-radius:6px;padding:2px 4px;margin:-2px -4px}
 .kmkdt-t th .kmsrt i{font-style:normal;font-size:11px;opacity:.45}
 .kmkdt-t th .kmsrt.on{color:var(--ink)}
-.kmkdt-t th .kmsrt.on i{opacity:1;color:var(--ok)}
+.kmkdt-t th .kmsrt.on i{opacity:1;color:var(--brand)}
 .kmkdt-t th .kmsrt:hover{background:var(--sf2,rgba(127,127,127,.12))}
 .kmkdt-t th .kmsrt:focus-visible{outline:2px solid var(--acc)}
 /*marka rengi: koyu temada pastel periwinkle, acik temada okunur koyu ton (kontrast 4.9:1)*/
