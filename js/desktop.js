@@ -45,8 +45,10 @@
   }
   function ligAc(c) {
     // Ligler sekmesine gec, ligi ac (uygulamanin kendi [data-lg] davranisiyla ayni)
+    let onceki = null; try { onceki = snap(); } catch (e) { }
     const nb = document.querySelector('nav button[data-t="l"]');
     if (nb && typeof tab !== 'undefined' && tab !== 'l') nb.click();
+    try { if (onceki) { NAVS.push(onceki); FWD.length = 0; history.pushState({ kmn: NAVS.length }, ''); } } catch (e) { }
     try { Q = (window.kmLigQ ? window.kmLigQ(c) : LGNM[c]); QX = ''; const e = document.getElementById('q'); render(); if (e) e.value = LGNM[c] || Q; window.scrollTo(0, 0); } catch (e) { }
   }
   // takip edilen ligler (FotMob gibi): satira gelince yildiz, tiklayinca takip; ustte "Takip Ettiğin Ligler" karti. Hesaba bagli (js/menu.js).

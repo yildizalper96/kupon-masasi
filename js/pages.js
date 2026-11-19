@@ -1612,7 +1612,7 @@
     const rz = `<span class="kmlrz" style="background:${renk}">${E(kisa)}</span>`;
     const tk = !!(window.KMLig && window.KMLig.liste().includes(c));
     const sek = [['o', 'Genel bakış'], ['p', 'Tablo'], ['m', 'Maçlar']];
-    return `<div class="kmc kmth kmlh kmlh2"><div class="kmth-u">${typeof window.kmLigLogo === 'function' ? window.kmLigLogo(c, rz, 'buyuk') : rz}<div><h2>${E(ligAd(c))}</h2><small>${E(ulke(c) || '')}</small></div>
+    return `<div class="kmc kmth kmlh kmlh2"><div class="kmth-u"><button class="kmgeri" data-kmpgeri="1" aria-label="Geri">${ic.geri}<span>Geri</span></button>${typeof window.kmLigLogo === 'function' ? window.kmLigLogo(c, rz, 'buyuk') : rz}<div><h2>${E(ligAd(c))}</h2><small>${E(ulke(c) || '')}</small></div>
         <div class="kmlh2-b"><span class="kmsezon">${E(sezonAd())}</span><button type="button" class="kmltk${tk ? ' on' : ''}" data-kmltakip="${E(c)}">${tk ? 'Takip ediliyor' : 'Takip et'}</button></div></div>
       <div class="kmsek">${sek.map(([k, ad]) => `<button type="button" data-klt="${k}" class="${LGS.s === k ? 'on' : ''}">${ad}</button>`).join('')}</div></div>`;
   }
