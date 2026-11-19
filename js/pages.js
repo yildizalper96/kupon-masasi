@@ -611,7 +611,7 @@
       else ana = `<div class="kmeski">${p.kalan}</div>`;
       return sahaFoto(macBaslikMobil(m) + ana);
     }
-    const yan =`<div class="mside">${kimKazanir(m)}${dt === 'a' || dt === 'p' ? analizSekmesi(m, 'oneri') : ''}${stadKarti(x.venue)}${hakemKarti(x.ref || hakemTm(m))}${bilgiKarti(m)}${p.nwb}</div>`;
+    const yan =`<div class="mside">${kimKazanir(m)}${dt === 'a' || dt === 'p' ? analizSekmesi(m, 'oneri') : ''}${stadKarti(x.venue)}${hakemKarti(x.ref || hakemTm(m))}${bilgiKarti(m)}${takimNotlari(new Set([m.h, m.a]), 'Haberler ve takım notları') || p.nwb}</div>`;
     let ana;
     if (dt === 'a') ana = analizSekmesi(m, 'oneriYok');
     else if (dt === 'p') ana = onemliIstatistik(m) + (etkinlikler(m) || olaylarKarti(m)) + kadroKarti(m) + formKarti(m) + sonrakiMac(m) + h2hKarti(m) + (typeof kpBox === 'function' ? kpBox(m) : '');
