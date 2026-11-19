@@ -69,7 +69,7 @@
       if (!CAL) {
         CAL = {};
         var byMk = {}; R.forEach(function (mm) { byMk[mkey2(mm)] = mm; });
-        LGR.forEach(function (r) {
+        (window.kmRecAll ? window.kmRecAll() : LGR).forEach(function (r) {
           var mm = byMk[r.mk]; if (!mm) return;
           var s = pso(mm, { k: r.k, p: r.p }); if (s !== 'hit' && s !== 'miss') return;
           var b = Math.min(9, Math.floor(r.p * 10)); // 0.7-0.8 -> 7

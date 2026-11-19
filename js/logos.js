@@ -21,13 +21,14 @@
     // yukleme hatasinda bir kez yeniden denenir; ancak o da olmazsa bas harf rozeti kalir.
     return `<img class='tlg${milli(n) ? ' mf' : ''}${LL[id] ? ' ok' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='kmLogoOk(this,${id})' onerror='kmLogoErr(this)'>`;
   };
-  (window.kmBoot||function(p){return p})(fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+  const idYukle = () => fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.t) return;
     const yeni = JSON.stringify(j.t), degisti = yeni !== JSON.stringify(T);
     T = j.t;
     try { localStorage.setItem(ANAH, yeni); } catch (e) { }
     if (degisti) { try { if (typeof render === 'function') render(); } catch (e) { } }
-  }).catch(() => { }));
+  }).catch(() => { });
+  (window.kmBoot||function(p){return p})(idYukle()); (window.kmReloaders = window.kmReloaders || []).push(idYukle);
 })();
 // Lig logolari (API-Football): kimlik once fixtures latest.json meta'sindan (KMX.lgId), yoksa sabit tablodan (tools/fetch-fixtures.mjs LEAGUES).
 // Yuklenmezse img kaldirilir; altindaki yedek (bayrak/harf) gorunur.

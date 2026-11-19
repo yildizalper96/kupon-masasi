@@ -172,7 +172,8 @@ const TID = fs.existsSync(tidPath) ? (JSON.parse(fs.readFileSync(tidPath, 'utf8'
 let tidNew = 0;
 const tidAdd = (name, id) => { if (!name || !Number.isFinite(id)) return; if (TID[name] !== id) { TID[name] = id; tidNew++; } };
 const TID_SYN = { 'STVV': 'Sint-Truidense', 'Sint-Truidense': 'STVV' };
-// Biten maclari kalici biriktir (takim formu icin: ucretsiz planda gecmis mac sorgusu yok). data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}
+// Biten maclari kalici biriktir (takim formu ve tahmin gecmisi icin: ucretsiz planda gecmis mac sorgusu yok). data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y,p}]}
+// p: mac oncesi 1-X-2 olasiligi (tahmin gecmisi bununla, sonuc belli olduktan sonra degismeden hesaplanir)
 const FIN_OK = new Set(['FT', 'AET', 'PEN']);
 const finAdd = list => {
   if (DRY) return;
@@ -181,7 +182,12 @@ const finAdd = list => {
     const cur = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : { m: [] };
     const byId = new Map((cur.m || []).map(r => [r.id, r]));
     let n = 0;
-    for (const m of list) if (FIN_OK.has(m.st) && m.sc && m.sc[0] != null && !byId.has(m.id)) { byId.set(m.id, { id: m.id, c: m.c, t: m.t, h: m.h, a: m.a, x: m.sc[0], y: m.sc[1] }); n++; }
+    for (const m of list) {
+      if (!FIN_OK.has(m.st) || !m.sc || m.sc[0] == null) continue;
+      const v = byId.get(m.id);
+      if (!v) { byId.set(m.id, { id: m.id, c: m.c, t: m.t, h: m.h, a: m.a, x: m.sc[0], y: m.sc[1], ...(m.p ? { p: m.p } : {}) }); n++; }
+      else if (!v.p && m.p) { v.p = m.p; n++; }
+    }
     if (!n) return;
     const m = [...byId.values()].sort((a, b) => b.t.localeCompare(a.t)).slice(0, 600);
     fs.mkdirSync(path.dirname(p), { recursive: true });

@@ -2471,3 +2471,11 @@ body.kbar-on #app{padding-bottom:184px!important}
   #dz .mr .lt{justify-self:start;margin-left:6px;width:46px!important}
   #dz .mr .pr{justify-self:end;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* Kadro tablosu siralama dugmeleri (20 Kas 2026) */
+.kmkdt-t th .kmsrt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font:inherit;color:inherit;white-space:nowrap;border-radius:6px;padding:2px 4px;margin:-2px -4px}
+.kmkdt-t th .kmsrt i{font-style:normal;font-size:11px;opacity:.45}
+.kmkdt-t th .kmsrt.on{color:var(--ink)}
+.kmkdt-t th .kmsrt.on i{opacity:1;color:var(--ok)}
+.kmkdt-t th .kmsrt:hover{background:var(--sf2,rgba(127,127,127,.12))}
+.kmkdt-t th .kmsrt:focus-visible{outline:2px solid var(--acc)}

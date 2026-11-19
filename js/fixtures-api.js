@@ -12,17 +12,18 @@
   // pre: tarayicida saklanan son veri (km_fx). Verilirse hic await olmadan ESZAMANLI calisir; ilk ekran beklemeden bugunun maclariyla acilir.
   async function loadFixtures(force, pre) {
     try {
-      var db = null, d;
+      var db = null, d, stP = null;
       if (pre) d = pre;
       else {
         db = await claude.use('db');
         if (!db) return false;
+        stP = db.doc('standings/BRA').get(); stP.catch(function () {}); // paralel: puan tablosu maclarla birlikte iner
         var sn = await db.doc('fixtures/latest').get();
         if (!sn.exists) return false;
         d = sn.data();
       }
       if (!d || !Array.isArray(d.m) || (!force && d.at === FXAT)) return false;
-      FXAT = d.at;
+      FXAT = d.at; window.kmFxAt = d.at;
       if (!pre) { try { localStorage.setItem('km_fx', JSON.stringify(d)); } catch (e) {} }
 
       // yeni ligler: ad, uzun ad, renk
@@ -47,7 +48,7 @@
       for (var sc of (db ? ['BRA'] : [])) {
         if (!d.lg || !(sc in d.lg) || typeof TM === 'undefined') continue;
         try {
-          var ss = await db.doc('standings/' + sc).get();
+          var ss = await (sc === 'BRA' && stP ? stP : db.doc('standings/' + sc).get());
           if (!ss.exists) continue;
           var sd = ss.data();
           (sd.rows || []).forEach(function (r) { if (!TM[r.n] || TM[r.n].l === sc) TM[r.n] = { l: sc, r: r.r, p: r.p, w: r.w, d: r.d, o: r.l, f: r.f, a: r.a, fm: r.form || '' }; });
@@ -316,7 +317,7 @@
     var n = false, dl = false, mg = false;
     var bekle = window.__fxWait;
     var emniyet = setTimeout(function () { if (window.__fxWait) { window.__fxWait = false; try { render(); } catch (e) {} } }, 7000);
-    try { n = await loadFixtures(true); dl = await loadDetails(); mg = mergeDetails(); } catch (e) {}
+    try { var pf = loadFixtures(true), pd = loadDetails(); n = await pf; dl = await pd; mg = mergeDetails(); } catch (e) {}
     clearTimeout(emniyet); window.__fxWait = false;
     staleNote();
     if (n || dl || mg || bekle) {
@@ -335,6 +336,11 @@
   }
 
   window.loadFixtures = loadFixtures;
+  // acilistan sonra taze veriyle sessiz yenileme (index.html kmFresh): cizim tutulur, sonda tek kez cizilir
+  (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(); await pf; await pd; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });
+  (window.kmReloaders).push(function () { return typeof refresh === 'function' ? refresh() : null; });
+  // render tutma: kmHold acikken cizim ertelenir (ara durum gorunmez)
+  try { var _rn = render; render = function () { if (window.kmHold) { window.kmHoldP = 1; return; } return _rn.apply(this, arguments); }; } catch (e) {}
   // ilk ekran: saklanan son veriyle hemen ciz (yukleniyor yazisi yok); taze veri gelince sessizce guncellenir
   try {
     var fxc = JSON.parse(localStorage.getItem('km_fx') || 'null');

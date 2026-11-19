@@ -43,7 +43,8 @@ const wr = (p, o) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.wr
 { // finished.json: bitmis maclar kalici birikir; iki kopyanin birlesimi (id'ye gore)
   const rel = 'fixtures/finished.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
   if (rep && rep.m) {
-    const byId = new Map([...(rep.m || []), ...((cur && cur.m) || [])].map(r => [r.id, r]));
+    const byId = new Map();
+    for (const r of [...(rep.m || []), ...((cur && cur.m) || [])]) byId.set(r.id, { ...(byId.get(r.id) || {}), ...r }); // alanlar birlesir (p kaybolmaz)
     const m = [...byId.values()].sort((a, b) => b.t.localeCompare(a.t)).slice(0, 600);
     wr(path.join(root, 'data', rel), { at: new Date().toISOString(), m });
     console.log(rel + ': birlesti (' + m.length + ' bitmis mac)');

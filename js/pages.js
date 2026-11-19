@@ -7,9 +7,10 @@
   if (typeof detail !== 'function' || typeof teamView !== 'function') return;
   const MQ = matchMedia('(min-width:0px)'); // masaustu tasarimi her genislikte (telefon: tek sutun, css/app.css 'Mobil' blogu)
   let X = { matches: {}, teams: {} };
-  (window.kmBoot||function(p){return p})(fetch('data/extra/latest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+  const ekYukle = () => fetch('data/extra/latest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (j && typeof j === 'object') { X = { matches: j.matches || {}, teams: j.teams || {}, at: j.at }; try { render(); } catch (e) { } }
-  }).catch(() => { }));
+  }).catch(() => { });
+  (window.kmBoot||function(p){return p})(ekYukle()); (window.kmReloaders = window.kmReloaders || []).push(ekYukle);
 
   const E = s => (typeof stE === 'function' ? stE(s) : String(s == null ? '' : s));
   // kaynak: yalnizca marka adi (ayrinti yok)
@@ -286,7 +287,9 @@
   }
   // biriken biten maclar (veri oturumu: data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}); yoksa bos
   let BITEN = [];
-  (window.kmBoot||function(p){return p})(fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { }));
+  window.kmBiten = () => BITEN;
+  const bitenYukle = () => fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { });
+  (window.kmBoot||function(p){return p})(bitenYukle()); (window.kmReloaders = window.kmReloaders || []).push(bitenYukle);
   // Takim formu: once lig kaydi (SLG); yoksa uygulamadaki biten maclar + karsilasma gecmisi (tum yarismalar), acilan mac haric
   function formListesi(n, m) {
     const slg = son5(n);
@@ -1049,18 +1052,43 @@
   }
   // Kadro sekmesi (FotMob tablo): oyuncu, pozisyon, milli takim, forma, yas, mac/gol/asist; antrenor ustte
   const POSAD = { K: 'Kaleci', D: 'Defans', O: 'Orta saha', F: 'Forvet' };
+  // kadro tablosu siralamasi (20 Kas 2026): varsayilan kaleci -> defans -> orta saha -> forvet; basliga dokununca o sutuna gore
+  // (sayi: en coktan en aza, yazi: A-Z), ikinci dokunus tersine cevirir. Degeri olmayan oyuncular hep en altta.
+  let KSRT = { k: '', d: 1 };
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest && ev.target.closest('[data-ksrt]'); if (!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const k = b.dataset.ksrt;
+    if (k === 'p') KSRT = KSRT.k === '' ? { k: 'p', d: -1 } : { k: '', d: 1 };
+    else KSRT = KSRT.k === k ? { k, d: -KSRT.d } : { k, d: (k === 'o' || k === 'u') ? 1 : -1 };
+    const y = window.scrollY; try { render(); window.scrollTo(0, y); } catch (e) { }
+  }, true);
   function kadroTablosu(n) {
     const L = takimOyunculari(n);
     if (!L.length) return card('kmkdt', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu takım için oyuncu verisi yok.</p>`);
     const pos = e => (e.ps && e.ps.p[6]) || e.pos || '';
     const sira = { K: 0, D: 1, O: 2, F: 3, '': 4 };
-    const l = L.slice().sort((a, b) => sira[pos(a)] - sira[pos(b)] || (+a.no || 99) - (+b.no || 99) || a.n.localeCompare(b.n, 'tr'));
+    const ulke = e => kfOf(e).n || (e.milli && e.milli !== n ? e.milli : '') || (e.ps && e.ps.p[11]) || '';
+    const forma = e => kfOf(e).no || (!e.milli || e.milli === n ? e.no : null) || (e.ps && +e.ps.p[7] > 0 ? e.ps.p[7] : null);
+    const yas = e => yasHesap(kfOf(e).b) || e.a || (e.ps && +e.ps.p[10] > 0 ? e.ps.p[10] : null);
+    const sayi = v => { const x = parseFloat(v); return Number.isFinite(x) ? x : null; };
+    const DEG = { o: e => e.n || null, u: e => ulke(e) || null, f: e => sayi(forma(e)), y: e => sayi(yas(e)), m: e => e.ps ? sayi(e.ps.p[1]) : null, g: e => e.ps ? sayi(e.ps.p[3]) : null, a: e => e.ps ? sayi(e.ps.p[4]) : null };
+    const varsay = (a, b) => sira[pos(a)] - sira[pos(b)] || (+a.no || 99) - (+b.no || 99) || a.n.localeCompare(b.n, 'tr');
+    const l = L.slice().sort((a, b) => {
+      if (KSRT.k === 'p') return -varsay(a, b);
+      const f = DEG[KSRT.k]; if (!f) return varsay(a, b);
+      const x = f(a), y = f(b);
+      if (x == null || y == null) return x == null && y == null ? varsay(a, b) : x == null ? 1 : -1;
+      const c = typeof x === 'string' ? x.localeCompare(y, 'tr') : x - y;
+      return (c * KSRT.d) || varsay(a, b);
+    });
+    const th = (k, t, cls) => { const on = KSRT.k === k || (k === 'p' && KSRT.k === ''), ok = !on ? '↕' : (k === 'p' ? (KSRT.k === '' ? '↓' : '↑') : KSRT.d < 0 ? '↓' : '↑'); return `<th${cls ? ` class="${cls}"` : ''}><button type="button" class="kmsrt${on ? ' on' : ''}" data-ksrt="${k}" title="Sırala">${t}<i>${ok}</i></button></th>`; };
     let hoca = ''; try { const X = window.KMX; let son = null; Object.values(X.byKey || {}).forEach(m => { const s = m.h === n ? 'h' : m.a === n ? 'a' : null; if (s && m.lu && m.lu[s] && m.lu[s].co && (!son || Date.parse(m.t) > son.t)) son = { t: Date.parse(m.t), co: m.lu[s].co }; }); hoca = (son && son.co) || xt(n).coach || (disKulup(n) || {}).co || (() => { const k = tmKulup(n); return k && (k.dis || k.cw) && k.co || ''; })(); } catch (e) { }
     const [ka, kb] = renk(n);
     const ulkeH = e => { const u = kfOf(e).n || (e.milli && e.milli !== n ? e.milli : '') || (e.ps && e.ps.p[11]) || ''; return u ? `<span class="kmuy" data-tm="${E(u)}">${bd(u)}<span>${E(u)}</span></span>` : '<span class="kmmut">–</span>'; };
     const sat = e => `<tr ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + e.ad)}"`}><td class="kmkdt-o"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><b>${E(e.n)}</b></td><td>${E(POSAD[pos(e)] || '–')}</td><td class="kmkdt-u">${ulkeH(e)}</td><td>${(() => { const k = kfOf(e).no || (!e.milli || e.milli === n ? e.no : null) || (e.ps && +e.ps.p[7] > 0 ? e.ps.p[7] : null); return k ? E(k) : '–'; })()}</td><td>${(() => { const y = yasHesap(kfOf(e).b) || e.a || (e.ps && +e.ps.p[10] > 0 ? e.ps.p[10] : null); return y ? E(y) : '–'; })()}</td><td>${e.ps ? E(e.ps.p[1]) : '–'}</td><td>${e.ps ? E(e.ps.p[3]) : '–'}</td><td>${e.ps ? E(e.ps.p[4]) : '–'}</td></tr>`;
-    return card('kmkdt', `<table class="kmkdt-t"><thead><tr><th class="kmkdt-o">Oyuncu</th><th>Pozisyon</th><th>Uyruk</th><th>Forma</th><th>Yaş</th><th>Maç</th><th>Gol</th><th>Asist</th></tr></thead><tbody>
-      ${hoca ? `<tr class="kmkdt-h"><td class="kmkdt-o"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(hoca))}</i></span><b>${E(hoca)}</b></td><td>Antrenör</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>` : ''}${l.map(sat).join('')}</tbody></table>
+    return card('kmkdt', `<table class="kmkdt-t"><thead><tr>${th('o', 'Oyuncu', 'kmkdt-o')}${th('p', 'Pozisyon')}${th('u', 'Uyruk')}${th('f', 'Forma')}${th('y', 'Yaş')}${th('m', 'Maç')}${th('g', 'Gol')}${th('a', 'Asist')}</tr></thead><tbody>
+      ${hoca && KSRT.k === '' ? `<tr class="kmkdt-h"><td class="kmkdt-o"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(hoca))}</i></span><b>${E(hoca)}</b></td><td>Antrenör</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>` : ''}${l.map(sat).join('')}</tbody></table>
       <p class="kmkay">Kaynak: Transfermarkt</p>`);
   }
   let MKS = 'gel', MKSn = '';
@@ -1426,7 +1454,7 @@
     if (typeof LGR === 'undefined' || typeof pso !== 'function') return '';
     const B = [['Düşük riskli', p => p >= 0.7], ['Dengeli', p => p >= 0.45 && p < 0.7], ['Yüksek oran', p => p < 0.45]];
     const t = { tot: 0, h: 0, m: 0, w: 0 }, b = B.map(() => ({ tot: 0, h: 0, m: 0 }));
-    ML.forEach(mm => { const k = [mm.c, mm.h, mm.a].join('|'); LGR.filter(r => r.mk === k).forEach(r => {
+    const RA = window.kmRecAll ? kmRecAll() : LGR; ML.forEach(mm => { const k = [mm.c, mm.h, mm.a].join('|'); RA.filter(r => r.mk === k).forEach(r => {
       t.tot++; const z = pso(mm, { k: r.k, p: r.p }); const i = B.findIndex(x => x[1](+r.p || 0));
       if (i >= 0) b[i].tot++;
       if (z === 'hit') { t.h++; if (i >= 0) b[i].h++; } else if (z === 'miss') { t.m++; if (i >= 0) b[i].m++; } else t.w++;

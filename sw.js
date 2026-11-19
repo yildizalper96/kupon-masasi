@@ -1,32 +1,35 @@
-/* Simuleto service worker.
- * Strateji: ag oncelikli (network-first). Cevrimiciyken her zaman guncel kod ve veri gelir
- * (GitHub Actions veriyi surekli guncelledigi icin eski onbellek gostermek istemiyoruz);
- * cevrimdisiyken son basarili cevap onbellekten verilir. Sadece ayni kaynak, sadece GET.
- * Surum degistirmek icin CACHE adini artir (eski onbellekler silinir). */
-const CACHE = 'km-v15';
+/* Simuleto service worker (20 Kas 2026: anlik acilis).
+ * Uygulama kabugu (index.html, css, js, ikonlar, yazi tipi): ONBELLEK ONCELIKLI. Sayfa agi beklemeden cihazdan acilir.
+ *   Guncelleme: tools/build-site.mjs her yayinda CACHE adina kabuk dosyalarinin ozetini (hash) yazar; sw.js degisince
+ *   yeni surum kurulur (kabuk agdan bastan indirilir), eski onbellek silinir, sayfa bir kez yenilenir (index.html controllerchange).
+ * Veri (data/*.json): AG ONCELIKLI, son basarili cevap kalici "km-data" onbellegine yazilir. Sayfa acilista bu kopyayi
+ *   aninda kullanir, hemen ardindan agdan tazesini ister (index.html acilis betigi).
+ * Yerelde (localhost) her sey ag oncelikli: gelistirirken degisiklik hemen gorunur. */
+const CACHE = 'km-v16'; // build-site.mjs yayinda km-<ozet> yapar
+const DATA = 'km-data';
+const YEREL = /^(localhost|127\.0\.0\.1)$/.test(self.location.hostname);
 // Takim/lig logolari ve oyuncu fotograflari (media.api-sports.io): onbellek oncelikli, kalici.
 // Gorsel bir kez indikten sonra her acilista aninda gelir; arka planda 7 gunde bir tazelenir.
 const IMG = 'km-img-v1';
 const IMG_HOST = 'media.api-sports.io';
 const IMG_MAX = 1500, IMG_TAZE = 7 * 864e5;
-const SHELL = [
-  './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/config.js', 'js/cloud.js', 'js/data-shim.js', 'js/i18n-keys.js', 'js/app.js', 'js/fixtures-api.js', 'js/gestures.js', 'js/dokunma.js', 'js/menu.js', 'js/extras.js',
-  'icons/icon-192.png',
-];
+const FONT = /^fonts\.(googleapis|gstatic)\.com$/;
 
+// kurulum: kabuk listesi index.html icinden cikarilir (yeni dosya eklenince liste elle guncellenmez)
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE)
-      .then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {}))))
-      .then(() => self.skipWaiting())
+    fetch('index.html', { cache: 'reload' }).then(r => r.text()).then(html => {
+      const L = new Set(['./', 'index.html', 'manifest.webmanifest']);
+      html.replace(/(?:src|href)=["']([^"'#?]+)["']/g, (m, u) => { if (!/^(https?:|data:|mailto:|\/\/)/.test(u)) L.add(u); return m; });
+      return caches.open(CACHE).then(c => Promise.all([...L].map(u => fetch(u, { cache: 'reload' }).then(res => res.ok ? c.put(u, res) : null).catch(() => {}))));
+    }).catch(() => {}).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== IMG).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== IMG && k !== DATA).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -57,30 +60,30 @@ function gorsel(req, url) {
   }).catch(() => fetch(req));
 }
 
+function agOncelikli(req, onb) {
+  return (req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req, { cache: 'no-cache' }))
+    .then(res => {
+      if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(onb).then(c => c.put(req, copy)).catch(() => {}); }
+      return res;
+    })
+    .catch(() => caches.match(req).then(hit => hit || (req.mode === 'navigate' ? caches.match('index.html').then(h => h || caches.match('./')) : Response.error())));
+}
+function onbellekOncelikli(req, anahtar) {
+  return caches.open(CACHE).then(c => c.match(anahtar || req, { ignoreSearch: req.mode === 'navigate' }).then(hit => hit || fetch(req).then(res => {
+    if (res && ((res.ok && (res.type === 'basic' || res.type === 'cors')) || (res.type === 'opaque' && FONT.test(new URL(req.url).hostname)))) { const copy = res.clone(); c.put(anahtar || req, copy).catch(() => {}); }
+    return res;
+  })));
+}
+
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.hostname === IMG_HOST) { e.respondWith(gorsel(req, url)); return; }
+  if (FONT.test(url.hostname)) { if (!YEREL) e.respondWith(onbellekOncelikli(req)); return; }
   if (url.origin !== self.location.origin) return;
-
-  // cache:'no-cache': tarayicinin HTTP onbellegi (GitHub Pages max-age=600) atlanir, sunucuya sorulur
-  // (degismediyse 304, kucuk); yeni yayin sayfa yenilenince hemen gelir
-  e.respondWith(
-    (req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req, { cache: 'no-cache' }))
-      .then(res => {
-        if (res && res.ok && res.type === 'basic') {
-          const copy = res.clone();
-          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-        }
-        return res;
-      })
-      .catch(() =>
-        caches.match(req).then(hit =>
-          hit || (req.mode === 'navigate'
-            ? caches.match('index.html').then(h => h || caches.match('./'))
-            : Response.error())
-        )
-      )
-  );
+  if (/\/data\/.*\.json$/.test(url.pathname)) { e.respondWith(agOncelikli(req, DATA)); return; }
+  if (YEREL || url.pathname.endsWith('/sw.js')) { e.respondWith(agOncelikli(req, CACHE)); return; }
+  // kabuk: cihazdan aninda (sayfa adresi icin index.html kopyasi)
+  e.respondWith(onbellekOncelikli(req, req.mode === 'navigate' ? 'index.html' : null));
 });

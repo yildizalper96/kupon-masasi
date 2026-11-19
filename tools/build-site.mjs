@@ -25,6 +25,21 @@ for (const rel of [
 
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
+// service worker surumu: kabuk dosyalarinin (index.html, css, js, ikonlar, manifest) ozeti. Kod degisince sw.js degisir,
+// tarayicilar yeni surumu kurar ve kabugu agdan bastan indirir; degismezse onbellek korunur (anlik acilis).
+{
+  const crypto = await import('node:crypto');
+  const h = crypto.createHash('sha1');
+  const kab = [];
+  (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) { const p = path.join(d, e.name); e.isDirectory() ? walk(p) : kab.push(p); } })(path.join(out, 'js'));
+  for (const r of ['index.html', 'manifest.webmanifest']) kab.push(path.join(out, r));
+  for (const d of ['css', 'icons']) (function walk(x) { for (const e of fs.readdirSync(x, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) { const p = path.join(x, e.name); e.isDirectory() ? walk(p) : kab.push(p); } })(path.join(out, d));
+  for (const f of kab) if (fs.existsSync(f)) { h.update(path.relative(out, f)); h.update(fs.readFileSync(f)); }
+  const swp = path.join(out, 'sw.js'), sv = 'km-' + h.digest('hex').slice(0, 10);
+  fs.writeFileSync(swp, fs.readFileSync(swp, 'utf8').replace(/const CACHE = '[^']*'/, `const CACHE = '${sv}'`));
+  console.log('sw surumu:', sv);
+}
+
 const files = [];
 (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); e.isDirectory() ? walk(p) : files.push(p); } })(out);
 const bytes = files.reduce((a, f) => a + fs.statSync(f).size, 0);
