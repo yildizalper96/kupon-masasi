@@ -423,6 +423,8 @@ input,button,select,textarea{font-family:var(--f)}
 /* logo yuklenirken bas harf gorunmesin (img varsa); yuklenemezse img kaldirilir ve harf geri gelir */
 .bd:has(>.tlg){color:transparent!important}
 .bd.hl{background:transparent!important;box-shadow:none!important;color:transparent!important;overflow:visible}
+.bd .tlg.ok{opacity:1}
+.bd:has(>.tlg.ok){background:transparent!important;box-shadow:none!important;color:transparent!important;overflow:visible}
 
 /* ==== Tasarim v2 duzeltme 3 (kullanici, FotMob zarafeti): kucuk ve ince yazi, daha genis bosluk, kibar ogeler, 8px/6px kose ==== */
 @media(min-width:0px){

@@ -8,21 +8,26 @@
   let T = {};
   try { const v = JSON.parse(localStorage.getItem(ANAH) || 'null'); if (v && typeof v === 'object') T = v; } catch (e) { }
   window.kmTeamId = n => T[n] || null;
+  const LL = {};
+  window.kmLogoOk = (el, id) => { LL[id] = 1; try { el.classList.add('ok'); (el.parentNode || el).classList.add('hl'); } catch (e) { } };
+  window.kmLogoErr = el => { try { if (!el.dataset.r) { el.dataset.r = '1'; const s = el.src; setTimeout(() => { el.src = s + (s.indexOf('?') < 0 ? '?r=1' : ''); }, 800); } else el.remove(); } catch (e) { el.remove(); } };
   // milli takim (Uluslar Ligi) logolari bayraktir: telefonda yuvarlak kesilir (class mf)
   let MS = null, MN = -1;
   const milli = n => { try { if (MN !== R.length) { MS = new Set(); R.forEach(m => { if (m.c === 'UNL') { MS.add(m.h); MS.add(m.a); } }); MN = R.length; } return MS.has(n); } catch (e) { return false; } };
   window.kmLogo = function (n) {
     const id = T[n];
     if (!id) return '';
-    return `<img class='tlg${milli(n) ? ' mf' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='(this.parentNode||this).classList.add("hl")' onerror='this.remove()'>`;
+    // bir kez yuklenen logo (LL) yeniden cizimde dogrudan gorunur (ok): bas harf/bos daire an bile gorunmez.
+    // yukleme hatasinda bir kez yeniden denenir; ancak o da olmazsa bas harf rozeti kalir.
+    return `<img class='tlg${milli(n) ? ' mf' : ''}${LL[id] ? ' ok' : ''}' src='https://media.api-sports.io/football/teams/${id}.png' alt='' decoding='async' referrerpolicy='no-referrer' onload='kmLogoOk(this,${id})' onerror='kmLogoErr(this)'>`;
   };
-  fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+  (window.kmBoot||function(p){return p})(fetch('data/teams/ids.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (!j || !j.t) return;
     const yeni = JSON.stringify(j.t), degisti = yeni !== JSON.stringify(T);
     T = j.t;
     try { localStorage.setItem(ANAH, yeni); } catch (e) { }
     if (degisti) { try { if (typeof render === 'function') render(); } catch (e) { } }
-  }).catch(() => { });
+  }).catch(() => { }));
 })();
 // Lig logolari (API-Football): kimlik once fixtures latest.json meta'sindan (KMX.lgId), yoksa sabit tablodan (tools/fetch-fixtures.mjs LEAGUES).
 // Yuklenmezse img kaldirilir; altindaki yedek (bayrak/harf) gorunur.

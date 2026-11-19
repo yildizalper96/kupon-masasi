@@ -7,9 +7,9 @@
   if (typeof detail !== 'function' || typeof teamView !== 'function') return;
   const MQ = matchMedia('(min-width:0px)'); // masaustu tasarimi her genislikte (telefon: tek sutun, css/app.css 'Mobil' blogu)
   let X = { matches: {}, teams: {} };
-  fetch('data/extra/latest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+  (window.kmBoot||function(p){return p})(fetch('data/extra/latest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
     if (j && typeof j === 'object') { X = { matches: j.matches || {}, teams: j.teams || {}, at: j.at }; try { render(); } catch (e) { } }
-  }).catch(() => { });
+  }).catch(() => { }));
 
   const E = s => (typeof stE === 'function' ? stE(s) : String(s == null ? '' : s));
   // kaynak: yalnizca marka adi (ayrinti yok)
@@ -286,7 +286,7 @@
   }
   // biriken biten maclar (veri oturumu: data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}); yoksa bos
   let BITEN = [];
-  fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { });
+  (window.kmBoot||function(p){return p})(fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { }));
   // Takim formu: once lig kaydi (SLG); yoksa uygulamadaki biten maclar + karsilasma gecmisi (tum yarismalar), acilan mac haric
   function formListesi(n, m) {
     const slg = son5(n);

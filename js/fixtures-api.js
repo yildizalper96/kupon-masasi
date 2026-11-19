@@ -9,15 +9,21 @@
   var FXAT = '';
   var FIN = { FT: 1, AET: 1, PEN: 1 };
 
-  async function loadFixtures(force) {
+  // pre: tarayicida saklanan son veri (km_fx). Verilirse hic await olmadan ESZAMANLI calisir; ilk ekran beklemeden bugunun maclariyla acilir.
+  async function loadFixtures(force, pre) {
     try {
-      var db = await claude.use('db');
-      if (!db) return false;
-      var sn = await db.doc('fixtures/latest').get();
-      if (!sn.exists) return false;
-      var d = sn.data();
+      var db = null, d;
+      if (pre) d = pre;
+      else {
+        db = await claude.use('db');
+        if (!db) return false;
+        var sn = await db.doc('fixtures/latest').get();
+        if (!sn.exists) return false;
+        d = sn.data();
+      }
       if (!d || !Array.isArray(d.m) || (!force && d.at === FXAT)) return false;
       FXAT = d.at;
+      if (!pre) { try { localStorage.setItem('km_fx', JSON.stringify(d)); } catch (e) {} }
 
       // yeni ligler: ad, uzun ad, renk
       Object.keys(d.lg || {}).forEach(function (c) {
@@ -38,7 +44,7 @@
 
       // puan durumu: ucretsiz API plani 2026 sezonunu vermedigi icin dis kaynaklardan (Wikipedia, ge.globo) girilen tablolar: data/standings/<LIG>.json
       // TM kaydi: r sira, p puan, w galibiyet, d beraberlik, o MAGLUBIYET, f atilan, a yenilen (uygulamanin ortak puan tablosu bicimi)
-      for (var sc of ['BRA']) {
+      for (var sc of (db ? ['BRA'] : [])) {
         if (!d.lg || !(sc in d.lg) || typeof TM === 'undefined') continue;
         try {
           var ss = await db.doc('standings/' + sc).get();
@@ -329,5 +335,14 @@
   }
 
   window.loadFixtures = loadFixtures;
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  // ilk ekran: saklanan son veriyle hemen ciz (yukleniyor yazisi yok); taze veri gelince sessizce guncellenir
+  try {
+    var fxc = JSON.parse(localStorage.getItem('km_fx') || 'null');
+    if (fxc && Array.isArray(fxc.m)) {
+      loadFixtures(true, fxc); FXAT = ''; window.__fxWait = false;
+      try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {}
+      try { render(); } catch (e) {}
+    }
+  } catch (e) {}
+  (window.kmBoot||function(p){return p})(boot()); // ilk acilis kapisi bu yuklemeyi bekler (index.html kmBoot)
 })();
