@@ -353,12 +353,19 @@ if (!DRY) {
   }
   fs.writeFileSync(cachePath, JSON.stringify(cache));
 }
+// Kaynak sirasi: 1) piyasa beklentisi (details.json: ~10 kaynagin marji cikarilmis ortalamasi), 2) API /predictions.
+// API'nin kaba kaliplari (33/33/33, 10/45/45, 0/50/50 vb.) gercek olasilik degil: yok say.
+const detOdds = (() => { try { return JSON.parse(fs.readFileSync(path.join(outDir, 'details.json'), 'utf8').replace(/^﻿/, '')).m || {}; } catch (e) { return {}; } })();
+const KABA = new Set(['33,33,33', '10,45,45', '0,50,50', '5,45,50', '10,40,50']);
+let pPiyasa = 0, pApi = 0;
 for (const m of matches) {
+  const o = detOdds[m.id]?.odds?.p;
+  if (Array.isArray(o) && o.length === 3 && o.every(Number.isFinite) && o.reduce((a, b) => a + b, 0) > 0.9) { m.p = o.map(x => +x.toFixed(4)); m.ps = 'piyasa'; pPiyasa++; continue; }
   let v = cache[m.id];
-  // API bilinmeyen maclar icin esit uclu (33/33/33) dondurur: bu gercek tahmin degil, yok say
-  if (v && Math.max(...v) - Math.min(...v) < 1) v = null;
-  if (v) m.p =v.map(x => +(x / v.reduce((a, b) => a + b, 0)).toFixed(4));
+  if (v && (Math.max(...v) - Math.min(...v) < 1 || KABA.has(v.map(Math.round).sort((a, b) => a - b).join(',')))) v = null;
+  if (v) { m.p = v.map(x => +(x / v.reduce((a, b) => a + b, 0)).toFixed(4)); m.ps = 'api'; pApi++; }
 }
+console.log(`Olasilik kaynagi: piyasa ${pPiyasa}, API ${pApi}`);
 
 matches.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c));
 // "Ligler" sekmesinde arama/acilis icin takma adlar (uygulamadaki LGA gibi)
