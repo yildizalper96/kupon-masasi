@@ -58,6 +58,7 @@
   function solCiz() {
     let kodlar = ONE;
     try { kodlar = ONE.filter(c => LGNM[c]); } catch (e) { }
+    const eskiAcik = !!sol.querySelector('.dztumk.acik'), eskiFiltre = (sol.querySelector('.dzfil input') || {}).value || '', eskiKay = sol.scrollTop;
     const tk = takipler().filter(c => { try { return LGNM[c] || LN[c]; } catch (e) { return false; } });
     sol.innerHTML = (tk.length ? `<section class="dzk dztakipk"><h3>Takip Ettiğin Ligler</h3><ul class="dzlig">${tk.map(c => ligSatir(c, tk)).join('')}</ul></section>` : '') +
       `<section class="dzk"><h3>Öne çıkan ligler</h3><ul class="dzlig">${kodlar.map(c => ligSatir(c, tk)).join('')}</ul></section>
@@ -69,6 +70,11 @@
       const acik = ic.hidden; ic.hidden = !acik; t.setAttribute('aria-expanded', String(acik)); t.parentElement.classList.toggle('acik', acik);
       if (acik) tumListe(ic);
     };
+    if (eskiAcik && t && ic) {
+      ic.hidden = false; t.setAttribute('aria-expanded', 'true'); t.parentElement.classList.add('acik'); tumListe(ic);
+      const fi = ic.querySelector('input'); if (fi && eskiFiltre) { fi.value = eskiFiltre; fi.dispatchEvent(new Event('input')); }
+      sol.scrollTop = eskiKay;
+    }
   }
   // Tum ligler: ulkeye gore gruplu, filtrelenebilir liste (FotMob gibi yerinde acilir)
   function tumListe(ic) {
@@ -77,12 +83,17 @@
     kodlar.forEach(c => { let u = ''; try { u = LN[c] ? LN[c].split(' – ')[0] : ''; } catch (e) { } u = u || 'Diğer'; if (!grup.has(u)) grup.set(u, []); grup.get(u).push(c); });
     const ciz = q => {
       const n = s => String(s).toLocaleLowerCase('tr');
+      const tk = takipler();
       const html = [...grup].map(([u, cs]) => {
         const l = cs.filter(c => !q || n(ligAdi(c)).includes(q) || n(u).includes(q));
-        return l.length ? `<div class="dzgrup"><small>${esc(u)}</small>${l.map(c => `<button data-dzlg="${esc(c)}">${bayrak(c)}${esc(ligAdi(c))}</button>`).join('')}</div>` : '';
+        return l.length ? `<div class="dzgrup"><small>${esc(u)}</small><ul class="dzlig">${l.map(c => ligSatir(c, tk)).join('')}</ul></div>` : '';
       }).join('');
       liste.innerHTML = html || '<p class="dzbos">Eşleşen lig yok.</p>';
       liste.querySelectorAll('[data-dzlg]').forEach(b => b.onclick = () => ligAc(b.dataset.dzlg));
+      liste.querySelectorAll('[data-dztakip]').forEach(b => b.onclick = e => {
+        e.stopPropagation();
+        if (window.KMLig && window.KMLig.degistir(b.dataset.dztakip)) { try { KMHap(); } catch (x) { } }
+      });
     };
     ic.innerHTML = `<label class="dzfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg><input placeholder="Filtre" aria-label="Lig filtrele"></label><div class="dzliste"></div>`;
     const liste = ic.querySelector('.dzliste'), inp = ic.querySelector('input');
