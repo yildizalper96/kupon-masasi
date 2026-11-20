@@ -74,11 +74,10 @@
   const st = () => ({ kmn: NAVS.length });
 
   function guncelle(degistir) {
-    try { const b0 = adres(); if (b0) baslik(b0.b); } catch (e) { }
-    if (!hazir || yon) { kaydet(); return; }
+    // baslik gecmis kaydi degistikten SONRA yazilir; once yazilirsa onceki kaydin adi bozulur (geri donunce eski ad gorunur)
+    if (!hazir || yon) { if (!yon) { try { const b0 = adres(); if (b0) baslik(b0.b); } catch (e) { } } kaydet(); return; }
     if (OZEL.test(location.hash || '')) { kaydet(); return; }
     const a = adres(); if (!a) { kaydet(); return; }
-    baslik(a.b);
     const cur = simdiki(), hs = history.state, kmn = hs && hs.kmn;
     // uygulama ici geri (Geri dugmesi, kaydirma hareketi): tarayici gecmisi de bir adim geri gider, sayfa yeniden kurulmaz
     if (!degistir && NAVS.length === son.n - 1 && FWD.length === son.f + 1 && kmn === son.n && son.n > 0) {
@@ -88,6 +87,7 @@
       if (degistir || (tur(cur) === 'ara' && tur(a.h) === 'ara')) history.replaceState(st(), '', url(a.h));
       else history.pushState(st(), '', url(a.h));
     } else if (kmn !== NAVS.length) history.replaceState(st(), '', url(a.h));
+    baslik(a.b);
     kaydet();
   }
 
