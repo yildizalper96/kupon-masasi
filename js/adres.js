@@ -74,6 +74,7 @@
   const st = () => ({ kmn: NAVS.length });
 
   function guncelle(degistir) {
+    try { const b0 = adres(); if (b0) baslik(b0.b); } catch (e) { }
     if (!hazir || yon) { kaydet(); return; }
     if (OZEL.test(location.hash || '')) { kaydet(); return; }
     const a = adres(); if (!a) { kaydet(); return; }
@@ -92,7 +93,7 @@
 
   window.addEventListener('popstate', e => {
     if (OZEL.test(location.hash || '')) return;
-    if (sessiz) { sessiz = false; const a = adres(); if (a && a.h !== simdiki()) history.replaceState(st(), '', url(a.h)); kaydet(); return; }
+    if (sessiz) { sessiz = false; const a = adres(); if (a) baslik(a.b); if (a && a.h !== simdiki()) history.replaceState(st(), '', url(a.h)); kaydet(); return; }
     yon = true;
     try {
       const n = e.state && e.state.kmn;

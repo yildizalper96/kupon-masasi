@@ -23,6 +23,7 @@
     db().then(function (d) { if (d) d.doc('data/users/' + id + '/prefs').set({ tema: tema, ligler: ligler }).catch(function () { }); });
   }
   function temaSec(t) { tema = t; temaUygula(t); prefYaz(); }
+  window.kmTemaSec = temaSec;
   function cikisDurumu() { ls('km_tema', null); ls('km_ligtakip', null); tema = 'dark'; ligler = []; temaUygula('dark'); solYenile(); }
   // lig takibi (desktop.js sol sutun kullanir). Giris yoksa profil/giris sayfasina yonlendirir.
   window.KMLig = {
@@ -81,10 +82,11 @@
   var DIL = '<span class="kmp-dils"><button type="button" class="on" aria-pressed="true">Türkçe</button><button type="button" disabled aria-disabled="true" title="Yakında">English</button></span>';
   var NOT = '<div class="kmv-not">Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir.</div>';
   function satir(git, ic, ad, alt) { return '<button type="button" class="kmv-r" data-kmgit="' + git + '"><i>' + ic + '</i><span><b>' + ad + '</b>' + (alt ? '<small>' + alt + '</small>' : '') + '</span>' + IC.ok + '</button>'; }
+  function basHarf(u) { var p = String(u.name || '').trim().split(/\s+/).filter(Boolean); if (!p.length) p = [String(u.email || 'Ü')]; var h = p[0].charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : ''); return h.toLocaleUpperCase('tr'); }
   function ciz() {
-    var u = kim(), ad = u ? esc(u.name || 'Üye') : '', harf = u ? esc((u.name || u.email || 'Ü').charAt(0).toUpperCase()) : '';
+    var u = kim(), ad = u ? esc(u.name || 'Üye') : '', harf = u ? esc(basHarf(u)) : '';
     panel.innerHTML =
-      '<div class="kmv-h">Hesap</div><div class="kmv-grp">' + (u ? satir('u', '<b class="kmv-av s">' + harf + '</b>', ad, 'Profil ve ayarlarım') : satir('u', IC.u, 'Giriş yap', 'veya ücretsiz hesap oluştur')) + '</div>' +
+      '<div class="kmv-h">Hesap</div><div class="kmv-grp">' + (u ? satir('u', '<span class="kmv-av">' + harf + '</span>', ad, 'Profil ve ayarlarım') : satir('u', IC.u, 'Giriş yap', 'veya ücretsiz hesap oluştur')) + '</div>' +
       '<div class="kmv-h">Sayfalar</div><div class="kmv-grp">' + satir('c', IC.c, 'Simülatör') + satir('g', IC.g, 'Tahmin geçmişi') + '</div>' +
       '<div class="kmv-h">Görünüm</div><div class="kmv-grp">' +
         '<div class="kmp-sat"><b>Tema</b>' + TEMA + '</div>' +

@@ -265,10 +265,10 @@
     var h = _kupHtml();
     try {
       if (KPD && KPD.length) {
-        var a = html(KPD, { draft: true }), mark = '<h3>Kayıtlı simülasyonlarım</h3>', i = h.indexOf(mark);
+        var a = html(KPD, { draft: true }), mark = "<div class='smk-", i = h.indexOf(mark);
         h = i >= 0 ? h.slice(0, i) + a + h.slice(i) : h + a;
       }
-      var sv = savedHtml(), j = h.indexOf("<div class='box'><h3>Arkadaşımın kuponu");
+      var sv = savedHtml(), j = h.indexOf('<!--kmka-->'); if (j < 0) j = h.indexOf("<div class='box'><h3>Arkadaşımın kuponu");
       if (sv) h = j >= 0 ? h.slice(0, j) + sv + h.slice(j) : h + sv;
     } catch (e) { if (window.console) console.warn('kupon-analiz ekleme:', e); }
     return h;
