@@ -6,7 +6,6 @@
  * - Zayif halka: her secim cikarildiginda kuponun ihtimali/orani nasil degisir (kpTot ile).
  * - Dayanak: model ihtimali, piyasa beklentisi (varsa), form, karsilikli maclar, kadro/eksik, ve modelin
  *   gecmis isabeti (LGR kayitlari, ihtimal bandina gore). Veri yoksa "veri yok" denir, uydurulmaz.
- * - Kendi oranin: kullanicinin yazdigi oranla beklenen deger (p*oran-1). Kaydedilmez.
  * Bu bir bahis tavsiyesi degildir; hicbir bahis risksiz degildir.
  */
 (function () {
@@ -200,7 +199,6 @@
       '.ka-note{font-size:12px;opacity:.65;line-height:1.5;margin-top:10px}' +
       '.ka .ka-head{margin:8px 0 0}.ka .ka-big{font:800 28px/1 var(--f)}.ka-lr{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}' +
       '.ka-oz{margin:10px 0 6px;font-size:13.5px;line-height:1.45;color:var(--ink)}.ka-leg{padding:10px 0}.ka-lt b{font-weight:600}' +
-      '.ka-uo{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:7px;font-size:12.5px}.ka-uo label{opacity:.8;display:flex;align-items:center;gap:6px}.ka-uo input{width:72px;font:inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--ln,#2a3a46);background:transparent;color:inherit}.ka-uo em{font-style:normal;opacity:.6}.ka-uo .g{color:var(--ok,#1b7a4b)}.ka-uo .o{color:var(--warn,#b86e00)}.ka-uo .k{color:var(--hot,#b3362f)}' +
       '.ka-rm{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--warn,#b86e00) 10%,transparent);font-size:12.5px;color:var(--mut)}.ka-rm b{color:var(--ink)}.ka-rm .kpc-b{flex:none}';
     document.head.appendChild(s);
   })();
@@ -217,31 +215,8 @@
     if (draft && x.without && x.res !== 'hit' && x.res !== 'miss' && a.weakest === x && (x.p < WEAK || a.risk !== 'low') && a.pend.length > 1) {
       oner = '<div class="ka-rm"><span>Çıkarırsan tutma ihtimali <b>%' + pc(a.pAll) + ' → %' + pc(x.without.p) + '</b>, oran ' + a.od.toFixed(2) + ' → ' + x.without.od.toFixed(2) + '</span><button class="kpc-b" data-krm="' + x.i + '">Çıkar</button></div>';
     }
-    var uo = '';
-    if (x.res !== 'hit' && x.res !== 'miss' && x.p0 > 0 && x.p0 < 1) {
-      var ky = esc(x.l.mk + '#' + x.l.k), v = UO[x.l.mk + '#' + x.l.k] || '';
-      uo = '<div class="ka-uo"><label>Senin sitendeki oran <input data-kuo="' + ky + '" data-kup="' + x.p0 + '" inputmode="decimal" placeholder="ör. 1.35" value="' + esc(v) + '"></label><span>' + uoTxt(x.p0, v) + '</span></div>';
-    }
-    return '<div class="ka-leg"><div class="ka-lt"><div><b>' + esc(x.lab) + '</b><small>' + esc(x.mname) + (not ? ' · ' + esc(not) : '') + '</small></div><div class="ka-lr"><b>%' + pc(x.p) + '</b><span class="ka-tag ' + x.cls + '">' + x.tag + '</span></div></div>' + oner + uo + '</div>';
+    return '<div class="ka-leg"><div class="ka-lt"><div><b>' + esc(x.lab) + '</b><small>' + esc(x.mname) + (not ? ' · ' + esc(not) : '') + '</small></div><div class="ka-lr"><b>%' + pc(x.p) + '</b><span class="ka-tag ' + x.cls + '">' + x.tag + '</span></div></div>' + oner + '</div>';
   }
-
-  // Kendi oranin (20 Kas 2026): kullanici kendi sitesinde gordugu orani yazar; modelin ihtimaliyle beklenen deger hesaplanir.
-  // Bahisci orani gostermeyiz; yalnizca kullanicinin yazdigi sayi kullanilir, kaydedilmez (sayfa yenilenince silinir).
-  var UO = {};
-  function uoTxt(p, v) {
-    var o = parseFloat(String(v || '').replace(',', '.'));
-    if (!o || !isFinite(o) || o <= 1 || o > 100) return '<em>Adil oran ' + (1 / p).toFixed(2) + '</em>';
-    var ev = p * o - 1, r = Math.round(ev * 100), y = (r > 0 ? '+%' : r < 0 ? '-%' : '%') + Math.abs(r);
-    if (ev >= 0.03) return '<b class="g">Değerli: beklenen getiri ' + y + '</b>';
-    if (ev > -0.03) return '<b class="o">Adil civarı (' + y + ')</b>';
-    return '<b class="k">Değersiz: beklenen getiri ' + y + '</b>';
-  }
-  document.addEventListener('input', function (e) {
-    var t = e.target; if (!t || !t.getAttribute || !t.hasAttribute('data-kuo')) return;
-    UO[t.getAttribute('data-kuo')] = t.value;
-    var sp = t.closest('.ka-uo'); sp = sp && sp.querySelector('span');
-    if (sp) sp.innerHTML = uoTxt(+t.getAttribute('data-kup'), t.value);
-  });
 
   function ozet(a) {
     var n = a.pend.length, w = a.weakest;
