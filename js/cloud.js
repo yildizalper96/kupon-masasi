@@ -105,6 +105,41 @@
   C.google = function () {
     location.href = BASE + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(location.origin + location.pathname);
   };
+  // Google (Identity Services, 20 Kas 2026): acilir pencere "simuleto.com" adiyla; supabase.co ekrani gosterilmez.
+  // Yalniz config.js'de googleClientId varsa ve betik yuklenirse; aksi halde eski yonlendirme calisir.
+  var GISP = null;
+  function gisLoad() {
+    if (GISP) return GISP;
+    GISP = new Promise(function (ok, no) {
+      if (window.google && google.accounts && google.accounts.id) return ok();
+      var sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+      sc.onload = function () { ok(); }; sc.onerror = function () { GISP = null; no(); };
+      document.head.appendChild(sc);
+      setTimeout(function () { no(); }, 6000);
+    });
+    return GISP;
+  }
+  async function sha256hex(t) {
+    var d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+    return Array.prototype.map.call(new Uint8Array(d), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  C.googleBtn = async function (slot, onDone) {
+    var cid = CFG.googleClientId;
+    if (!cid || !slot || !window.crypto || !crypto.subtle) return false;
+    try {
+      await gisLoad();
+      var raw = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      var hashed = await sha256hex(raw);
+      google.accounts.id.initialize({ client_id: cid, nonce: hashed, ux_mode: 'popup', use_fedcm_for_prompt: true, callback: async function (resp) {
+        try {
+          var r = await authFetch('/token?grant_type=id_token', 'POST', { provider: 'google', id_token: resp.credential, nonce: raw });
+          if (r.ok && r.j.access_token) { saveS(toSession(r.j)); onDone(true); } else onDone(false, errKey(r));
+        } catch (e) { onDone(false, 'net'); }
+      } });
+      google.accounts.id.renderButton(slot, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', width: Math.min(400, Math.max(200, slot.offsetWidth || 300)) });
+      return true;
+    } catch (e) { return false; }
+  };
   C.signOut = function () {
     var tok = S && S.access_token;
     saveS(null);
@@ -204,7 +239,16 @@
     if (g('kab_go')) g('kab_go').onclick = function () { act(A.mode); };
     [['kab_tin', 'in'], ['kab_tup', 'up']].forEach(function (x) { var el = g(x[0]); if (el) el.onclick = function () { if (A.mode === x[1]) return; var e = g('kae'); if (e) A.email = e.value.trim(); A.mode = x[1]; A.msg = ''; redraw(); }; });
     if (g('kab_sw')) g('kab_sw').onclick = function () { var e = g('kae'); if (e) A.email = e.value.trim(); A.mode = A.mode === 'up' ? 'in' : 'up'; A.msg = ''; redraw(); };
-    if (g('kab_g')) g('kab_g').onclick = function () { C.google(); };
+    if (g('kab_g')) {
+      var gb = g('kab_g'), gis = false;
+      gb.onclick = function () { if (!gis) C.google(); };
+      var wrap = gb.parentNode, ov = document.createElement('div');
+      ov.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:.011;overflow:hidden;z-index:2';
+      var hold = document.createElement('div'); hold.style.position = 'relative'; wrap.insertBefore(hold, gb); hold.appendChild(gb); hold.appendChild(ov);
+      C.googleBtn(ov, async function (ok, er) {
+        if (ok) { await A.afterLogin(); } else { A.msg = er || 'net'; redraw(); }
+      }).then(function (r) { if (r) gis = true; else ov.remove(); });
+    }
     ['kae', 'kap'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key === 'Enter') act(A.mode); }; });
   };
   window.KMAUTH = A;
