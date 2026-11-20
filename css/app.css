@@ -1026,8 +1026,13 @@ body #kpt,body #kpt.ok,body #kpt.info{background:var(--sf);color:var(--ink);bord
 #kpt::before{content:'';position:absolute;left:16px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:var(--hot)}
 #kpt.ok::before{background:var(--ok)}
 #kpt.info::before{background:var(--mut)}
-@media(min-width:0px){
+@media(min-width:1100px){
   body #kpt{left:auto;right:28px;bottom:28px;max-width:380px;margin:0}
+}
+/* Telefon: bildirim ustte, alt menu/kupon cubugunun ustune binmez */
+@media(max-width:1099px){
+  body #kpt{left:12px;right:12px;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 10px);max-width:420px;margin:0 auto;width:auto;box-sizing:border-box;transform:translateY(-8px);transition:opacity .2s,transform .2s}
+  body #kpt.show{transform:none}
 }
 /* oyuncu sayfasinda da sol menu gizli, iki genis sutun */
 @media(min-width:0px){#dz:has(#app>.kmph){grid-template-columns:minmax(0,1fr) 360px!important}#dz:has(#app>.kmph) #dzl{display:none!important}}
@@ -1991,7 +1996,7 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   .kmkdt-t tbody tr{cursor:pointer}
   .kmkdt-t tbody tr:hover td{background:var(--sf2)}
   .kmkdt-t .kmkdt-o{text-align:left;padding-left:24px}
-  td.kmkdt-o{display:flex;align-items:center;gap:14px}
+  td.kmkdt-o .kmkdt-w{display:flex;align-items:center;gap:14px;min-width:0}
   td.kmkdt-o b{font:600 14px var(--f)}
   .kmkdt-t .kmav{width:40px;height:40px}
   td.kmkdt-u{text-align:center;white-space:nowrap}
@@ -2100,7 +2105,14 @@ nav svg[stroke="currentColor"]{stroke-width:2!important}
   .kmkdt-t td{padding:10px 4px!important}
   .kmkdt-t .kmkdt-o{padding-left:14px!important}
   .kmkdt-t :is(th,td):last-child{padding-right:14px!important}
-  td.kmkdt-o{gap:10px!important;min-width:0}
+  td.kmkdt-o .kmkdt-w{gap:10px!important}
+  .kmkdt-t td.kmkdt-o,.kmkdt-t th.kmkdt-o{min-width:104px;width:34%}
+  .kmkdt-t th .kmsrt i{display:none}
+  .kmkdt-t th,.kmkdt-t td{padding-left:2px!important;padding-right:2px!important}
+  .kmkdt-t .kmav{width:30px!important;height:30px!important}
+  td.kmkdt-o .kmkdt-w{gap:8px!important}
+  .kmkdt-t .kmkdt-o{padding-left:10px!important}
+  td.kmkdt-o b{overflow-wrap:normal!important;word-break:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   td.kmkdt-o b{font-size:13.5px!important;line-height:1.25;overflow-wrap:anywhere}
   .kmkdt-t .kmav{width:34px!important;height:34px!important;flex:none}
   td.kmkdt-u .kmuy>span{display:none}
@@ -2691,3 +2703,5 @@ nav button,header nav button{cursor:pointer}
 .tsl-c .kpt>div{background:none!important;border-radius:0!important;padding:16px 6px}.tsl-c .kpt>div+div{border-left:1px solid rgba(255,255,255,.12)}
 .tsl-c .kpt small{color:rgba(255,255,255,.75)!important}.tsl-c .kpt b{font:700 24px var(--n);color:#fff}
 #app .tsl-c .kpf .kpb{background:linear-gradient(135deg,var(--brand,var(--acc)),color-mix(in srgb,var(--brand,var(--acc)) 70%,#fff))!important;color:#0b0f1a!important;border:0!important}
+
+#kbar .kb-x{font-size:22px;line-height:1;font-weight:400}
