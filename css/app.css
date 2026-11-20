@@ -2543,3 +2543,36 @@ body.kbar-on #app{padding-bottom:184px!important}
 .hg-lc.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,var(--sf2))}
 .hg-lpf{padding:4px 16px 14px;font-size:12.5px}.hg-lpf button{background:none;border:0;color:var(--acc);font:600 12.5px var(--f);cursor:pointer;padding:0}
 @media(max-width:560px){.hg-lpg{grid-template-columns:1fr;gap:6px}.hg-lc{padding:8px 10px;font-size:13px}.hg-lpk{display:none}}
+/*giris karti*/
+.kau{width:100%;max-width:880px;margin:0 auto;box-sizing:border-box}
+.kau h2{font:700 26px/1.15 var(--n);margin:0 0 8px;color:var(--ink)}
+.kau-tabs{display:flex;background:var(--sf2,var(--bg));border:1px solid var(--ln);border-radius:12px;padding:4px;margin:0 0 18px}
+.kau-tabs button{flex:1;padding:9px;border:0;border-radius:9px;background:none;color:var(--mut);font:600 14px var(--f);cursor:pointer}
+.kau-tabs button.on{background:var(--sf);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+#app .kau.kau input{display:block!important;width:100%!important;box-sizing:border-box!important;padding:12px 14px!important;margin:0 0 10px!important;border-radius:12px!important;border:1px solid var(--ln)!important;background:var(--sf2,var(--bg))!important;color:var(--ink)!important;font:16px var(--f)!important;outline:none!important}
+#app .kau.kau input:focus{border-color:var(--brand,var(--acc))!important}
+.kau-g,.kau-p{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:12px;font:600 15px var(--f);cursor:pointer}
+.kau-g{background:#fff;color:#1f1f1f;border:1px solid var(--ln)}
+.kau-p{margin-top:4px;background:var(--brand,var(--acc));color:#0b0f1a;border:0}
+:root[data-theme="light"] .kau-p{color:#fff}
+.kau-g:disabled,.kau-p:disabled{opacity:.6;cursor:default}
+.kau-or{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--mut);font-size:13px}
+.kau-or::before,.kau-or::after{content:"";flex:1;height:1px;background:var(--ln)}
+.kau-msg{color:var(--hot);font-size:14px;margin:0 0 10px}
+.kau-ft{margin-top:14px;font-size:12px;color:var(--mut);text-align:center;line-height:1.4}
+.kau-wm{display:inline-flex;align-items:center;font:800 26px var(--f);letter-spacing:-.5px;color:var(--ink);margin-bottom:22px}
+.kau-wm .o{width:.63em;height:.63em;margin-left:.045em;flex:none;overflow:visible;color:var(--brand,var(--acc))}
+.kau-wm use{fill:currentColor;stroke:currentColor;stroke-width:16;stroke-linejoin:round}
+.kau i{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--brand,var(--acc)) 16%,transparent);color:var(--brand,var(--acc))}
+.kau i svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kau ul{list-style:none;margin:0;padding:0}
+.kau li{display:flex;gap:12px;align-items:flex-start}
+.kau li b{display:block;font:600 15px var(--f);color:var(--ink)}
+.kau li span{display:block;font-size:13px;color:var(--mut);line-height:1.4;margin-top:2px}
+/*A: iki sutun*/
+#app .box.kau-a.kau-a{display:grid;grid-template-columns:1fr 1fr;padding:0!important;overflow:hidden;border-radius:18px!important}
+.kau-side{padding:32px 30px;background:linear-gradient(160deg,color-mix(in srgb,var(--brand,var(--acc)) 22%,var(--sf)) 0%,var(--sf) 75%);border-right:1px solid var(--ln)}
+.kau-side>p{color:var(--mut);font-size:14px;line-height:1.45;margin:0 0 24px}
+.kau-list{display:grid;gap:18px}
+.kau-main{padding:32px 30px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:760px){#app .box.kau-a.kau-a{grid-template-columns:1fr}.kau-side{border-right:0;border-bottom:1px solid var(--ln);padding:24px 20px}.kau-main{padding:24px 20px}}
