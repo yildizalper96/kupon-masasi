@@ -25,6 +25,9 @@ for (const rel of [
 
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
+// SEO mac sayfalari + sitemap.xml + robots.txt (tools/seo-pages.mjs)
+{ const { build } = await import('./seo-pages.mjs'); try { build(out); } catch (e) { console.warn('seo sayfalari uretilemedi:', e.message); } }
+
 // service worker surumu: kabuk dosyalarinin (index.html, css, js, ikonlar, manifest) ozeti. Kod degisince sw.js degisir,
 // tarayicilar yeni surumu kurar ve kabugu agdan bastan indirir; degismezse onbellek korunur (anlik acilis).
 {
