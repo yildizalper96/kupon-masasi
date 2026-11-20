@@ -1,0 +1,4 @@
+{
+  "_not": "Takimdan ayrilan oyuncular (kulup kadrosu API'den henuz cekilmemis takimlar icin elle). Anahtar: 'Takim|Oyuncu' (uygulamadaki takim adi ve oyuncu istatistik listesindeki ad). Muhtemel 11 ve kadro listesinden cikarilir; sezon istatistiklerinde (o takimdaki gol/asist) kalir.",
+  "Fenerbahçe|Talisca": { "to": "Al Jazira (BAE)", "d": "2026-09-03", "src": "Evrensel, beIN Sports" }
+}

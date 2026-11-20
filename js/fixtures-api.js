@@ -335,6 +335,32 @@
     }, 60000);
   }
 
+  /* Yedek model (20 Kas 2026): piyasa beklentisi / API tahmini olmayan maclar icin sezon gol ortalamalarindan Poisson.
+   * TM[takim] = {l lig, w,d,o, f atilan, a yenilen}. Iki takim ayni ligde ve en az 3 maci varsa hesaplanir; yoksa mac "olasilik yok" kalir.
+   * Lig ortalamasina dogru buzulur (4 sanal mac); ev sahibi carpani 1.12 / 0.88. m.pm=1 isaretli maclar her cizimde yeniden hesaplanir. */
+  function modelDoldur() {
+    if (typeof R === undefined || typeof TM === undefined) return;
+    var lg = {};
+    Object.keys(TM).forEach(function (n) { var t = TM[n]; if (!t || !t.l) return; var g = (t.w || 0) + (t.d || 0) + (t.o || 0); if (!g || t.f == null) return; var o = lg[t.l] || (lg[t.l] = { f: 0, g: 0 }); o.f += +t.f || 0; o.g += g; });
+    var pois = function (l, k) { var p = Math.exp(-l); for (var i = 1; i <= k; i++) p *= l / i; return p; };
+    R.forEach(function (m) {
+      if (!m || (!m.np && !m.pm)) return;
+      var A = TM[m.h], B = TM[m.a];
+      var gA = A ? (A.w || 0) + (A.d || 0) + (A.o || 0) : 0, gB = B ? (B.w || 0) + (B.d || 0) + (B.o || 0) : 0;
+      var L = A && B && A.l === B.l ? lg[A.l] : null;
+      if (!L || gA < 3 || gB < 3 || !L.g) { if (m.pm) { m.pm = 0; m.np = true; m.p = [1 / 3, 1 / 3, 1 / 3]; } return; }
+      var mu = L.f / L.g, k = 4;
+      var at = function (t, g) { return ((+t.f || 0) + mu * k) / (g + k) / mu; }, df = function (t, g) { return ((+t.a || 0) + mu * k) / (g + k) / mu; };
+      var lh = mu * at(A, gA) * df(B, gB) * 1.12, la = mu * at(B, gB) * df(A, gA) * 0.88;
+      var p1 = 0, px = 0, p2 = 0;
+      for (var i = 0; i <= 10; i++) for (var j = 0; j <= 10; j++) { var q = pois(lh, i) * pois(la, j); if (i > j) p1 += q; else if (i === j) px += q; else p2 += q; }
+      var s = p1 + px + p2; if (!(s > 0)) return;
+      m.p = [p1 / s, px / s, p2 / s]; m.np = false; m.pm = 1;
+    });
+  }
+  window.modelDoldur = modelDoldur;
+  try { var _rm = render; render = function () { try { modelDoldur(); } catch (e) {} return _rm.apply(this, arguments); }; } catch (e) {}
+
   window.loadFixtures = loadFixtures;
   // acilistan sonra taze veriyle sessiz yenileme (index.html kmFresh): cizim tutulur, sonda tek kez cizilir
   (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(); await pf; await pd; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });

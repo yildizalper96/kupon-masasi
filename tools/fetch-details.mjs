@@ -243,12 +243,18 @@ for (const m of cand) {
   if (NSQ > 0) {
     let ids = {};
     try { ids = JSON.parse(fs.readFileSync(path.join(root, 'data', 'teams', 'ids.json'), 'utf8')).t || {}; } catch { }
+    // oncelik (20 Kas 2026): 48 saat icinde maci olan takimlar (muhtemel 11 guncel kadroyla kurulsun, ayrilan oyuncu cikmis olsun), sonra eksik/en eski.
+    // Maci yakin takimin kadrosu 3 gunden eskiyse yenilenir; digerleri 7 gun.
+    const yakin = new Set();
+    for (const m of latest.m || []) { const t = Date.parse(m.t); if (t > now - HRS(2) && t < now + HRS(48)) { yakin.add(m.h); yakin.add(m.a); } }
+    const SQMIN = +arg('squad-min', 60); // kalan kota bunun altina inince kadro cekimi durur
+    const ONLY = String(arg('squad-teams', '')).split(',').map(x => x.trim()).filter(Boolean); // elle: yalnizca bu takimlar (uygulama adlari)
     const todo = Object.entries(ids)
-      .filter(([nm, tid]) => !D.sq[tid] || age(D.sq[tid].at) > HRS(24 * 7))
-      .sort((a, b) => (D.sq[a[1]] ? Date.parse(D.sq[a[1]].at) : 0) - (D.sq[b[1]] ? Date.parse(D.sq[b[1]].at) : 0));
+      .filter(([nm, tid]) => ONLY.length ? ONLY.includes(nm) : (!D.sq[tid] || age(D.sq[tid].at) > HRS(yakin.has(nm) ? 72 : 24 * 7)))
+      .sort((a, b) => (yakin.has(b[0]) - yakin.has(a[0])) || ((D.sq[a[1]] ? Date.parse(D.sq[a[1]].at) : 0) - (D.sq[b[1]] ? Date.parse(D.sq[b[1]].at) : 0)));
     let k = 0;
     for (const [nm, tid] of todo) {
-      if (k >= NSQ || left() <= 60 || used >= MAX) break;
+      if (k >= NSQ || left() <= SQMIN || used >= MAX) break;
       try {
         const j = await api('/players/squads?team=' + tid);
         const pl = j.response?.[0]?.players || [];

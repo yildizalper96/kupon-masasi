@@ -210,3 +210,10 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 ## Hesap silme ve mail şablonları (20 Kas 2026)
 - Hesap silme: Profil > Hesap > "Hesabı sil"; kullanıcı `SİL` yazarak onaylar, istemci `KMCLOUD.deleteAccount()` ile `rpc/delete_my_account` çağırır. Sunucu fonksiyonu (supabase/schema.sql madde 6, panelde çalıştırıldı) yalnızca çağıranın kendi `auth.users` satırını siler; `user_docs` ve `shared_coupons` cascade ile gider. anon çağıramaz (42501). Gerçek hesapla denendi (204, sonra giriş 400).
 - Mail şablonları Türkçe ve Simuleto markalı: kaynak `supabase/emails/*.html` + `konular.json`; panelde Authentication > Emails > Templates altına yüklendi (doğrulama, şifre sıfırlama, e-posta değişikliği, giriş bağlantısı, davet). Mailler KOD değil BAĞLANTI içerir.
+
+## Tahmin yedek modeli, muhtemel 11, saha yonu (20 Kas 2026, veri oturumu)
+- API /predictions cevaplari cogunlukla kaba kalip (10/45/45, 45/45/10, 33/33/33): gercek olasilik degil, bosuna kota yer. Gercek kaynak piyasa beklentisi (details.json odds, mac basi 1 istek).
+- Yedek model (`js/fixtures-api.js` modelDoldur, her render oncesi): p yoksa TM sezon gol ortalamalarindan Poisson (lige dogru 4 sanal mac buzulme, ev 1.12 / dep 0.88). `m.pm=1` isaretli. Ayni ligde ve >=3 maci olmayan takimlarda mac "olasilik yok" kalir.
+- Muhtemel 11 (`js/pages.js` muhtemelKadro/muhtemelSaha): resmi 11 ve LU yokken. Dizilis Transfermarkt kulup `dz` (DIZ sablonlari), mevki `data/tm/sp.json` (uretici `tools/tm-sp.mjs`; foot-ad "Takim|Ad" -> Transfermarkt kimligi -> mevki kodu), atama mevki uyumu x sure puani (UYGUN listesi, KAT katsayilari). Eksikler: details inj + haber kaydindaki `out` dizisi (NW: {tm,d,x,src,out:[soyadlar]}). Haber eklerken oynamayacaklari `out`'a yaz.
+- Saha yonu: API grid sutun 1 = takimin SOL tarafi (Avusturya/Irlanda resmi 11'iyle dogrulandi). Ev (saga hucum) solu ustte, deplasman solu altta: hamSaha'da ev ters=false, dep ters=true. Elle girilen LU (rowsOf) yolu degistirilmedi.
+- Stil: `css/veri-ui.css` (app.css'ten sonra; sezon istatistik karti .kmsez, haber karti, beraberlik ikonu .kmh2el, saha numarasi).
