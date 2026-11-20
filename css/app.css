@@ -2576,3 +2576,42 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kau-list{display:grid;gap:18px}
 .kau-main{padding:32px 30px;display:flex;flex-direction:column;justify-content:center}
 @media(max-width:760px){#app .box.kau-a.kau-a{grid-template-columns:1fr}.kau-side{border-right:0;border-bottom:1px solid var(--ln);padding:24px 20px}.kau-main{padding:24px 20px}}
+/*simulator bos hali*/
+#app .box.sme.sme{padding:28px 26px!important;border-radius:18px!important}
+.sme h2{font:700 26px/1.15 var(--n);margin:6px 0 8px;color:var(--ink)}
+.sme p.mut{font-size:14px;line-height:1.5;margin:0 0 18px}
+.sme-tag{display:inline-block;font:600 12px var(--f);letter-spacing:.04em;text-transform:uppercase;color:var(--brand,var(--acc));background:color-mix(in srgb,var(--brand,var(--acc)) 14%,transparent);padding:4px 10px;border-radius:999px}
+.sme i,.sme-in i,.sme-code i{flex:none;position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--brand,var(--acc)) 15%,transparent);color:var(--brand,var(--acc))}
+.sme i svg,.sme-in i svg,.sme-code i svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sme i em{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--brand,var(--acc));color:#0b0f1a;font:700 11px/18px var(--f);font-style:normal;text-align:center}
+.sme-steps{list-style:none;margin:0 0 20px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sme-steps li{background:var(--sf2,var(--bg));border:1px solid var(--ln);border-radius:14px;padding:16px 14px}
+.sme-steps b{display:block;margin-top:12px;font:600 15px var(--f);color:var(--ink)}.sme-steps span{display:block;margin-top:3px;font-size:13px;line-height:1.4;color:var(--mut)}
+.sme-ai{display:flex;gap:14px;align-items:flex-start;border:1px solid color-mix(in srgb,var(--brand,var(--acc)) 35%,var(--ln));background:color-mix(in srgb,var(--brand,var(--acc)) 7%,transparent);border-radius:14px;padding:16px;margin:0 0 20px}
+.sme-ai b{display:block;font:600 15px var(--f);color:var(--ink);margin-bottom:6px}.sme-ai ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--mut)}
+#app .sme-go.sme-go{width:100%;margin:0!important;padding:13px!important;border-radius:12px!important;font:600 15px var(--f)!important}
+.sme-in,.sme-code{display:flex;align-items:center;gap:14px;background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px 18px;margin:0 0 12px}
+.sme-in>div{flex:1;min-width:0}.sme-in b,.sme-cx b{display:block;font:600 15px var(--f);color:var(--ink)}.sme-in span,.sme-cs{display:block;font-size:13px;color:var(--mut);line-height:1.4;margin-top:2px}
+.sme-in .kpb2{flex:none;width:auto;padding:10px 18px}
+.sme-cx{flex:1;min-width:0}.sme-code .kimp{margin-top:8px}
+.sme-not{font-size:12px;color:var(--mut);text-align:center;margin:6px 0 14px}
+@media(max-width:760px){.sme-steps{grid-template-columns:1fr 1fr}.sme-in{flex-wrap:wrap}.sme-in .kpb2{width:100%}#app .box.sme.sme{padding:22px 18px!important}}
+/*sag ust menu cesitleri*/
+#kmpanel{padding:10px}
+#kmpanel .kmv-av{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--brand,var(--acc)) 18%,transparent);color:var(--brand,var(--acc));font:700 18px var(--f);font-style:normal}
+#kmpanel .kmv-av.s{width:24px;height:24px;font-size:12px}
+#kmpanel .kmv-r span{flex:1;min-width:0}
+#kmpanel .kmv-r b{display:block;font:600 15px var(--f)}
+#kmpanel .kmv-r small{display:block;font:400 12.5px var(--f);color:var(--mut);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#kmpanel .kmv-r>svg{flex:none;color:var(--mut)}
+#kmpanel .kmv-r{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:none;color:var(--ink);text-align:left;cursor:pointer}
+#kmpanel .kmv-r:hover,#kmpanel .kmv-r:focus-visible{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+#kmpanel .kmv-r i{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--brand,var(--acc)) 14%,transparent);color:var(--brand,var(--acc))}
+#kmpanel .kmv-r i svg{width:20px;height:20px}
+#kmpanel .kmv-h{font:600 11.5px var(--f);text-transform:uppercase;letter-spacing:.06em;color:var(--mut);padding:12px 12px 6px}
+#kmpanel .kmv-grp{background:var(--sf2);border-radius:12px;padding:2px}
+#kmpanel .kmv-grp .kmp-sat{border-top:0}
+#kmpanel .kmp-tema button{display:inline-flex;align-items:center;gap:6px;width:auto!important;padding:0 12px!important}
+#kmpanel .kmp-tema em{font:600 13px var(--f);font-style:normal}
+#kmpanel .kmv-not{font-size:11.5px;color:var(--mut);text-align:center;padding:10px 8px 4px;line-height:1.4}
+#kmpanel .kmp-tema button{height:38px!important;border-radius:999px!important}

@@ -71,19 +71,27 @@
     globe: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg>'
   };
   var panel = document.createElement('div'); panel.id = 'kmpanel'; panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'Menü');
-  panel.innerHTML =
-    '<div class="kmp-ust">' +
-      '<button type="button" data-kmgit="u">' + IC.u + '<span>Profil</span></button>' +
-      '<button type="button" data-kmgit="g">' + IC.g + '<span>Geçmiş</span></button>' +
-    '</div>' +
-    '<div class="kmp-sat"><b>Tema</b><span class="kmp-tema">' +
-      '<button type="button" data-kmtema="light" aria-label="Açık tema">' + IC.sun + '</button>' +
-      '<button type="button" data-kmtema="dark" aria-label="Koyu tema">' + IC.moon + '</button>' +
-    '</span></div>' +
-    '<div class="kmp-sat kmp-dil"><b>' + IC.globe + 'Dil</b><span class="kmp-dils">' +
-      '<button type="button" class="on" aria-pressed="true">Türkçe</button>' +
-      '<button type="button" disabled aria-disabled="true" title="Yakında">English</button>' +
-    '</span></div>';
+  IC.ok = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+  function kim() { try { if (window.KMCLOUD && KMCLOUD.on) return KMCLOUD.user(); if (typeof PRF !== 'undefined' && PRF && PRF.id) return { name: PRF.name || '', email: '' }; } catch (e) { } return null; }
+  function esc(x) { return String(x || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var TEMA = '<span class="kmp-tema">' +
+      '<button type="button" data-kmtema="light" aria-label="Açık tema">' + IC.sun + '<em>Açık</em></button>' +
+      '<button type="button" data-kmtema="dark" aria-label="Koyu tema">' + IC.moon + '<em>Koyu</em></button>' +
+    '</span>';
+  var DIL = '<span class="kmp-dils"><button type="button" class="on" aria-pressed="true">Türkçe</button><button type="button" disabled aria-disabled="true" title="Yakında">English</button></span>';
+  var NOT = '<div class="kmv-not">Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir.</div>';
+  function satir(git, ic, ad, alt) { return '<button type="button" class="kmv-r" data-kmgit="' + git + '"><i>' + ic + '</i><span><b>' + ad + '</b>' + (alt ? '<small>' + alt + '</small>' : '') + '</span>' + IC.ok + '</button>'; }
+  function ciz() {
+    var u = kim(), ad = u ? esc(u.name || 'Üye') : '', harf = u ? esc((u.name || u.email || 'Ü').charAt(0).toUpperCase()) : '';
+    panel.innerHTML =
+      '<div class="kmv-h">Hesap</div><div class="kmv-grp">' + (u ? satir('u', '<b class="kmv-av s">' + harf + '</b>', ad, 'Profil ve ayarlarım') : satir('u', IC.u, 'Giriş yap', 'veya ücretsiz hesap oluştur')) + '</div>' +
+      '<div class="kmv-h">Sayfalar</div><div class="kmv-grp">' + satir('c', IC.c, 'Simülatör') + satir('g', IC.g, 'Tahmin geçmişi') + '</div>' +
+      '<div class="kmv-h">Görünüm</div><div class="kmv-grp">' +
+        '<div class="kmp-sat"><b>Tema</b>' + TEMA + '</div>' +
+        '<div class="kmp-sat kmp-dil"><b>' + IC.globe + 'Dil</b>' + DIL + '</div>' +
+      '</div>' + NOT;
+  }
+  ciz();
   document.body.appendChild(panel);
 
   function dugme(cls) { var b = document.createElement('button'); b.type = 'button'; b.className = 'kmmenu ' + cls; b.setAttribute('aria-label', 'Menü'); b.setAttribute('aria-haspopup', 'dialog'); b.innerHTML = IC.menu; b.addEventListener('click', function (e) { e.stopPropagation(); acik() ? kapa() : ac(b); }); return b; }
@@ -92,7 +100,7 @@
   var kaynak = null;
   function acik() { return !panel.hidden; }
   function ac(b) {
-    kaynak = b; panel.hidden = false; temaUygula(tema);
+    kaynak = b; ciz(); panel.hidden = false; temaUygula(tema);
     var r = b.getBoundingClientRect(), W = window.innerWidth;
     panel.style.bottom = 'auto';
     if (W < 1100 && b.closest('nav')) { panel.style.left = '12px'; panel.style.right = '12px'; panel.style.top = 'auto'; panel.style.bottom = (window.innerHeight - r.top + 10) + 'px'; }
