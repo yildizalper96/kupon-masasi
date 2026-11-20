@@ -2705,3 +2705,27 @@ nav button,header nav button{cursor:pointer}
 #app .tsl-c .kpf .kpb{background:linear-gradient(135deg,var(--brand,var(--acc)),color-mix(in srgb,var(--brand,var(--acc)) 70%,#fff))!important;color:#0b0f1a!important;border:0!important}
 
 #kbar .kb-x{font-size:22px;line-height:1;font-weight:400}
+/*giris: kayit/dogrulama (20 Kas 2026)*/
+.kau-msg.ok{color:var(--ok)}
+.kau-pw{position:relative}
+#app .kau.kau .kau-pw input{padding-right:74px!important}
+.kau-eye{position:absolute;right:8px;top:6px;height:34px;padding:0 10px;border:0;border-radius:8px;background:none;color:var(--mut);font:600 13px var(--f);cursor:pointer}
+.kau-eye:hover{color:var(--ink)}
+#app .kau ul.kau-rl{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:-2px 0 12px}
+#app .kau ul.kau-rl li{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--mut)}
+#app .kau ul.kau-rl li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ln);flex:none}
+#app .kau ul.kau-rl li.ok{color:var(--ok)}
+#app .kau ul.kau-rl li.ok::before{background:var(--ok)}
+.kau-cb{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;font-size:13px;color:var(--mut);line-height:1.4;cursor:pointer}
+#app .kau.kau .kau-cb input{width:18px!important;height:18px!important;flex:none;padding:0!important;margin:1px 0 0!important;accent-color:var(--brand,var(--acc))}
+.kau-links{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
+.kau-links.r{justify-content:flex-end;margin:-4px 0 10px}
+.kau-l{border:0;background:none;padding:0;color:var(--brand,var(--acc));font:600 13px var(--f);cursor:pointer}
+.kau-rs2{display:block;margin:-4px 0 10px}
+.kau-h{font:700 20px var(--n);margin:0 0 6px;color:var(--ink)}
+.kau-d{margin:0 0 14px;color:var(--mut);font-size:14px;line-height:1.45}
+.kau-v{text-align:center}
+.kau-v h3{font:700 20px var(--n);margin:10px 0 6px;color:var(--ink)}
+.kau-v p{margin:0 0 10px;color:var(--mut);font-size:14px;line-height:1.45}
+.kau-vi{width:56px;height:56px;margin:0 auto;border-radius:16px;display:grid;place-items:center;font-size:26px;background:color-mix(in srgb,var(--brand,var(--acc)) 16%,transparent);color:var(--brand,var(--acc))}
+.kau-ve{display:block;margin:0 0 10px;color:var(--ink);font-size:15px;word-break:break-all}

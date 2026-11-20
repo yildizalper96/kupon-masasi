@@ -38,14 +38,21 @@ http.createServer(async (req, res) => {
     if (!b.password || b.password.length < 6) return send(res, 422, { code: 422, error_code: 'weak_password', msg: 'Password should be at least 6 characters.' });
     if (!/^\S+@\S+\.\S+$/.test(b.email || '')) return send(res, 400, { code: 400, error_code: 'validation_failed', msg: 'Unable to validate email address: invalid format' });
     if (users.has(b.email)) return send(res, 422, { code: 422, error_code: 'user_already_exists', msg: 'User already registered' });
-    const nu = { id: crypto.randomUUID(), email: b.email, password: b.password, meta: {} }; users.set(b.email, nu);
+    const nu = { id: crypto.randomUUID(), email: b.email, password: b.password, meta: b.data || {}, ok: !globalThis.__confirm }; users.set(b.email, nu);
+    if (globalThis.__confirm) return send(res, 200, { id: nu.id, email: nu.email, user_metadata: nu.meta });
     return send(res, 200, issue(nu, globalThis.__ttl || 3600));
+  }
+  if (p === "/__set_confirm") { globalThis.__confirm = u.searchParams.get("on") === "1"; return send(res, 200, { ok: true }); }
+  if (p === "/__confirm") { const x = users.get(u.searchParams.get("email")); if (x) x.ok = true; return send(res, 200, { ok: !!x }); }
+  if ((p === "/auth/v1/resend" || p === "/auth/v1/recover") && req.method === "POST") { const b = await readBody(req); log.push(p.slice(9) + " " + b.email + " " + u.searchParams.get("redirect_to")); return send(res, 200, {}); }
+  if (p === "/auth/v1/user" && req.method === "PUT") { const b = await readBody(req), id = uidFrom(req); const x = [...users.values()].find(v => v.id === id); if (!x) return send(res, 401, { error_code: "no_authorization" }); x.password = b.password; log.push("pwupdate " + x.email); return send(res, 200, { id: x.id, email: x.email });
   }
   if (p === '/auth/v1/token' && req.method === 'POST') {
     const b = await readBody(req); const gt = u.searchParams.get('grant_type'); log.push('token ' + gt);
     if (gt === 'password') {
       const x = users.get(b.email);
       if (!x || x.password !== b.password) return send(res, 400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
+      if (x.ok === false) return send(res, 400, { code: 400, error_code: 'email_not_confirmed', msg: 'Email not confirmed' });
       return send(res, 200, issue(x, globalThis.__ttl || 3600));
     }
     if (gt === 'refresh_token') {
