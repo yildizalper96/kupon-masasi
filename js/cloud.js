@@ -156,6 +156,13 @@
       return true;
     } catch (e) { return false; }
   };
+  // hesabi kalici sil: sunucudaki delete_my_account() fonksiyonu auth.users satirini siler (kuponlar/favoriler cascade ile gider)
+  C.deleteAccount = async function () {
+    var s = await fresh(); if (!s) return { error: 'auth' };
+    var r = await fetch(BASE + '/rest/v1/rpc/delete_my_account', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: '{}' });
+    if (r.ok) return { ok: true };
+    return { error: r.status === 401 || r.status === 403 ? 'auth' : 'net' };
+  };
   C.signOut = function () {
     var tok = S && S.access_token;
     saveS(null);

@@ -51,3 +51,13 @@ revoke insert, update, delete on public.shared_coupons from anon;
 --    (istemci yalnizca select=data kullanir; select=* anon icin artik izin yok hatasi verir). 12 Kas 2026'da calistirildi.
 revoke select on public.shared_coupons from anon;
 grant select (code, data, created_at) on public.shared_coupons to anon;
+
+-- 6) Hesap silme (20 Kas 2026): giris yapan kullanici yalnizca KENDI hesabini siler; user_docs ve shared_coupons on delete cascade ile gider.
+create or replace function public.delete_my_account() returns void
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if auth.uid() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  delete from auth.users where id = auth.uid();
+end $$;
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;

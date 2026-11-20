@@ -206,3 +206,7 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 
 ## Sayfa adresleri (19 Kas 2026)
 `js/adres.js` (en son yuklenir): her sayfa kendi hash adresini alir: `#/lig/<kod>`, `#/takim/<ad>`, `#/oyuncu/<anahtar>/<ad>`, `#/mac/<lig>/<ev>/<dep>`, `#/ara/<metin>`, `#/simulator`, `#/profil`, `#/gecmis`. render sarmalanir, adres durumdan (tab/Q/QX/det) uretilir; tek adim geri/ileri uygulamanin NAVS/FWD yigini ile (kaydirma geri gelir), uzun atlama ve dogrudan link adresten kurulur. `#access_token` (Google girisi) adresine dokunulmaz. Sayfa ici sekmeler (Tablo, Kadro vb.) adrese yazilmaz.
+
+## Hesap silme ve mail şablonları (20 Kas 2026)
+- Hesap silme: Profil > Hesap > "Hesabı sil"; kullanıcı `SİL` yazarak onaylar, istemci `KMCLOUD.deleteAccount()` ile `rpc/delete_my_account` çağırır. Sunucu fonksiyonu (supabase/schema.sql madde 6, panelde çalıştırıldı) yalnızca çağıranın kendi `auth.users` satırını siler; `user_docs` ve `shared_coupons` cascade ile gider. anon çağıramaz (42501). Gerçek hesapla denendi (204, sonra giriş 400).
+- Mail şablonları Türkçe ve Simuleto markalı: kaynak `supabase/emails/*.html` + `konular.json`; panelde Authentication > Emails > Templates altına yüklendi (doğrulama, şifre sıfırlama, e-posta değişikliği, giriş bağlantısı, davet). Mailler KOD değil BAĞLANTI içerir.

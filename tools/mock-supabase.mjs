@@ -62,6 +62,7 @@ http.createServer(async (req, res) => {
       return send(res, 200, issue(x, 3600));
     }
   }
+  if (p === '/rest/v1/rpc/delete_my_account' && req.method === 'POST') { const id = uidFrom(req); const x = [...users.values()].find(v => v.id === id); if (!x) return send(res, 401, { message: 'not authenticated' }); users.delete(x.email); log.push('deleted ' + x.email); return send(res, 204); }
   if (p === '/auth/v1/logout') { log.push('logout'); return send(res, 204); }
   if (p === '/auth/v1/authorize') { // Google taklidi: kullaniciyi olusturup #access_token ile geri yonlendir
     log.push('authorize ' + u.searchParams.get('provider'));
