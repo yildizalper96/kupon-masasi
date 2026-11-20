@@ -10752,7 +10752,7 @@ const st=s=>{try{return kStat(s)}catch(e){return'wait'}},cnt={all:KPS.length,wai
 const byDay=L=>{const days=[...new Set(L.map(s=>s.day))].sort().reverse();return days.map(d=>"<h4 class='kpday'>"+dd(new Date(d+'T12:00:00'))+"</h4>"+L.filter(s=>s.day==d).map(kslip).join('')).join('')};
 const code=simCode()+(KPIMP?kImpCard():''),mark="<!--kmka-->";
 let h=kasaHtml();
-{h+=dr;h+="<div class='smk-tab'><button data-kstab='k' class='"+(SIMT=='k'?'on':'')+"'>Kuponlarım <small>"+KPS.length+"</small></button><button data-kstab='a' class='"+(SIMT=='a'?'on':'')+"'>Arkadaşının kuponu</button>"+(dr?'':"<button class='kpb2 smk-pl' data-kgok='1'>+ Yeni kupon</button>")+"</div>"+(SIMT=='k'?byDay(KPS)+mark:code)}
+{h+=dr;h+="<div class='smk-tab'><button data-kstab='k' class='"+(SIMT=='k'?'on':'')+"'>Kuponlarım <small>"+KPS.length+"</small></button><button data-kstab='a' class='"+(SIMT=='a'?'on':'')+"'>Arkadaş kuponu</button>"+(dr?'':"<button class='kpb2 smk-pl' data-kgok='1'>+ Yeni kupon</button>")+"</div>"+(SIMT=='k'?byDay(KPS)+mark:code)}
 h+="<div class='sme-not'>Sanal kasa, gerçek para değildir. Oranlar tahminidir. Hiçbir bahis risksiz değildir.</div>";
 return h}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-kstab]');if(!b)return;e.preventDefault();SIMT=b.dataset.kstab;render()},true);
