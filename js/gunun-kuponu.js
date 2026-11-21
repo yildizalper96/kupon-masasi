@@ -12,10 +12,8 @@
   if (typeof window.coupon !== 'function' || typeof cl !== 'function' || typeof KPC === 'undefined' || typeof kprob !== 'function') return;
 
   var KAT = {
-    orta: { ad: 'Orta risk', lo: 0.55, hi: 0.675, h: 0.61, n: 3, keys: ['1', '2', '1X', 'X2', 'Ü1.5', 'Ü2.5', 'KG Var', 'EG1', 'DG1'],
-      not: 'Her seçimin ihtimali %55-67 arası (dengeli). Oran daha yüksek, risk daha fazla. Hiçbir bahis risksiz değildir.' },
-    yuksek: { ad: 'Yüksek risk', lo: 0.33, hi: 0.475, h: 0.40, n: 2, keys: ['1', '2', 'Ü2.5', 'Ü3.5', 'KG Var', 'EG2', 'DG1'],
-      not: 'Her seçimin ihtimali %33-47 arası. Oranı yüksek, tutma ihtimali düşük. Hiçbir bahis risksiz değildir.' }
+    orta: { ad: 'Orta risk', lo: 0.55, hi: 0.675, h: 0.61, n: 3, keys: ['1', '2', '1X', 'X2', 'Ü1.5', 'Ü2.5', 'KG Var', 'EG1', 'DG1'] },
+    yuksek: { ad: 'Yüksek risk', lo: 0.33, hi: 0.475, h: 0.40, n: 2, keys: ['1', '2', 'Ü2.5', 'Ü3.5', 'KG Var', 'EG2', 'DG1'] }
   };
   var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [];
 
@@ -42,7 +40,7 @@
     if (!L.length) return '<p class="mut">Bu gün ' + K.ad.toLowerCase() + ' bandında uygun seçim yok.</p>';
     var od = L.reduce(function (a, x) { return a * oranOf(x); }, 1), p = L.reduce(function (a, x) { return a * x.p; }, 1);
     var i = KPC.push(L.map(function (x) { return { mk: [x.m.c, x.m.h, x.m.a].join('|'), k: x.k }; })) - 1;
-    return '<div class="mut">' + K.not + '</div>' + L.map(function (x) { return cl({ m: x.m }, { k: x.k, p: x.p, o: 1 / x.p }); }).join('') +
+    return L.map(function (x) { return cl({ m: x.m }, { k: x.k, p: x.p, o: 1 / x.p }); }).join('') +
       '<div class="pk"><span class="big">' + od.toFixed(2) + '</span><span class="s">Toplam tahmini oran<br>Birlikte tutma ihtimali ~%' + Math.round(p * 100) + '</span></div>' +
       '<button class="kpb" data-kall="' + i + '">Kupona ekle (' + L.length + ' seçim)</button>';
   }
@@ -58,7 +56,7 @@
       if (!bekleyen(ms).length) return h; // gecmis gun: eski kutu aynen
       var id = KUTU.push(ms) - 1, kutu = /^<details class='box cpn'/.test(h);
       var bas = kutu ? h.slice(0, h.indexOf('</summary>')) : "<details class='box cpn' id='cpd'><summary class='cps'><h3>Günün kuponu</h3><span class='mut'></span></summary>";
-      var lo = kutu ? h.slice(h.indexOf('</summary>') + 10, h.lastIndexOf('</details>')) : (h || '<p class="mut">Bu gün düşük riskli kupon yok.</p>');
+      var lo = kutu ? h.slice(h.indexOf('</summary>') + 10, h.lastIndexOf('</details>')).replace(/^<div class='mut'>[^<]*<\/div>/, '') : (h || '<p class="mut">Bu gün düşük riskli kupon yok.</p>');
       var loOz = (bas.match(/<span class='mut'>([^<]*)<\/span>$/) || [])[1] || '';
       var oz = sekme === 'lo' ? (loOz ? 'Düşük risk · ' + loOz : 'Düşük risk') : ozet(ms, sekme);
       bas = bas.replace(/<h3>[^<]*<\/h3>/, '<h3>Günün kuponu</h3>').replace(/<span class='mut'>[^<]*<\/span>$/, "<span class='mut'>" + oz + '</span>');
@@ -80,9 +78,10 @@
 
   (function css() {
     var s = document.createElement('style');
-    s.textContent = '.gk-t{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}' +
-      '.gk-c{font:600 13px var(--f,inherit);padding:6px 13px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--mut);cursor:pointer}' +
-      '.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}';
+    s.textContent = '.gk-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}' +
+      '.gk-c{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 13px var(--f,inherit);padding:7px 4px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--mut);cursor:pointer}' +
+      '.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
+      '@media (max-width:360px){.gk-t{gap:4px}.gk-c{font-size:11.5px;padding:7px 1px;letter-spacing:-.1px}}';
     document.head.appendChild(s);
   })();
 
