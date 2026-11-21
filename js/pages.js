@@ -811,11 +811,45 @@
       return l.slice(-5).map(r => ({ r: r.h === n ? ren(r.x, r.y) : ren(r.y, r.x), t: r.h + ' ' + r.x + '-' + r.y + ' ' + r.a }));
     } catch (e) { return []; }
   }
+  // Lig fiksturu (data/api/<C>/<S>/fixtures.json, istek yok): R'de henuz olmayan gelecek lig maclari np (olasilik yok) olarak eklenir;
+  // boylece tablodaki "Sonraki" sutunu tum takimlar icin dolar ve mac sayfasi acilabilir.
+  function apiGelecek(c, istek) {
+    if (!APIL.has(c)) return;
+    const fx = apiJ(`${c}/${APIS}/fixtures.json`), ids = apiIds();
+    if (!fx || !Array.isArray(fx.m) || !ids) return;
+    const rAd = new Set(); R.forEach(x => { if (x.c === c) { rAd.add(x.h); rAd.add(x.a); } });
+    const tAd = new Set(tabloSatir(c).map(v => v.n)), ad = {}, puan = n => (rAd.has(n) ? 2 : 0) + (tAd.has(n) ? 1 : 0);
+    Object.entries(ids).forEach(([n, id]) => { if (!ad[id] || puan(n) > puan(ad[id])) ad[id] = n; });
+    // yalnizca R'de bekleyen lig maci olmayan takimlarin SIRADAKI maci eklenir (tahmin karnesi/listeler sismesin)
+    const now = Date.now(), tam = new Set();
+    R.forEach(x => { if (x.c === c && +x.t > now - 3 * 3600e3 && stt(x).k !== 'ft') { tam.add(takimId(x.h) || x.h); tam.add(takimId(x.a) || x.a); } });
+    fx.m.filter(r => (r[6] === 'NS' || r[6] === 'TBD') && Date.parse(r[1]) > now).sort((p, q) => Date.parse(p[1]) - Date.parse(q[1])).forEach(r => {
+      const t = new Date(r[1]), h = ad[r[2]], a = ad[r[3]]; if (!h || !a) return;
+      if (tam.has(r[2]) && tam.has(r[3]) && [c, h, a].join("|") !== istek) return;
+      tam.add(r[2]); tam.add(r[3]);
+      if (R.some(x => x.c === c && Math.abs(+x.t - +t) < 864e5 && (ayniId(x.h, h) || ayniId(x.a, a) || ayniId(x.h, a) || ayniId(x.a, h)))) return;
+      R.push({ c, t, h, a, p: [1 / 3, 1 / 3, 1 / 3], np: true, api: r[0] });
+    });
+  }
+  // dogrudan acilan mac linki (#/mac/SL/ev/dep) R'de yoksa: lig fiksturunu yukleyip ekle (adres.js cagirir)
+  window.kmApiMac = det => new Promise(ok => {
+    const c = String(det).split('|')[0]; if (!APIL.has(c)) return ok(false);
+    let n = 0; const dene = () => {
+      const fx = apiJ(`${c}/${APIS}/fixtures.json`), ids = apiIds();
+      if ((fx === undefined || !ids) && ++n < 40) return setTimeout(dene, 200);
+      try { apiGelecek(c, det); } catch (e) { }
+      ok(R.some(x => key(x) === det));
+    };
+    dene();
+  });
+  // ayni takim mi: ad esit ya da API kimligi ayni (or. "Amed" / "Amedspor")
+  const ayniId = (x, y) => x === y || (!!takimId(x) && takimId(x) === takimId(y));
   function tabloLig(c, vurgu) {
     const rows = tabloSatir(c), hl = new Set(vurgu || []);
     if (!rows.length) return '';
+    try { apiGelecek(c); } catch (e) { }
     const satir = v => {
-      const k = v.n, f = formYar(c, k), nx = R.filter(x => x.c === c && (x.h === k || x.a === k) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0] || siradaki(k), op = nx ? (nx.h === k ? nx.a : nx.h) : '';
+      const k = v.n, f = formYar(c, k), nx = R.filter(x => x.c === c && (ayniId(x.h, k) || ayniId(x.a, k)) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0] || siradaki(k), op = nx ? (ayniId(nx.h, k) ? nx.a : nx.h) : '';
       const nxh = nx ? `<td class="nx" data-kmm="${E(key(nx))}" title="${E(nx.h + ' – ' + nx.a)} · ${E(uzunTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}">${bd(op)}</td>` : '<td class="nx"></td>';
       return `<tr class="${hl.has(k) ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.l}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
         <td class="fm">${f.map(r => `<i class="kmkare ${sonuc(r.r)}" title="${E(r.t)}">${r.r}</i>`).join('')}</td>${nxh}</tr>`;
@@ -1683,7 +1717,7 @@
     });
     sat.sort((x, y) => y.p - x.p || (y.f - y.a) - (x.f - x.a) || y.f - x.f || x.n.localeCompare(y.n, 'tr'));
     const satir = (v, i) => {
-      const k = v.n, nx = R.filter(x => x.c === c && (x.h === k || x.a === k) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0], op = nx ? (nx.h === k ? nx.a : nx.h) : '';
+      const k = v.n, nx = R.filter(x => x.c === c && (ayniId(x.h, k) || ayniId(x.a, k)) && stt(x).k === 'wait').sort((p, q) => p.t - q.t)[0], op = nx ? (ayniId(nx.h, k) ? nx.a : nx.h) : '';
       const nxh = nx ? `<td class="nx" data-kmm="${E(key(nx))}" title="${E(nx.h + ' – ' + nx.a)} · ${E(uzunTarih(nx.t))}, ${hm(nx.t)}">${bd(op)}</td>` : '<td class="nx"></td>';
       return `<tr><td>${i + 1}</td><td class="tk" data-tm="${E(k)}">${bd(k)}<span>${E(k)}</span></td><td>${v.w + v.d + v.l}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.f - v.a > 0 ? '+' : ''}${v.f - v.a}</td><td><b>${v.p}</b></td>
         <td class="fm">${v.fm.map(r => `<i class="kmkare ${sonuc(r.r)}">${r.r}</i>`).join('')}</td>${nxh}</tr>`;
@@ -1756,10 +1790,11 @@
       const st = apiJ(`${c}/${s}/standings.json`), tp = apiJ(`${c}/${s}/top.json`);
       if (st === undefined) return ''; // yukleniyor
       const r = st && st.rows && st.rows.find(x => x.r === 1); if (!r) continue;
-      const g = tp && tp.g && tp.g[0];
-      sat.push(`<tr><td>${E(sezAd({ c, s }))}</td><td class="tk" data-tm="${E(r.n)}">${bd(r.n)}<span>${E(r.n)}</span></td><td>${r.p}</td><td>${g ? `${E(g[1])} <small>(${g[4]})</small>` : '–'}</td></tr>`);
+      const g0 = tp && tp.g && tp.g[0], gl = g0 ? tp.g.filter(x => x[4] === g0[4]).slice(0, 2) : [];
+      const gk = gl.map(x => `<span class="kmgk" data-pn="${E(x[3] + '|' + x[1])}">${E(x[1])}</span>`).join('<br>');
+      sat.push(`<tr><td>${E(sezAd({ c, s }))}</td><td class="tk" data-tm="${E(r.n)}">${bd(r.n)}<span>${E(r.n)}</span></td><td>${r.p}</td><td class="gk">${g0 ? `${gk} <small>(${g0[4]})</small>` : '–'}</td></tr>`);
     }
-    return sat.length ? card('kmgecmis', `<h3 class="kmb">Geçmiş sezonlar</h3><table><thead><tr><th>Sezon</th><th>Şampiyon</th><th>P</th><th>Gol kralı</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
+    return sat.length ? card('kmgecmis kmgl', `<h3 class="kmb">Geçmiş sezonlar</h3><table><thead><tr><th>Sezon</th><th>Şampiyon</th><th>P</th><th>Gol kralı</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
   }
   // takim: sezon istatistigi (gol dakikalari, gol yemeden, gol atamadan, seri, dizilisler)
   function takimApiSezon(n) {

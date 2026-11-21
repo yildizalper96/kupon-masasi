@@ -363,6 +363,8 @@ for (const [ad_, fn] of SIRA) {
 if (!durdu && ONLY.includes('clubs')) await clubs();
 if (!durdu && ONLY.includes('ekstra')) await ekstra();
 if (ONLY.includes('hakem') || ONLY.includes('matches')) { try { hakemler(); } catch (e) { log.push('hakem hata: ' + e.message); } }
+// gol kralligi: API listesi cift sayabiliyor; mac olaylarindan dogrula (istek yok)
+if (ONLY.includes('top') || ONLY.includes('matches')) { try { (await import('./top-from-events.mjs')).topFromEvents(log); } catch (e) { log.push('gol kralligi hata: ' + e.message); } }
 console.log(log.join('\n'));
 console.log(`\nHarcanan istek: ${used}, kalan gunluk: ${left()}.${durdu ? ' Yarim kaldi; sonraki calistirma surdurur.' : ' Tamam.'}`);
 // yalniz hakem hesabi: yukaridaki fonksiyon bildirimi (hoisting) sayesinde kota kontrolunden once cagrilir

@@ -57,7 +57,12 @@
     else if (r.tab) tab = r.tab;
     else {
       if (tab !== 'k' && tab !== 'l' && tab !== 'c') tab = 'k';
-      if (r.det) { det = r.det; try { dt = dtFor(det); } catch (e) { } }
+      if (r.det) {
+        det = r.det; try { dt = dtFor(det); } catch (e) { }
+        // lig fiksturundeki ileri tarihli mac henuz listede degilse once yukle (pages.js)
+        let var_ = true; try { var_ = R.some(m => [m.c, m.h, m.a].join('|') === r.det); } catch (e) { }
+        if (!var_ && window.kmApiMac) { const d0 = r.det; window.kmApiMac(d0).then(bulundu => { if (bulundu && (det === d0 || (det == null && !Q && tab === 'k'))) { det = d0; try { dt = dtFor(det); } catch (e) { } render(); } }); }
+      }
       else {
         if (tab === 'c') tab = 'k';
         if (r.lig) { try { Q = window.kmLigQ ? window.kmLigQ(r.lig) : LGNM[r.lig]; } catch (e) { } Q = Q || ''; }

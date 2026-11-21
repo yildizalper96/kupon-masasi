@@ -76,7 +76,21 @@
 .kmtrf h4{margin:0 0 8px;font:600 13px var(--f);color:var(--mut)}.kmtrs{padding:5px 0;border-bottom:1px solid var(--ln)}.kmtrs b{display:block;font-weight:600;cursor:pointer}.kmtrs small{color:var(--mut)}
 .kmhkev{margin:8px 0 0;font-size:13px;color:var(--mut)}.kmhkev b{color:var(--ink)}
 @media (max-width:700px){.kmkral .kmuc4>div .kmec:nth-of-type(n+4){display:none}.kmgecmis td,.kmgecmis th{padding:6px 5px;font-size:12px}.kmdkg{gap:3px}.kmdkg small{font-size:9px}}
-.kmgecmis table{margin:4px 24px 0;width:calc(100% - 48px)}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:0 24px}
+.kmgecmis table{margin:4px 24px 0;width:calc(100% - 48px)}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:8px 24px 16px}
 .kmdkh,.kmdkg,.kmdkl{margin-left:24px!important;margin-right:24px!important}.kmtrf .kmiki>div{padding:0 24px 12px}
-@media (max-width:700px){.kmgecmis table{margin:4px 16px 0;width:calc(100% - 32px)}.kmdkh,.kmdkg,.kmdkl{margin-left:16px!important;margin-right:16px!important}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:0 16px}.kmtrf .kmiki>div{padding:0 16px 12px}}
+@media (max-width:700px){.kmgecmis table{margin:4px 16px 0;width:calc(100% - 32px)}.kmdkh,.kmdkg,.kmdkl{margin-left:16px!important;margin-right:16px!important}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:8px 16px 14px}.kmtrf .kmiki>div{padding:0 16px 12px}}
 .kmhkev{padding:0 24px}@media (max-width:700px){.kmhkev{padding:0 16px}}
+/* gecmis sezonlar: gol krali (esitlikte alt alta), sag kenara tasmasin */
+.kmgecmis td.gk{white-space:normal;line-height:1.35;padding-right:0}.kmgecmis .kmgk{white-space:nowrap;cursor:pointer}.kmgecmis .kmgk:hover{text-decoration:underline}.kmgecmis td.gk small{white-space:nowrap}
+.kmgecmis td:first-child,.kmgecmis th:first-child{padding-left:0}.kmgecmis td:nth-child(3),.kmgecmis th:nth-child(3){text-align:right;padding-right:12px}
+.kmgl table{table-layout:fixed;margin:4px 16px 0;width:calc(100% - 32px)}.kmgl th:first-child{width:64px}.kmgl th:nth-child(3){width:42px}.kmgl th:last-child{width:31%}.kmgl td,.kmgl th{padding:7px 5px;font-size:12.5px}.kmgl td:nth-child(3),.kmgl th:nth-child(3){padding-right:8px}.kmgl td.tk .bd{margin-right:4px}.kmgl .kmkay{padding:8px 16px 14px}
+.kmgl td{overflow:hidden;text-overflow:ellipsis}
+/* tahmin karnesi: lig adi basligin altinda sola hizali (ortaya kayiyordu) */
+.kmkarne .kmmh1>div{text-align:left}.kmkarne .kmmh1 small{display:block;margin-top:2px}
+/* takim formu: rakip adlari ust uste binmesin (kesilir) */
+.kmtf>div{min-width:0!important;flex:1 1 0!important;width:auto}.kmtf small{display:block;max-width:100%}
+/* takim basligi: ad kelime ortasindan bolunmesin; sigmazsa Favorilere ekle alt satira iner */
+@media (max-width:700px){#app>.kmth .kmth-u,.kmth-u{flex-wrap:wrap!important;row-gap:12px!important}#app>.kmth .kmth-u .kmtakip{margin-left:74px}.kmth-u h2{overflow-wrap:normal!important;word-break:normal!important}.kmth-u>div:not(.kmlh2-b){flex:1 1 auto!important}}
+/* kadro basligi: puan rozeti ve dizilis kesilmesin/kirilmasin; yalniz takim adi kisalir */
+.kmkadro .kmkb>div{flex:1 1 0}.kmkadro .kmkb>div .kmpu{flex:none;overflow:visible;text-overflow:clip}.kmkadro .kmkb>div span{flex:none;white-space:nowrap}.kmkadro .kmkb>div b:not(.kmpu){min-width:0}
+@media (max-width:420px){.kmkadro .kmkb{gap:6px;padding:12px 10px!important}.kmkadro .kmkb>div{gap:6px;font-size:13px}.kmkadro .kmkb>div span{font-size:12px}}
