@@ -94,3 +94,8 @@
 /* kadro basligi: puan rozeti ve dizilis kesilmesin/kirilmasin; yalniz takim adi kisalir */
 .kmkadro .kmkb>div{flex:1 1 0}.kmkadro .kmkb>div .kmpu{flex:none;overflow:visible;text-overflow:clip}.kmkadro .kmkb>div span{flex:none;white-space:nowrap}.kmkadro .kmkb>div b:not(.kmpu){min-width:0}
 @media (max-width:420px){.kmkadro .kmkb{gap:6px;padding:12px 10px!important}.kmkadro .kmkb>div{gap:6px;font-size:13px}.kmkadro .kmkb>div span{font-size:12px}}
+/* gecmis sezonlar: uzun sampiyon / gol krali adlari kesilmek yerine kelime arasindan alt satira gecer */
+.kmgl td.tk{white-space:normal;line-height:1.3}.kmgl td.tk{display:table-cell}.kmgl td.tk .bd{float:left;margin-top:-2px}.kmgl td.tk span{display:block;overflow:hidden}
+.kmgl .kmgk{white-space:normal;display:inline}.kmgl td.gk{overflow-wrap:break-word}
+/* oyuncu kariyeri: kiralik etiketi takim adinin altinda tek satir (ad ile ust uste binmesin) */
+.kmkr-s em{display:block;line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

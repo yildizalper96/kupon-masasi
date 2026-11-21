@@ -1099,7 +1099,7 @@
     const renkler = new Map(); let ri = 0; parca.forEach(s => { const k = s.d && (s.d.app || s.d.ad); if (!renkler.has(k)) renkler.set(k, kulupRenk(s.d && s.d.app, ri++)); s.r = renkler.get(k); });
     const yol = s => s.n.map((n, i) => `${i ? 'L' : 'M'}${n.x.toFixed(1)},${n.y.toFixed(1)}`).join(' ');
     const svg = parca.map(s => `<path d="${yol(s)} L${s.n[s.n.length - 1].x.toFixed(1)},${H - P} L${s.n[0].x.toFixed(1)},${H - P} Z" fill="${s.r}" fill-opacity=".22"/><path d="${yol(s)}" fill="none" stroke="${s.r}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>`).join('');
-    const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(T1).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / 11));
+    const y0 = new Date(t[0]).getUTCFullYear() + 1, y1 = new Date(T1).getUTCFullYear(), adim = Math.max(1, Math.ceil((y1 - y0 + 1) / (matchMedia('(max-width:600px)').matches ? 6 : 11))); // dar ekranda yil etiketleri cakismasin
     const xe = []; for (let y = y0; y <= y1; y += adim) xe.push(`<span style="left:${(X(Date.UTC(y, 0)) / W * 100).toFixed(2)}%">${y}</span>`);
     const ye = [0, 0.25, 0.5, 0.75, 1].map(f => `<span style="top:${(Y(mx / 1.08 * f) / H * 100).toFixed(2)}%">${E(f ? binEur(mx / 1.08 * f) : '€0')}</span>`);
     const logo = parca.map(s => { const own = s.n.filter(x => kkk(x.d) === kkk(s.d)), n = (own.length ? own : s.n).reduce((b, x) => x.y < b.y ? x : b, (own.length ? own : s.n)[0]); const a = s.d && (s.d.app || s.d.ad); return `<span class="kmdeg-lg" style="left:${(n.x / W * 100).toFixed(2)}%;top:${(n.y / H * 100).toFixed(2)}%">${kulupLogo(s.d && s.d.ad, s.d && s.d.app)}</span>`; }).join('');
@@ -1242,7 +1242,7 @@
     let hoca = ''; try { const X = window.KMX; let son = null; Object.values(X.byKey || {}).forEach(m => { const s = m.h === n ? 'h' : m.a === n ? 'a' : null; if (s && m.lu && m.lu[s] && m.lu[s].co && (!son || Date.parse(m.t) > son.t)) son = { t: Date.parse(m.t), co: m.lu[s].co }; }); hoca = (son && son.co) || xt(n).coach || (disKulup(n) || {}).co || (() => { const k = tmKulup(n); return k && (k.dis || k.cw) && k.co || ''; })(); } catch (e) { }
     const [ka, kb] = renk(n);
     const ulkeH = e => { const u = kfOf(e).n || (e.milli && e.milli !== n ? e.milli : '') || (e.ps && e.ps.p[11]) || ''; return u ? `<span class="kmuy" data-tm="${E(u)}">${bd(u)}<span>${E(u)}</span></span>` : '<span class="kmmut">–</span>'; };
-    const sat = e => `<tr ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + e.ad)}"`}><td class="kmkdt-o"><div class="kmkdt-w"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><b>${E(e.n)}</b></div></td><td>${E(POSAD[pos(e)] || '–')}</td><td class="kmkdt-u">${ulkeH(e)}</td><td>${(() => { const k = kfOf(e).no || (!e.milli || e.milli === n ? e.no : null) || (e.ps && +e.ps.p[7] > 0 ? e.ps.p[7] : null); return k ? E(k) : '–'; })()}</td><td>${(() => { const y = yasHesap(kfOf(e).b) || e.a || (e.ps && +e.ps.p[10] > 0 ? e.ps.p[10] : null); return y ? E(y) : '–'; })()}</td><td>${e.ps ? E(e.ps.p[1]) : '–'}</td><td>${e.ps ? E(e.ps.p[3]) : '–'}</td><td>${e.ps ? E(e.ps.p[4]) : '–'}</td></tr>`;
+    const sat = e => `<tr ${e.ps ? `data-pl="${E(e.key)}"` : `data-pn="${E(n + '|' + e.ad)}"`}><td class="kmkdt-o"><div class="kmkdt-w"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(e.n))}</i>${fotoImg(fotoUrl(n, { id: e.id, ph: e.ph, n: e.ad }))}</span><b>${E(e.n).replace(/-/g, "\u2011").replace(/\u00b4/g, "\u2019")}</b></div></td><td>${E(POSAD[pos(e)] || '–')}</td><td class="kmkdt-u">${ulkeH(e)}</td><td>${(() => { const k = kfOf(e).no || (!e.milli || e.milli === n ? e.no : null) || (e.ps && +e.ps.p[7] > 0 ? e.ps.p[7] : null); return k ? E(k) : '–'; })()}</td><td>${(() => { const y = yasHesap(kfOf(e).b) || e.a || (e.ps && +e.ps.p[10] > 0 ? e.ps.p[10] : null); return y ? E(y) : '–'; })()}</td><td>${e.ps ? E(e.ps.p[1]) : '–'}</td><td>${e.ps ? E(e.ps.p[3]) : '–'}</td><td>${e.ps ? E(e.ps.p[4]) : '–'}</td></tr>`;
     return card('kmkdt', `<table class="kmkdt-t"><thead><tr>${th('o', 'Oyuncu', 'kmkdt-o')}${th('p', 'Pozisyon')}${th('u', 'Uyruk')}${th('f', 'Forma')}${th('y', 'Yaş')}${th('m', 'Maç')}${th('g', 'Gol')}${th('a', 'Asist')}</tr></thead><tbody>
       ${hoca && KSRT.k === '' ? `<tr class="kmkdt-h"><td class="kmkdt-o"><div class="kmkdt-w"><span class="kmav" style="--ka:${ka};--kb:${kb}"><i>${E(basH(hoca))}</i></span><b>${E(hoca)}</b></div></td><td>Antrenör</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>` : ''}${l.map(sat).join('')}</tbody></table>
       <p class="kmkay">Kaynak: Transfermarkt</p>`);
@@ -1504,7 +1504,7 @@
     const dg$ = degerYaz(kf.v);
     bilgi.push([dg$ ? E(dg$) : '<span class="kmph-yok">veri yok</span>', 'Transfer değeri', 1]);
     const tmk = tmOyuncuKartlari(e); tmk.bilgi.forEach(b => bilgi.push(b));
-    const apo = oyuncuApi(e, o.team); apo.bilgi.forEach(b => bilgi.push(b)); // API-Football: kilo, dogum yeri, uyruk
+    const apo = oyuncuApi(e, o.team); apo.bilgi.forEach(b => { if (!(b[1] === 'Uyruk' && ulk)) bilgi.push(b); }); // Ulke satiri varsa uyruk tekrar yazilmaz // API-Football: kilo, dogum yeri, uyruk
     const nokta = { K: [50, 88], D: [50, 68], O: [50, 46], F: [50, 18] }[posK] || null;
     const saha = nokta ? `<div class="kmph-saha"><i class="ce"></i><i class="ku"></i><i class="ka"></i><b style="left:${nokta[0]}%;top:${nokta[1]}%">${({ Kaleci: 'KL', Defans: 'DF', 'Orta saha': 'OS', Forvet: 'FV' })[mev] || ''}</b></div>` : '';
     const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h, tk]) => `<div${tk ? ` class="kmph-lk" data-tm="${E(tk)}" title="${E(tk)} milli takımı"` : ''}><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
@@ -1843,6 +1843,21 @@
     }
     return out.join('');
   }
+  // API ulke adi (Ingilizce) -> Turkce (Intl ile; ISO disi adlar elle)
+  let ULKM = null;
+  const ulkeTr = ad => {
+    const s = String(ad || '').trim(); if (!s) return s;
+    if (!ULKM) {
+      ULKM = { England: 'İngiltere', Scotland: 'İskoçya', Wales: 'Galler', 'Northern Ireland': 'Kuzey İrlanda', Kosovo: 'Kosova', Turkey: 'Türkiye', 'Türkiye': 'Türkiye' };
+      try {
+        const en = new Intl.DisplayNames(['en'], { type: 'region' }), tr = new Intl.DisplayNames(['tr'], { type: 'region' }), A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const kod = {}; for (const a of A) for (const b of A) { const k = a + b; try { const n = en.of(k); if (n && n !== k) kod[n] = k; } catch (e) { } }
+        Object.assign(kod, { 'Republic of Ireland': 'IE', 'Korea Republic': 'KR', 'South Korea': 'KR', 'Korea DPR': 'KP', USA: 'US', 'United States': 'US', 'Congo DR': 'CD', 'DR Congo': 'CD', Congo: 'CG', 'Czech Republic': 'CZ', 'Ivory Coast': 'CI', "Côte d'Ivoire": 'CI', 'Bosnia and Herzegovina': 'BA', 'Cape Verde': 'CV', 'Cape Verde Islands': 'CV', 'Guinea-Bissau': 'GW', 'Trinidad and Tobago': 'TT', 'Antigua and Barbuda': 'AG', 'St. Kitts and Nevis': 'KN', 'Curacao': 'CW', 'North Macedonia': 'MK', 'FYR Macedonia': 'MK', 'Chinese Taipei': 'TW', 'China PR': 'CN', 'Hong Kong': 'HK', Macao: 'MO', Russia: 'RU', Iran: 'IR', Syria: 'SY', 'São Tomé and Príncipe': 'ST', Gambia: 'GM', Eswatini: 'SZ', Swaziland: 'SZ' });
+        for (const [n, k] of Object.entries(kod)) if (!ULKM[n]) { try { ULKM[n] = tr.of(k); } catch (e) { } }
+      } catch (e) { }
+    }
+    return ULKM[s] || s;
+  };
   // oyuncu: profil (boy, kilo, uyruk, dogum yeri) + sakatlik gecmisi + kupalar
   function oyuncuApi(e, team) {
     const id = +e.id; if (!(id > 0)) return { bilgi: [], kart: '' };
@@ -1850,8 +1865,8 @@
     const pl = c ? apiJ(`${c}/${APIS}/players.json`) : null, p = pl && pl.p && pl.p.find(x => x.id === id);
     if (p) {
       if (p.kilo) bilgi.push([String(p.kilo).replace(/\s*kg$/i, '') + ' kg', 'Kilo']);
-      if (p.dy || p.du) bilgi.push([[p.dy, p.du].filter(Boolean).join(', '), 'Doğum yeri']);
-      if (p.uy) bilgi.push([p.uy, 'Uyruk']);
+      if (p.dy || p.du) bilgi.push([[p.dy, ulkeTr(p.du)].filter(Boolean).join(', '), 'Doğum yeri']);
+      if (p.uy) bilgi.push([ulkeTr(p.uy), 'Uyruk']);
     }
     const ek = apiJ('oyuncu-ek.json'), x = ek && ek.p && ek.p[id];
     let kart = '';
