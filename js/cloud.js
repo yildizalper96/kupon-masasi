@@ -37,15 +37,16 @@
   // Google (OAuth) donusu: adres cubugunda #access_token=... gelir
   function takeHash() {
     var h = location.hash || '';
+    try { if (sessionStorage.getItem('km_rec') === '1' && localStorage.getItem('km_sb_session')) C.recovery = true; } catch (e) {}
     if (h.indexOf('access_token=') < 0 && h.indexOf('error_description=') < 0) return;
     var q = {}; h.replace(/^#/, '').split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); });
     if (q.access_token) {
       saveS(toSession({ access_token: q.access_token, refresh_token: q.refresh_token, expires_in: q.expires_in }));
-      if (q.type === 'recovery') C.recovery = true; else if (q.type === 'signup') C.justConfirmed = true;
+      if (q.type === 'recovery') { C.recovery = true; try { sessionStorage.setItem('km_rec', '1'); } catch (e) {} } else if (q.type === 'signup') C.justConfirmed = true;
     } else if (q.error_description || q.error) {
       C.lastError = /not enabled|disabled/i.test(q.error_description || '') ? 'nogoogle' : 'net';
     }
-    try { history.replaceState(null, '', location.pathname + location.search + (C.recovery ? '#/profil' : '')); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + location.search + (C.recovery ? '#/sifre-sifirla' : '')); } catch (e) {}
   }
 
   async function authFetch(path, method, body, token) {
@@ -264,6 +265,8 @@
 
   // yeniden cizimde yazilan sifreler silinmesin
   function redraw() { var p = val('kap'), p2 = val('kap2'); try { profDraw(); } catch (e) {} var a = document.getElementById('kap'), b = document.getElementById('kap2'); if (a && p) a.value = p; if (b && p2) b.value = p2; rulesLive(); }
+  // giris yapinca Maclar sayfasina git
+  A.toMatches = function () { try { tab = 'k'; det = null; PMV = null; Q = ''; QX = ''; render(); try { scrollTo(0, 0); } catch (e) {} } catch (e) {} };
   A.afterLogin = async function () {
     try {
       PRF = null; PROFL = false; PMSG = ''; KPUID = null; KPDBR = false; FUID = null; SOUT = false;
@@ -295,7 +298,7 @@
     if (r.error) return fail(r.error === 'confirm' ? 'confirmin' : r.error);
     if (r.needsConfirm) { A.mode = 'verify'; A.msg = ''; A.cool = Date.now() + 60000; tick(); redraw(); return; }
     A.msg = ''; A.email = ''; A.name = ''; A.terms = false; A.mode = 'in';
-    await A.afterLogin();
+    await A.afterLogin(); A.toMatches();
   }
   function tick() { clearInterval(A.ti); A.ti = setInterval(function () { if (A.mode !== 'verify') { clearInterval(A.ti); return; } if (Date.now() > A.cool + 1000) clearInterval(A.ti); var b = document.getElementById('kab_rs'); if (b) redraw(); }, 1000); }
   async function resend() {
@@ -317,8 +320,11 @@
     if (r.error) return fail(r.error);
     // yeni sifre kaydedildi: oturumu kapat, ayni e-postayla giris ekranina don
     var em = (C.user() || {}).email || '';
-    C.recovery = false; C.signOut(); A.mode = 'in'; A.email = em; A.show = false; A.msg = 'pwdone'; A.ok = true;
+    C.recovery = false; try { sessionStorage.removeItem('km_rec'); } catch (e) {} C.signOut();
+    // ortak cihaz: bu cihazdaki hesap verisi gizlenir (cikis ile ayni)
+    try { ['kupon_v1', 'fav', 'kupon_uid'].forEach(function (k) { localStorage.removeItem(k); }); FAV = new Set(); KPD = []; KPS = []; KPX = []; KPTS = 0; KPUID = null; KPDBR = false; FUID = null; } catch (e) {} A.mode = 'in'; A.email = em; A.show = false; A.msg = 'pwdone'; A.ok = true;
     await A.afterLogin();
+    try { history.replaceState(null, '', location.pathname + location.search + '#/profil'); document.title = 'Profil · Simuleto'; } catch (e) {}
   }
   A.bind = function () {
     var g = function (id) { return document.getElementById(id); };
@@ -339,7 +345,7 @@
       ov.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:.011;overflow:hidden;z-index:2';
       var hold = document.createElement('div'); hold.style.position = 'relative'; wrap.insertBefore(hold, gb); hold.appendChild(gb); hold.appendChild(ov);
       C.googleBtn(ov, async function (ok, er) {
-        if (ok) { await A.afterLogin(); } else { A.msg = er || 'net'; redraw(); }
+        if (ok) { await A.afterLogin(); A.toMatches(); } else { A.msg = er || 'net'; redraw(); }
       }).then(function (r) { if (r) gis = true; else ov.remove(); });
     }
     ['kan', 'kae', 'kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key !== 'Enter') return; if (A.mode === 'in' || A.mode === 'up') act(A.mode); else if (A.mode === 'forgot') forgot(); else if (A.mode === 'newpw') newpw(); }; });

@@ -17,6 +17,7 @@
 
   // gecerli durumun adresi ve basligi; null: adres degismez (or. kayitli gecmis mac gorunumu)
   function adres() {
+    if (window.KMCLOUD && KMCLOUD.recovery) return { h: '#/sifre-sifirla', b: 'Yeni şifre belirle' };
     if (PMV) return null;
     if (det && tab !== 'g') {
       const p = String(det).split('|');
@@ -41,6 +42,7 @@
   function cozumle(h) {
     if (!h || h.indexOf('#/') !== 0) return null;
     const p = h.slice(2).split('/').map(dec);
+    if (p[0] === 'sifre-sifirla') return { tab: 'u' };
     if (TERS[p[0]]) return { tab: TERS[p[0]] };
     if (p[0] === 'mac' && p.length >= 4) return { det: p.slice(1, 4).join('|') };
     if (p[0] === 'lig' && p[1]) return { lig: p[1] };
