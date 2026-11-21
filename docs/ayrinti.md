@@ -230,3 +230,10 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - İstemci (`pages.js`): muhtemel 11 maç başlayıp resmi 11 gelmediyse de görünür ("resmi 11 bekleniyor"); biten maçta resmi 11 yoksa "henüz gelmedi" kartı.
 - KURAL: zamanlanmış çekimi (GitHub cron ya da yerel görev) yerine başkası açılmadan KAPATMA. Kapatırsan bunu buraya yaz. Durum: `Get-ScheduledTask KuponMasasi-Veri`, günlük `tools/yerel-guncelle.log`. Yerel görev bilgisayar kapalıyken çalışmaz; yedek olarak GitHub cron açılması onay bekliyor.
 - Ücretsiz plan sınırı: yoğun günde (60+ maç × 3-4 istek) her maçın verisi aynı gün gelmez; telafi tetiği kota sıfırlanınca (00:00 UTC) son 30 saati tamamlar.
+
+## Pro plan (21 Kas 2026)
+- API-Football Pro: 7500/gün, 300/dk, bitiş 21 Ara 2026 (anahtar aynı; `.env` ve GitHub secret değişmedi). Ortak IP makalesi (api-football.com, 13 Kas 2026): ücretsiz hesaplar ortak IP'de "çoklu hesap" sanılıp askıya alınabiliyor; 16 Kas askısı büyük ihtimalle GitHub Actions IP'lerinden. Pro'da askı riski yok, ortak IP'de hız sınırı hatası olabilir (api() 65 sn bekler, 2. kezde durur).
+- Ayarlar: `api-pace.mjs` GAP 10 sn → 400 ms. `fetch-details`: ilk 11 75 dk kala (Avrupa 90), oran maça <6 saat kala 2 saatte bir (yoksa 8), eksik 6 saatte bir, kadro alt sınırı 1500. `yerel-guncelle` modları: full max300/res1500/squads40, live max150/res1500, tetik ve due max80/res500 (hours 36/3).
+- `yerel-tetik.mjs`: tam çekim 6 saatte bir (`full|<6 saat dilimi>` anahtarı; `lat.at`'e bakmaz çünkü canlı mod onu güncelliyor), aktif maç (−90…+150 dk) varken her çalışmada 'tetik', saatte bir 'live'. Çıkış kodları: 0 tamam, 2 veri çekildi ama push edilemedi (tamam sayılır), 3 kilit, 1 çökme → tekrar denenir.
+- GitHub cron açıldı (yedek): `*/20 * * * *` canlı, `7 */6 * * *` tam; depodaki `latest.json` 75 dk'dan tazeyse MODE=none (yerel PC çalışıyor demek).
+- Pro bitince bu sınırlar ücretsiz plan için çok yüksek: plan yenilenmezse `yerel-guncelle`/workflow parametreleri ve GAP geri alınmalı.

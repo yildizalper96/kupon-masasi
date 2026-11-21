@@ -189,8 +189,8 @@ for (const m of cand) {
     } catch (er) { log.push('h2h hata: ' + String(er.message).slice(0, 80)); }
   }
 
-  // piyasa beklentisi (12 saatte bir; ucretsiz planin gunluk 100 istegini asmamak icin)
-  if (!PH && soon && canSpend() && age(e.oddsAt) > HRS(12)) {
+  // piyasa beklentisi (Pro plan: maca 6 saatten az kala 2 saatte bir, oncesinde 8 saatte bir)
+  if (!PH && soon && canSpend() && age(e.oddsAt) > HRS(ko < now + HRS(6) ? 2 : 8)) {
     try {
       const j = await api('/odds?fixture=' + m.id);
       const mk = marketFrom(j.response);
@@ -199,8 +199,8 @@ for (const m of cand) {
     } catch (er) { log.push('oran hata: ' + String(er.message).slice(0, 80)); }
   }
 
-  // sakatlar / cezalilar (gunde bir)
-  if (!PH && soon && canSpend() && age(e.injAt) > HRS(24)) {
+  // sakatlar / cezalilar (6 saatte bir)
+  if (!PH && soon && canSpend() && age(e.injAt) > HRS(6)) {
     try {
       const j = await api('/injuries?fixture=' + m.id);
       e.inj = j.response.map(x => ({ s: x.team.id === e.hid ? 'h' : 'a', n: x.player.name, r: x.player.reason || x.player.type || '' }));
@@ -208,9 +208,9 @@ for (const m of cand) {
     } catch (er) { log.push('eksik hata: ' + String(er.message).slice(0, 80)); }
   }
 
-  // ilk 11 + yedekler (kullanici istegi 14 Kas): baslamasina 58 dk kala (Avrupa kulup maclari CL/EL/ECL/USC icin 80 dk kala) ile baslamasindan 15 dk sonrasi
+  // ilk 11 + yedekler (kullanici istegi 14 Kas): baslamasina 75 dk kala (Avrupa kulup maclari CL/EL/ECL/USC icin 90 dk kala) ile baslamasindan 15 dk sonrasi
   // kadro henuz aciklanmadiysa en az 6 dk arayla yeniden dene (sik tetiklemede bos istek yenmesin)
-  if (!e.luOk && canSpendLineup() && ko < now + (EURO.has(m.c) ? 80 : 58) * 60e3 && ko > now - 15 * 60e3 && age(e.luTryAt) > 6 * 60e3) {
+  if (!e.luOk && canSpendLineup() && ko < now + (EURO.has(m.c) ? 90 : 75) * 60e3 && ko > now - 15 * 60e3 && age(e.luTryAt) > 6 * 60e3) {
     e.luTryAt = new Date().toISOString();
     try {
       const j = await api('/fixtures/lineups?fixture=' + m.id);
@@ -247,7 +247,7 @@ for (const m of cand) {
     // Maci yakin takimin kadrosu 3 gunden eskiyse yenilenir; digerleri 7 gun.
     const yakin = new Set();
     for (const m of latest.m || []) { const t = Date.parse(m.t); if (t > now - HRS(2) && t < now + HRS(48)) { yakin.add(m.h); yakin.add(m.a); } }
-    const SQMIN = +arg('squad-min', 60); // kalan kota bunun altina inince kadro cekimi durur
+    const SQMIN = +arg('squad-min', 1500); // kalan kota bunun altina inince kadro cekimi durur
     const ONLY = String(arg('squad-teams', '')).split(',').map(x => x.trim()).filter(Boolean); // elle: yalnizca bu takimlar (uygulama adlari)
     const todo = Object.entries(ids)
       .filter(([nm, tid]) => ONLY.length ? ONLY.includes(nm) : (!D.sq[tid] || age(D.sq[tid].at) > HRS(yakin.has(nm) ? 72 : 24 * 7)))

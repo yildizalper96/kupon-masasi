@@ -1,18 +1,14 @@
 # Veriyi API-Football'dan ceker, siteyi paketler ve GitHub Pages'e yayinlar.
-#  - canli mod: her 20 dk, yalnizca 10:00-22:59 UTC; bilinen mac oynanmiyorsa canli istek yapilmaz
-#  - tam mod: gunde 3 kez (3 tarih + en fazla 4 yeni mac tahmini); ardindan mac ayrintilari (en cok 14 istek)
-#  - mac ayrintilari (tools/fetch-details.mjs): milli takim kadro listesi, ilk 11 (mactan ~100 dk once), oran, eksik, karsilikli
-#  - kod degisince (push): veri cekmeden yeniden yayinlar
-#  - elle: Actions sekmesinden "Run workflow" (mod secilir)
-# Ucretsiz plan gunluk 100 istek: en kotu durumda ~39..78 + 44 -> arac her calistirmada /status ile (sayilmaz)
-# kalan kotaya bakar ve 10'un altindaysa hic istek yapmaz.
+#  Pro plan (21 Kas 2026, 7500/gun). Asil cekim yerel bilgisayarda; bu is yedek. Kod push edilince veri cekmeden yeniden yayinlar.
 name: Veri güncelle ve yayınla
 
 on:
-    # GECICI KAPALI (16 Kas 2026): API-Football hesabi askida; acilinca asagidaki 3 satiri geri ac (schedule: + 2 cron)
-    # schedule:
-    #   - cron: '*/20 10-22 * * *'
-    #   - cron: '7 6,13,20 * * *'
+  # YEDEK (21 Kas 2026, Pro plan): asil cekim kullanicinin bilgisayarinda (tools/yerel-tetik, ev IP'si).
+  # GitHub IP'leri ortak; yerel veri 75 dk'dan tazeyse API'ye istek atilmaz (asagida 'Depodaki veri yasi').
+  # Bu zamanlayiciyi, yerine baska otomatik cekim acmadan KAPATMA (21 Kas olayi: docs/ayrinti.md).
+  schedule:
+    - cron: '*/20 * * * *'
+    - cron: '7 */6 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -70,7 +66,11 @@ jobs:
         run: |
           MODE=none
           if [ "$EVENT" = "schedule" ]; then
-            if [ "$SCHEDULE" = "*/20 10-22 * * *" ]; then MODE=live; else MODE=full; fi
+            if [ "$SCHEDULE" = "*/20 * * * *" ]; then MODE=live; else MODE=full; fi
+            # yerel bilgisayar calisiyorsa (depodaki veri 75 dk'dan taze; yerel sessiz saatlerde saatte bir push eder) GitHub istek atmaz, yalnizca yayinlar
+            YAS=$(node -e "try{const d=require('./.repo-data/fixtures/latest.json');console.log(Math.round((Date.now()-Date.parse(d.at))/60000))}catch(e){console.log(9999)}")
+            echo "Depodaki veri yasi: $YAS dk"
+            if [ "$YAS" -lt 75 ]; then echo "Yerel cekim calisiyor (veri taze), API istegi yok."; MODE=none; fi
           elif [ "$EVENT" = "workflow_dispatch" ]; then
             MODE="${INPUT_MODE:-full}"
           fi
@@ -86,15 +86,15 @@ jobs:
             node tools/fetch-fixtures.mjs --max-pred=4
             # --reserve: kalan kota bunun altina inerse ayrintilar (kadro listesi, oran, karsilikli) durur;
             # yalnizca ilk 11 yedek kotaya girebilir. Boylece mac gunu canli skor ve ilk 11 icin kota kalir.
-            node tools/fetch-details.mjs --max=20 --hours=24 --reserve=45 --squads=6 || true
+            node tools/fetch-details.mjs --max=300 --hours=36 --reserve=1500 --squads=40 || true
           fi
           # due: dis servis (cron-job.org) 5-10 dk'da bir tetikler; yalnizca vakti gelmis ilk 11 / ilk yari / mac sonu istegi yapilir
           if [ "$MODE" = "due" ]; then
-            node tools/fetch-details.mjs --phases-only --max=8 --hours=3 --reserve=15 || true
+            node tools/fetch-details.mjs --phases-only --max=80 --hours=3 --reserve=500 || true
           fi
           if [ "$MODE" = "live" ]; then
             node tools/fetch-fixtures.mjs --live
-            node tools/fetch-details.mjs --max=14 --hours=24 --reserve=45 || true
+            node tools/fetch-details.mjs --max=150 --hours=36 --reserve=1500 || true
           fi
 
       # Supabase ucretsiz projesi 1 hafta islem olmazsa durur: zamanli calistirmalarda hafif bir okuma yap

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const F = path.resolve(import.meta.dirname, 'cache', '.last-api-req');
-export const GAP = 10000; // dakikada en cok 6 istek (limit 10/dk; guvenli pay)
+export const GAP = 400; // Pro plan (21 Kas 2026): limit 300/dk; 400 ms = en cok 150/dk (yerel + GitHub ayni anda calissa da guvenli)
 export async function pace() {
   let last = 0;
   try { last = +fs.readFileSync(F, 'utf8') || 0; } catch {}
