@@ -250,4 +250,5 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - `data/api/clubs.json` `{t:{tid:{n,c,kur,ul, v:{n,sh,adr,kap,zem,img}, co:{id,n,yas,uy,dt,kar:[[tid,ad,başl,bitiş]]}, tr:[[oyuncuId,ad,tarih,tür,gelenTid,gelenAd,gidenTid,gidenAd]] (son 3 yıl)}}}`.
 - Kadrolar: tüm kulüpler (369) `details.json sq`; `ph` alanı yalnız kimlikten türetilemeyen adreste saklanır (istemci kimlikten kurar).
 - Adlar: `n`/`t` uygulama adı (`data/teams/ids.json` tersine), yoksa API adı. İstemci dosyaları TEMBEL yüklemeli (sayfa açılınca o lig/sezon).
+- `data/api/hakemler.json` `{h:{ad:{n,s,k,p,e,b,d,l:{lig:maç},son}}}` (istek yok, maç dosyalarından). `data/api/oyuncu-ek.json` `{p:{id:{sk:[[tür,baş,bit]],ku:[[kupa,ülke,sezon,yer]]}}, h:{hocaId:{ku}}}` (kadrolardaki oyuncular + hocalar, 20li paket, 30 günde bir).
 - Henüz arayüzde kullanılmıyor: oyuncu/takım sayfaları, krallıklar, resmi tablo, stadyum/hoca/transfer, hakem istatistiği (maçlardaki `ref` alanından hesaplanır).

@@ -29,7 +29,7 @@ const CODES = String(arg('leagues', Object.keys(LIG).join(','))).split(',').filt
 const [S0, S1] = String(arg('seasons', '2021-2026')).split('-').map(Number);
 const CUR = 2026; // guncel sezon (Avrupa 2026-27, takvim ligleri 2026)
 const SEASONS = []; for (let s = S1 || S0; s >= S0; s--) SEASONS.push(s); // yeniden eskiye
-const ONLY = String(arg('only', 'standings,top,fixtures,matches,teamstats,players,clubs')).split(',');
+const ONLY = String(arg('only', 'standings,top,fixtures,matches,teamstats,players,clubs,ekstra,hakem')).split(',');
 
 let used = 0, remaining = null, gapMs = 700;
 const left = () => (remaining === null ? 0 : remaining) - used;
@@ -266,6 +266,68 @@ async function clubs() {
   kaydet(); log.push(`kulupler: ${Object.keys(o.t).length} takim, ${n} istek`);
 }
 
+// ---------- 6. hakem istatistikleri (istek YOK: aylik mac dosyalarindan hesaplanir) ----------
+// data/api/hakemler.json { at, h:{ "<ad>": { n:mac, s:sari, k:kirmizi, p:penalti, e:ev galibiyet, b:beraberlik, d:dep galibiyet, l:{lig:mac}, son:"YYYY-MM-DD" } } }
+function hakemler() {
+  const H = {}, base = path.join(root, 'data', 'api');
+  for (const c of fs.existsSync(base) ? fs.readdirSync(base) : []) {
+    const cd = path.join(base, c); if (!fs.statSync(cd).isDirectory()) continue;
+    for (const s of fs.readdirSync(cd)) {
+      const sd = path.join(cd, s), fx = rd(path.join(sd, 'fixtures.json')); if (!fx) continue;
+      const sk = Object.fromEntries(fx.m.map(r => [r[0], r]));
+      for (const f of fs.readdirSync(sd).filter(x => /^m-\d{4}-\d{2}\.json$/.test(x))) {
+        const o = rd(path.join(sd, f)); if (!o) continue;
+        for (const [id, x] of Object.entries(o.m)) {
+          if (!x.ref) continue; const r = sk[id]; if (!r) continue;
+          const h = H[x.ref] = H[x.ref] || { n: 0, s: 0, k: 0, p: 0, e: 0, b: 0, d: 0, l: {}, son: '' };
+          h.n++; h.l[c] = (h.l[c] || 0) + 1; const t = r[1].slice(0, 10); if (t > h.son) h.son = t;
+          for (const e of x.ev) { if (e[3] === 'K') { if (/Red/.test(e[4])) h.k++; else h.s++; } if (e[3] === 'G' && /Penalty/.test(e[4])) h.p++; }
+          if (r[4] != null) { if (r[4] > r[5]) h.e++; else if (r[4] < r[5]) h.d++; else h.b++; }
+        }
+      }
+    }
+  }
+  wr(path.join(base, 'hakemler.json'), { at: new Date().toISOString(), h: H });
+  log.push(`hakemler: ${Object.keys(H).length} hakem`);
+}
+// ---------- 7. sakatlik gecmisi + kupalar (20'li paketler; kadrolardaki oyuncular ve teknik direktorler; 30 gunde bir) ----------
+// data/api/oyuncu-ek.json { at, p:{ oyuncuId:{ sk:[[tur, baslangic, bitis]], ku:[[kupa, ulke, sezon, yer]], at } }, h:{ hocaId:{ ku:[...], at } } }
+async function ekstra() {
+  const f = path.join(root, 'data', 'api', 'oyuncu-ek.json'), o = rd(f) || { p: {}, h: {} };
+  const det = rd(path.join(root, 'data', 'fixtures', 'details.json')) || {};
+  const pids = [...new Set(Object.values(det.sq || {}).flatMap(s => (s.p || []).map(p => p.id)).filter(Boolean))]
+    .filter(id => age(o.p[id]?.at) > HRS(24 * 30));
+  const kulup = rd(path.join(root, 'data', 'api', 'clubs.json')) || { t: {} };
+  const hids = [...new Set(Object.values(kulup.t).map(t => t.co?.id).filter(Boolean))].filter(id => age(o.h[id]?.at) > HRS(24 * 30));
+  const kupa = x => [x.league, x.country, x.season, x.place];
+  let n = 0;
+  const kaydet = () => { o.at = new Date().toISOString(); wr(f, o); };
+  for (let i = 0; i < pids.length; i += 20) {
+    if (dur()) break;
+    const pk = pids.slice(i, i + 20), z = new Date().toISOString();
+    try {
+      const sj = await api('/sidelined?players=' + pk.join('-'));
+      const tj = dur() ? null : await api('/trophies?players=' + pk.join('-'));
+      for (const id of pk) o.p[id] = { sk: [], ku: [], at: z };
+      for (const x of sj.response || []) { const id = x.id ?? x.player?.id; if (o.p[id]) o.p[id].sk = (x.sidelined || []).map(s => [s.type, s.start, s.end]).slice(0, 30); }
+      for (const x of tj?.response || []) { const id = x.id ?? x.player?.id; if (o.p[id]) o.p[id].ku = (x.trophies || []).map(kupa); }
+      if (!tj) for (const id of pk) o.p[id].at = null; // kupalar eksik kaldi: sonra yeniden
+      n += 2;
+    } catch (e) { log.push(`sakatlik/kupa hata: ${String(e.message).slice(0, 80)}`); break; }
+    if (n % 50 === 0) kaydet();
+  }
+  for (let i = 0; i < hids.length; i += 20) {
+    if (dur()) break;
+    const pk = hids.slice(i, i + 20);
+    try {
+      const tj = await api('/trophies?coachs=' + pk.join('-')); n++;
+      for (const id of pk) o.h[id] = { ku: [], at: new Date().toISOString() };
+      for (const x of tj.response || []) { const id = x.id ?? x.coach?.id; if (o.h[id]) o.h[id].ku = (x.trophies || []).map(kupa); }
+    } catch (e) { log.push(`hoca kupa hata: ${String(e.message).slice(0, 80)}`); break; }
+  }
+  kaydet(); log.push(`oyuncu ek: ${Object.keys(o.p).length} oyuncu, ${Object.keys(o.h).length} hoca, ${n} istek`);
+}
+
 // ---------- sira: kullanicinin istedigi oncelik ----------
 const SIRA = [['standings', standings], ['top', top], ['fixtures', fixtures], ['matches', matches], ['teamstats', teamstats], ['players', players]];
 for (const [ad_, fn] of SIRA) {
@@ -274,5 +336,7 @@ for (const [ad_, fn] of SIRA) {
   if (durdu) break;
 }
 if (!durdu && ONLY.includes('clubs')) await clubs();
+if (!durdu && ONLY.includes('ekstra')) await ekstra();
+if (ONLY.includes('hakem') || ONLY.includes('matches')) { try { hakemler(); } catch (e) { log.push('hakem hata: ' + e.message); } }
 console.log(log.join('\n'));
 console.log(`\nHarcanan istek: ${used}, kalan gunluk (yaklasik): ${remaining - used}.${durdu ? ' Yarim kaldi; sonraki calistirma surdurur.' : ' Tamam.'}`);
