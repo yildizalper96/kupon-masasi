@@ -16,7 +16,8 @@
     orta: { ad: 'Orta risk', lo: 0.55, hi: 0.675, h: 0.61, n: 3, keys: ['1', '2', '1X', 'X2', 'Ü1.5', 'Ü2.5', 'KG Var', 'EG1', 'DG1'] },
     yuksek: { ad: 'Yüksek risk', lo: 0.33, hi: 0.475, h: 0.40, n: 2, keys: ['1', '2', 'Ü2.5', 'Ü3.5', 'KG Var', 'EG2', 'DG1'] }
   };
-  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [], BASLIK = null;
+  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [], BASLIK = null, MIK = 0;
+  var miktar = function () { var v = MIK || (typeof KPST !== 'undefined' && +KPST) || 10; return String(v); };
 
   var bekleyen = function (ms) { var now = Date.now(); return (ms || []).filter(function (m) { try { return m && !m.np && m.p && +m.t > now + 10 * 60e3 && stt(m).k === 'wait'; } catch (e) { return false; } }); };
 
@@ -62,7 +63,7 @@
       var oz = sekme === 'lo' ? (loOz ? 'Düşük risk · ' + loOz : 'Düşük risk') : ozet(ms, sekme);
       bas = bas.replace(/<h3>[^<]*<\/h3>/, '<h3>' + (BASLIK || 'Günün kuponu') + '</h3>').replace(/<span class='mut'>[^<]*<\/span>$/, "<span class='mut'>" + oz + '</span>');
       var tabs = '<div class="gk-t" data-gkid="' + id + '">' + SIRA.map(function (k) { return '<button class="gk-c' + (k === sekme ? ' on' : '') + '" data-gks="' + k + '">' + (k === 'lo' ? 'Düşük risk' : KAT[k].ad) + '</button>'; }).join('') + '</div>';
-      return bas + '</summary>' + tabs + '<div class="gk-lo"' + (sekme === 'lo' ? '' : ' hidden') + ' data-oz="' + loOz.replace(/"/g, '') + '">' + lo + '</div><div class="gk-p">' + (sekme === 'lo' ? '' : panel(ms, sekme)) + '</div><button class="gk-sh" data-gksh="1">Görsel olarak paylaş</button></details>';
+      return bas + '</summary>' + tabs + '<div class="gk-lo"' + (sekme === 'lo' ? '' : ' hidden') + ' data-oz="' + loOz.replace(/"/g, '') + '">' + lo + '</div><div class="gk-p">' + (sekme === 'lo' ? '' : panel(ms, sekme)) + '</div><div class="gk-shr"><label>Miktar<input data-gkst inputmode="decimal" value="' + miktar() + '"></label><button class="gk-sh" data-gksh="1">Görsel olarak paylaş</button></div></details>';
     } catch (e) { if (window.console) console.warn('gunun-kuponu:', e); return h; }
   };
 
@@ -88,20 +89,32 @@
    * Telefonda paylaşım menüsü açılır (Web Share), olmazsa dosya iner. Köşede simuleto.com; "simülasyon, bahis tavsiyesi değildir". */
   function satirSar(ctx, t, w) { var k = String(t).split(' '), out = [], cur = ''; k.forEach(function (x) { var y = cur ? cur + ' ' + x : x; if (ctx.measureText(y).width > w && cur) { out.push(cur); cur = x; } else cur = y; }); if (cur) out.push(cur); return out; }
   function kirp(ctx, t, w) { t = String(t); if (ctx.measureText(t).width <= w) return t; while (t.length > 1 && ctx.measureText(t + '…').width > w) t = t.slice(0, -1); return t + '…'; }
-  function gorsel(baslik, risk, legs) {
+  // marka logosu: "simulet" + top seklinde "o" (index.html #kmball yolu, uygulamadaki .wm ile ayni oranlar)
+  function logo(x, F, X, Y, sz) {
+    x.save(); x.fillStyle = '#e8edf1'; x.font = '700 ' + sz + 'px ' + F; try { x.letterSpacing = (-0.035 * sz) + 'px'; } catch (e) { }
+    x.fillText('simulet', X, Y); var w = x.measureText('simulet').width; try { x.letterSpacing = '0px'; } catch (e) { }
+    var el = document.getElementById('kmball'), d = el && el.getAttribute('d'), b = 0.63 * sz, bx = X + w + 0.045 * sz, by = Y - b + 0.012 * sz;
+    if (d && window.Path2D) {
+      var k = b / 424; x.translate(bx, by); x.scale(k, k); x.translate(-44, -44);
+      var pth = new Path2D(d); x.fillStyle = '#8EAAEB'; x.strokeStyle = '#8EAAEB'; x.lineWidth = 16; x.lineJoin = 'round'; x.fill(pth, 'evenodd'); x.stroke(pth);
+    } else { x.fillText('o', bx, Y); }
+    x.restore();
+  }
+  var para = function (v) { return (+v).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  function gorsel(baslik, risk, legs, mik) {
     var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var x = cv.getContext('2d'), F = (getComputedStyle(document.body).fontFamily || 'system-ui, sans-serif');
     var RC = { 'Düşük risk': '#22a565', 'Orta risk': '#e0a030', 'Yüksek risk': '#e05248' }[risk] || '#7f8ea0';
     var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#141d27'); g.addColorStop(1, '#0b1117'); x.fillStyle = g; x.fillRect(0, 0, W, H);
     var P = 72;
-    x.fillStyle = '#e8edf1'; x.font = '800 54px ' + F; x.textBaseline = 'alphabetic'; x.fillText('simuleto', P, 120);
+    x.textBaseline = 'alphabetic'; logo(x, F, P, 122, 64);
     x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.textAlign = 'right';
     x.fillText(new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }), W - P, 118); x.textAlign = 'left';
     x.fillStyle = '#ffffff'; x.font = '800 74px ' + F; x.fillText(baslik, P, 250);
     x.font = '700 34px ' + F; var bw = x.measureText(risk).width + 48;
     x.fillStyle = RC; x.beginPath(); if (x.roundRect) x.roundRect(P, 284, bw, 60, 30); else x.rect(P, 284, bw, 60); x.fill();
     x.fillStyle = '#fff'; x.fillText(risk, P + 24, 326);
-    var y = 400, kh = legs.length > 3 ? 170 : 200;
+    var y = 390, kh = legs.length > 3 ? 158 : 186;
     legs.forEach(function (l) {
       x.fillStyle = 'rgba(255,255,255,.05)'; x.beginPath(); if (x.roundRect) x.roundRect(P, y, W - 2 * P, kh - 24, 26); else x.rect(P, y, W - 2 * P, kh - 24); x.fill();
       var ix = P + 32, rw = 210;
@@ -113,12 +126,19 @@
       y += kh;
     });
     var od = legs.reduce(function (a, l) { return a * l.od; }, 1), pr = legs.reduce(function (a, l) { return a * l.p; }, 1);
-    y = Math.max(y + 20, H - 330);
+    y = Math.max(y + 6, H - 368);
     x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(P, y, W - 2 * P, 2);
     x.fillStyle = '#ffffff'; x.font = '800 96px ' + F; x.fillText(od.toFixed(2), P, y + 120);
     x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.fillText('toplam tahmini oran', P, y + 166);
     x.textAlign = 'right'; x.fillStyle = '#ffffff'; x.font = '800 64px ' + F; x.fillText('%' + Math.round(pr * 100), W - P, y + 110);
     x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.fillText('birlikte tutma ihtimali', W - P, y + 166); x.textAlign = 'left';
+    if (mik > 0) {
+      var py = y + 196; x.fillStyle = 'rgba(255,255,255,.06)'; x.beginPath(); if (x.roundRect) x.roundRect(P, py, W - 2 * P, 78, 22); else x.rect(P, py, W - 2 * P, 78); x.fill();
+      x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.fillText('Miktar', P + 30, py + 50);
+      var mw = x.measureText('Miktar').width; x.fillStyle = '#ffffff'; x.font = '700 34px ' + F; x.fillText(para(mik), P + 30 + mw + 16, py + 51);
+      x.textAlign = 'right'; x.fillStyle = '#3fd08a'; x.font = '800 38px ' + F; var kz = para(mik * od); x.fillText(kz, W - P - 30, py + 52);
+      var kw = x.measureText(kz).width; x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.fillText('Olası kazanç', W - P - 30 - kw - 16, py + 50); x.textAlign = 'left';
+    }
     x.fillStyle = '#6f7d89'; x.font = '500 22px ' + F; x.textAlign = 'center';
     x.fillText('simuleto.com · Simülasyondur, bahis tavsiyesi değildir · Hiçbir bahis risksiz değildir · 18+', W / 2, H - 50); x.textAlign = 'left';
     return cv;
@@ -137,7 +157,8 @@
     }).filter(Boolean);
     if (!legs.length) return;
     var h3 = el.querySelector('summary h3'), risk = sekme === 'lo' ? 'Düşük risk' : KAT[sekme].ad;
-    var cv = gorsel(h3 ? h3.textContent : 'Günün kuponu', risk, legs);
+    var inp = el.querySelector('[data-gkst]'), mik = inp ? parseFloat(String(inp.value).replace(',', '.')) : 0; if (!(mik > 0 && mik < 1e7)) mik = 0; else MIK = mik;
+    var cv = gorsel(h3 ? h3.textContent : 'Günün kuponu', risk, legs, mik);
     cv.toBlob(function (blob) {
       if (!blob) return;
       var ad = 'simuleto-kupon.png', file = null; try { file = new File([blob], ad, { type: 'image/png' }); } catch (e) { }
@@ -169,7 +190,8 @@
     var s = document.createElement('style');
     s.textContent = '.gk-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}' +
       '.gk-c{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 13px var(--f,inherit);padding:7px 4px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--mut);cursor:pointer}' +
-      '.gk-sh{display:block;width:100%;margin:8px 0 0;padding:9px 12px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--ink);font:600 13.5px var(--f,inherit);cursor:pointer}.gk-sh:hover{border-color:var(--ink)}' +
+      '.gk-shr{display:flex;gap:8px;align-items:center;margin:8px 0 0}.gk-shr label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);flex:none}.gk-shr input{width:64px;font:600 13.5px var(--f,inherit);padding:8px 10px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--ink);text-align:center}' +
+      '.gk-sh{display:block;flex:1;min-width:0;margin:0;padding:9px 12px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--ink);font:600 13.5px var(--f,inherit);cursor:pointer}.gk-sh:hover{border-color:var(--ink)}' +
       '.gk-lig{margin-bottom:12px}.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
       '@media (max-width:360px){.gk-t{gap:4px}.gk-c{font-size:11.5px;padding:7px 1px;letter-spacing:-.1px}}';
     document.head.appendChild(s);
