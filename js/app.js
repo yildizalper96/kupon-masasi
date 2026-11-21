@@ -266,7 +266,7 @@ function rsn1(m,x){if(m.un)return rsUN(m,x);if(m.eu)return rsEU(m,x);if(x.g)retu
 function rsn0(m,x){const k=x.k,h=m.h,a=m.a,sl=!!(SLG[m.h]&&SLG[m.a]),i=(n,H)=>sl?`${vt(n,H)}; ${l5(n)}`:rk(n),p=pc(x.p),d=n=>TM[n]?`${n} ${TM[n].d} beraberlik`:null,T=`Ev sahibi ${i(h,1)}. Deplasman ${i(a,0)}.`;
 if(['1','1X','2','X2'].includes(k))return T+` ${k.length==1?'Kazanma':'Yenilmeme'} ihtimali ${p}.`;
 if(k=='X'||k=='12')return T+` Sezonda ${[d(h),d(a)].filter(Boolean).join(', ')} aldı. Beraberlik ihtimali ${pc(m.p[1])}${k=='12'?`, yani biri kazanır ihtimali ${p}`:''}.`;
-const g=n=>SLG[n]?`${n} maç başı ${(sm(SLG[n]).f/SLG[n].length).toFixed(1)} atıp ${(sm(SLG[n]).c/SLG[n].length).toFixed(1)} yiyor`:'';return`${g(h)}; ${g(a)}. Beklenen toplam gol ${m.g?(m.g[0]+m.g[1]).toFixed(1):'?'}. İhtimal ${p}.`}
+const g=n=>SLG[n]&&SLG[n].length?`${n} maç başı ${(sm(SLG[n]).f/SLG[n].length).toFixed(1)} atıp ${(sm(SLG[n]).c/SLG[n].length).toFixed(1)} yiyor`:'',gs=[g(h),g(a)].filter(Boolean);let eg='';try{const q=m.g?{lh:+m.g[0],la:+m.g[1]}:gmk(m);if(isFinite(q.lh)&&isFinite(q.la))eg=` Beklenen gol: ${h} ${q.lh.toFixed(1)}, ${a} ${q.la.toFixed(1)}.`}catch(e){}return(`${gs.length?gs.join('; ')+'.':''}${eg} İhtimal %${Math.round(x.p*100)}.`).trim()}
 const GB={o15:.80,o25:.569,kg:.55,h1:.78,a1:.722,h2:.473};
 function gmk(m,f){const[a,b,c]=m.p,d=a-c,T=2.682+.85*Math.abs(d);let lo=.02,hi=.98,s=.5;
 for(let it=0;it<40;it++){s=(lo+hi)/2;const A=pm(T*s),B=pm(T*(1-s));let w=0,l=0;A.forEach((x,i)=>B.forEach((y,j)=>{if(i>j)w+=x*y;else if(i<j)l+=x*y}));if(w-l<d)lo=s;else hi=s}
