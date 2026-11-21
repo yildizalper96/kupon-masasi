@@ -67,3 +67,13 @@ for (const rel of ['fixtures/latest.json']) {
   const p = path.join(root, 'data', 'fixtures', 'latest.json'), j = rd(p);
   if (j && Array.isArray(j.m)) { const n0 = j.m.length; j.m = j.m.filter(m => !YASAK.has(m.id)); if (j.m.length !== n0) { wr(p, j); console.log('latest.json: yasakli ' + (n0 - j.m.length) + ' amator mac cikarildi'); } }
 }
+{ // seo-arsiv.json (tools/seo-pages.mjs): SEO mac sayfalari arsivi; iki kopyanin birlesimi (adres anahtarina gore, alanlar birlesir)
+  const rel = 'fixtures/seo-arsiv.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
+  if (rep && rep.m) {
+    const [eski, yeni] = cur && cur.m && ts(cur) > ts(rep) ? [rep, cur] : [cur || { m: {} }, rep];
+    const m = Object.assign({}, eski.m || {});
+    for (const [k, v] of Object.entries(yeni.m || {})) m[k] = Object.assign({}, m[k] || {}, v);
+    wr(path.join(root, 'data', rel), { at: new Date().toISOString(), lg: Object.assign({}, eski.lg || {}, yeni.lg || {}), m });
+    console.log(rel + ': birlesti (' + Object.keys(m).length + ' mac)');
+  } else console.log(rel + ': ' + (cur ? 'onbellek korundu' : 'dosya yok'));
+}
