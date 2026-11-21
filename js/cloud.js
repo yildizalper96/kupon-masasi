@@ -37,15 +37,16 @@
   // Google (OAuth) donusu: adres cubugunda #access_token=... gelir
   function takeHash() {
     var h = location.hash || '';
+    try { if (sessionStorage.getItem('km_rec') === '1' && localStorage.getItem('km_sb_session')) C.recovery = true; } catch (e) {}
     if (h.indexOf('access_token=') < 0 && h.indexOf('error_description=') < 0) return;
     var q = {}; h.replace(/^#/, '').split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); });
     if (q.access_token) {
       saveS(toSession({ access_token: q.access_token, refresh_token: q.refresh_token, expires_in: q.expires_in }));
-      if (q.type === 'recovery') C.recovery = true; else if (q.type === 'signup') C.justConfirmed = true;
+      if (q.type === 'recovery') { C.recovery = true; try { sessionStorage.setItem('km_rec', '1'); } catch (e) {} } else if (q.type === 'signup') C.justConfirmed = true;
     } else if (q.error_description || q.error) {
       C.lastError = /not enabled|disabled/i.test(q.error_description || '') ? 'nogoogle' : 'net';
     }
-    try { history.replaceState(null, '', location.pathname + location.search + (C.recovery ? '#/profil' : '')); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + location.search + (C.recovery ? '#/sifre-sifirla' : '')); } catch (e) {}
   }
 
   async function authFetch(path, method, body, token) {
@@ -317,8 +318,11 @@
     if (r.error) return fail(r.error);
     // yeni sifre kaydedildi: oturumu kapat, ayni e-postayla giris ekranina don
     var em = (C.user() || {}).email || '';
-    C.recovery = false; C.signOut(); A.mode = 'in'; A.email = em; A.show = false; A.msg = 'pwdone'; A.ok = true;
+    C.recovery = false; try { sessionStorage.removeItem('km_rec'); } catch (e) {} C.signOut();
+    // ortak cihaz: bu cihazdaki hesap verisi gizlenir (cikis ile ayni)
+    try { ['kupon_v1', 'fav', 'kupon_uid'].forEach(function (k) { localStorage.removeItem(k); }); FAV = new Set(); KPD = []; KPS = []; KPX = []; KPTS = 0; KPUID = null; KPDBR = false; FUID = null; } catch (e) {} A.mode = 'in'; A.email = em; A.show = false; A.msg = 'pwdone'; A.ok = true;
     await A.afterLogin();
+    try { history.replaceState(null, '', location.pathname + location.search + '#/profil'); document.title = 'Profil · Simuleto'; } catch (e) {}
   }
   A.bind = function () {
     var g = function (id) { return document.getElementById(id); };
