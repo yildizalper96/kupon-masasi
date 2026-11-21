@@ -24,7 +24,13 @@ if (!KEY) { console.error('HATA: API_FOOTBALL_KEY yok.'); process.exit(1); }
 const HOST = 'https://v3.football.api-sports.io';
 
 // lig kodu -> API lig kimligi (yalnizca ligler; kupalar haric)
-const LIG = { SL: 203, PL: 39, LL: 140, SA: 135, BL: 78, L1: 61, ERE: 88, POR: 94, BEL: 144, SCO: 179, KSA: 307, BRA: 71, ARG: 128, MLS: 253, MX: 262 };
+const LIGLER = { SL: 203, PL: 39, LL: 140, SA: 135, BL: 78, L1: 61, ERE: 88, POR: 94, BEL: 144, SCO: 179, KSA: 307, BRA: 71, ARG: 128, MLS: 253, MX: 262 };
+// kupalar, Avrupa ve milli takim turnuvalari (21 Kas 2026): yalnizca puan durumu/grup, kralliklar, fikstur ve mac ayrintilari (takim/oyuncu sezon istatistigi yok)
+const KUPA = {
+  CL: 2, EL: 3, ECL: 848, USC: 531, FAC: 45, EFL: 48, CDR: 143, CIT: 137, DFB: 81, CDF: 66, TUK: 206, KNV: 90, TDP: 96, BCP: 147, SFA: 181, CBR: 73, CAR: 130,
+  UNL: 5, WC: 1, EURO: 4, WCQE: 32, EUROQ: 960, COPA: 9, WCQSA: 34, FRI: 10,
+};
+const LIG = { ...LIGLER, ...KUPA };
 const CODES = String(arg('leagues', Object.keys(LIG).join(','))).split(',').filter(c => LIG[c]);
 const [S0, S1] = String(arg('seasons', '2021-2026')).split('-').map(Number);
 const CUR = 2026; // guncel sezon (Avrupa 2026-27, takvim ligleri 2026)
@@ -182,6 +188,7 @@ function tstat(r) {
   };
 }
 async function teamstats(c, s) {
+  if (!LIGLER[c]) return;
   const stn = rd(path.join(dir(c, s), 'standings.json')); if (!stn || !stn.rows?.length) return;
   const f = path.join(dir(c, s), 'teamstats.json'), o = rd(f) || { t: {} };
   if (s === CUR && age(o.at) > HRS(72)) o.t = {}; // guncel sezon 3 gunde bir yenilenir
@@ -213,6 +220,7 @@ function oyuncu(x) {
   };
 }
 async function players(c, s) {
+  if (!LIGLER[c]) return;
   const f = path.join(dir(c, s), 'players.json');
   let o = rd(f);
   if (o && o.tam && (s !== CUR || age(o.at) < HRS(72))) return;
@@ -236,7 +244,7 @@ async function clubs() {
   const f = path.join(root, 'data', 'api', 'clubs.json'), o = rd(f) || { t: {} };
   let n = 0;
   const kaydet = () => { o.at = new Date().toISOString(); wr(f, o); };
-  for (const c of CODES) {
+  for (const c of CODES.filter(c => LIGLER[c])) {
     // stadyum: /teams?league&season 1 istekte tum lig (30 gunde bir)
     const lk = 'lig:' + c;
     if (age(o[lk]) > HRS(24 * 30) && !dur()) {

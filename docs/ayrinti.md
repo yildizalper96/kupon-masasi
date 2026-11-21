@@ -239,6 +239,7 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - Pro bitince bu sınırlar ücretsiz plan için çok yüksek: plan yenilenmezse `yerel-guncelle`/workflow parametreleri ve GAP geri alınmalı.
 
 ## Geçmiş ve sezon verisi: data/api (21 Kas 2026, Pro plan) — TASARIM OTURUMU İÇİN
+- Kupalar/Avrupa/milli (21 Kas): CL EL ECL USC FAC EFL CDR CIT DFB CDF TUK KNV TDP BCP SFA CBR CAR UNL WC EURO WCQE EUROQ COPA WCQSA FRI — yalnız standings/top/fixtures/m-*.json (teamstats/players yok; clubs yalnız ligler).
 - Üretici `tools/fetch-history.mjs` (devam ettirilebilir; kota bitince kaldığı yerden). Yerel görev günde bir, 00:30 UTC sonrası ARKA PLANDA çalıştırır (`tools/cache/.gecmis-lock`, günlük `tools/gecmis.log`, bütçe 4500, yedek 1500); çıktıyı sonraki `yerel-guncelle` commit'ler. `build-site` `data/api`'yi yayına koyar. Ligler: SL PL LL SA BL L1 ERE POR BEL SCO KSA BRA ARG MLS MX; sezonlar 2021–2026 (2026 = güncel). Geçmiş sezon bir kez çekilir; güncel sezon: puan durumu 6 sa, krallık 12 sa, fikstür 6 sa, takım/oyuncu istatistiği 3 gün, kulüp bilgisi 30 gün (transfer 14 gün).
 - `data/standings/<C>.json` (güncel sezon, resmi): BRA ile aynı biçim `rows[{n,r,p,pl,w,d,l,f,a,gd,form(G/B/M),ds,tid}]`. `seo-pages` bunu kullanır; uygulama tablosu hâlâ tarayıcıda hesaplanıyor (istenirse buna geçirilebilir).
 - `data/api/<C>/<S>/standings.json` `{at, rows:[{tid,n,r,p,pl,w,d,l,f,a,gd,form,ds,gr?,h:[O,G,B,M,A,Y],aw:[...]}]}`.
