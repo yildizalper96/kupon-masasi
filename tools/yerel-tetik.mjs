@@ -19,7 +19,7 @@ const root = path.resolve(import.meta.dirname, '..');
     fs.mkdirSync(path.dirname(GK), { recursive: true }); fs.writeFileSync(GD, gun);
     const out = fs.openSync(path.join(root, 'tools/gecmis.log'), 'a');
     // kilit alt surecte alinir/silinir: cmd uzerinden zincir (node bitince kilit kalkar)
-    spawn(process.env.ComSpec || 'cmd.exe', ['/c', `echo %date% %time% > "${GK}" && "${process.execPath}" tools\\fetch-history.mjs --budget=4500 --reserve=1500 & del "${GK}"`], { cwd: root, detached: true, stdio: ['ignore', out, out], windowsHide: true, windowsVerbatimArguments: true }).unref();
+    spawn(process.env.ComSpec || 'cmd.exe', ['/c', `echo %date% %time% > "${GK}" && "${process.execPath}" tools\\fetch-history.mjs --budget=3000 --reserve=2500 & del "${GK}"`], { cwd: root, detached: true, stdio: ['ignore', out, out], windowsHide: true, windowsVerbatimArguments: true }).unref();
     console.log(`[${new Date().toISOString()}] Gecmis verisi cekimi arka planda baslatildi`);
   }
 }

@@ -17,7 +17,9 @@ import { pace } from './api-pace.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
-const BUDGET = +arg('budget', 2500), RESERVE = +arg('reserve', 1500);
+// Taban yedek (21 Kas 2026): elle dusuk --reserve verilse de gunluk kota 2000'in altina inilmez; canli skor ve mac sonu verisi icin kalir.
+// Bilerek asmak icin --taban=0 (yalniz maç olmayan saatlerde).
+const TABAN = +arg('taban', 2000), BUDGET = +arg('budget', 2500), RESERVE = Math.max(+arg('reserve', 1500), TABAN);
 const envText = fs.existsSync(path.join(root, '.env')) ? fs.readFileSync(path.join(root, '.env'), 'utf8') : '';
 const KEY = process.env.API_FOOTBALL_KEY || envText.match(/^\s*API_FOOTBALL_KEY\s*=\s*["']?([^"'\r\n]+)/m)?.[1];
 if (!KEY) { console.error('HATA: API_FOOTBALL_KEY yok.'); process.exit(1); }
