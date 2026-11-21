@@ -5,7 +5,8 @@
  *  - Orta risk: ihtimali %55-67 olan seçimler, bandın ortasına (%61) en yakın en çok 3 tanesi (dengeli).
  *  - Yüksek risk: ihtimali %33-47 olan seçimler, bandın ortasına (%40) en yakın en çok 2 tanesi (yüksek oran).
  * Her maçtan en çok bir seçim; seçim sayısını sistem belirler (uygun seçim azsa daha az, hiç yoksa "yok" yazar).
- * Yalnızca o günün başlamamış maçları. Satırlar uygulamanın kupon satırıyla (cl: "Neden bu seçim?"), ekleme "data-kall" (KPC).
+ * Lig sayfasında (Genel bakış) aynı kutu "Haftanın kuponu" adıyla, o ligin 7 gün içindeki maçlarından.
+ * Yalnızca başlamamış maçlar. Satırlar uygulamanın kupon satırıyla (cl: "Neden bu seçim?"), ekleme "data-kall" (KPC).
  * Bahis tavsiyesi değildir; hiçbir bahis risksiz değildir.
  */
 (function () {
@@ -15,7 +16,7 @@
     orta: { ad: 'Orta risk', lo: 0.55, hi: 0.675, h: 0.61, n: 3, keys: ['1', '2', '1X', 'X2', 'Ü1.5', 'Ü2.5', 'KG Var', 'EG1', 'DG1'] },
     yuksek: { ad: 'Yüksek risk', lo: 0.33, hi: 0.475, h: 0.40, n: 2, keys: ['1', '2', 'Ü2.5', 'Ü3.5', 'KG Var', 'EG2', 'DG1'] }
   };
-  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [];
+  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [], BASLIK = null;
 
   var bekleyen = function (ms) { var now = Date.now(); return (ms || []).filter(function (m) { try { return m && !m.np && m.p && +m.t > now + 10 * 60e3 && stt(m).k === 'wait'; } catch (e) { return false; } }); };
 
@@ -59,11 +60,29 @@
       var lo = kutu ? h.slice(h.indexOf('</summary>') + 10, h.lastIndexOf('</details>')).replace(/^<div class='mut'>[^<]*<\/div>/, '') : (h || '<p class="mut">Bu gün düşük riskli kupon yok.</p>');
       var loOz = (bas.match(/<span class='mut'>([^<]*)<\/span>$/) || [])[1] || '';
       var oz = sekme === 'lo' ? (loOz ? 'Düşük risk · ' + loOz : 'Düşük risk') : ozet(ms, sekme);
-      bas = bas.replace(/<h3>[^<]*<\/h3>/, '<h3>Günün kuponu</h3>').replace(/<span class='mut'>[^<]*<\/span>$/, "<span class='mut'>" + oz + '</span>');
+      bas = bas.replace(/<h3>[^<]*<\/h3>/, '<h3>' + (BASLIK || 'Günün kuponu') + '</h3>').replace(/<span class='mut'>[^<]*<\/span>$/, "<span class='mut'>" + oz + '</span>');
       var tabs = '<div class="gk-t" data-gkid="' + id + '">' + SIRA.map(function (k) { return '<button class="gk-c' + (k === sekme ? ' on' : '') + '" data-gks="' + k + '">' + (k === 'lo' ? 'Düşük risk' : KAT[k].ad) + '</button>'; }).join('') + '</div>';
       return bas + '</summary>' + tabs + '<div class="gk-lo"' + (sekme === 'lo' ? '' : ' hidden') + ' data-oz="' + loOz.replace(/"/g, '') + '">' + lo + '</div><div class="gk-p">' + (sekme === 'lo' ? '' : panel(ms, sekme)) + '</div></details>';
     } catch (e) { if (window.console) console.warn('gunun-kuponu:', e); return h; }
   };
+
+  /* Lig sayfası (Genel bakış): o ligin önümüzdeki 7 gündeki maçlarından aynı kutu, "Haftanın kuponu", ilk kartın üstünde */
+  if (typeof window.leagueView === 'function') {
+    var _lv = window.leagueView;
+    window.leagueView = function (c) {
+      var h = _lv.apply(this, arguments);
+      try {
+        if (typeof LGS !== 'undefined' && LGS && LGS.c === c && LGS.s && LGS.s !== 'o') return h;
+        var son = Date.now() + 7 * 864e5, ms = bekleyen((R || []).filter(function (m) { return m.c === c && +m.t <= son; }));
+        if (!ms.length) return h;
+        BASLIK = 'Haftanın kuponu';
+        var k; try { k = window.coupon(ms); } finally { BASLIK = null; }
+        if (!k || k.indexOf('gk-t') < 0) return h;
+        k = k.replace("<details class='box cpn' id='cpd'", "<details class='box cpn gk-lig' id='cpd' open");
+        var i = h.indexOf('<section'); return i >= 0 ? h.slice(0, i) + k + h.slice(i) : h + k;
+      } catch (e) { if (window.console) console.warn('gunun-kuponu (lig):', e); return h; }
+    };
+  }
 
   document.addEventListener('click', function (e) {
     var b = e.target && e.target.closest && e.target.closest('[data-gks]'); if (!b) return;
@@ -80,7 +99,7 @@
     var s = document.createElement('style');
     s.textContent = '.gk-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}' +
       '.gk-c{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 13px var(--f,inherit);padding:7px 4px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--mut);cursor:pointer}' +
-      '.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
+      '.gk-lig{margin-bottom:12px}.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
       '@media (max-width:360px){.gk-t{gap:4px}.gk-c{font-size:11.5px;padding:7px 1px;letter-spacing:-.1px}}';
     document.head.appendChild(s);
   })();
