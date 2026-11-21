@@ -91,7 +91,19 @@ async function standings(c, s) {
   })));
   if (!rows.length) { wr(f, { at: new Date().toISOString(), rows: [], yok: true }); return; }
   wr(f, { at: new Date().toISOString(), rows });
-  if (s === CUR) wr(path.join(root, 'data', 'standings', c + '.json'), { at: new Date().toISOString().slice(0, 10), src: 'API-Football resmi puan durumu', rows: rows.map(({ h, aw, tid, ...r }) => ({ ...r, tid })) });
+  if (s === CUR) {
+    // DIKKAT (21 Kas olayi): elle girilmis dosyalar (or. BRA: players, matches, scorers, zones; satirlarda co/st/cap) EZILMEZ.
+    // Mevcut dosyada ek alan varsa yalnizca eslesen satirlarin puan sutunlari guncellenir, geri kalan her sey korunur.
+    const sf = path.join(root, 'data', 'standings', c + '.json'), eski = rd(sf);
+    const yeni = rows.map(({ h, aw, tid, ...r }) => ({ ...r, tid }));
+    if (eski && Object.keys(eski).some(k => !['at', 'src', 'rows'].includes(k))) {
+      const nk = x => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+      let es = 0;
+      for (const r of eski.rows || []) { const y = yeni.find(q => q.tid === r.tid || nk(q.n) === nk(r.n)); if (y) { Object.assign(r, { r: y.r, p: y.p, pl: y.pl, w: y.w, d: y.d, l: y.l, f: y.f, a: y.a, gd: y.gd, form: y.form, tid: y.tid }); es++; } }
+      if (es === (eski.rows || []).length) { (eski.rows || []).sort((a, b) => a.r - b.r); eski.at = new Date().toISOString().slice(0, 10); eski.apiAt = eski.at; wr(sf, eski); }
+      else log.push(`${c}: elle girilmis tablo korundu (${es}/${(eski.rows || []).length} eslesti, guncellenmedi)`);
+    } else wr(sf, { at: new Date().toISOString().slice(0, 10), src: 'API-Football resmi puan durumu', rows: yeni });
+  }
   log.push(`${c} ${s}: puan durumu ${rows.length} takim`);
 }
 // ---------- 2. kralliklar ----------
