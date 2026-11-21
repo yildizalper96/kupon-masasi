@@ -37,8 +37,9 @@ const CUR = 2026; // guncel sezon (Avrupa 2026-27, takvim ligleri 2026)
 const SEASONS = []; for (let s = S1 || S0; s >= S0; s--) SEASONS.push(s); // yeniden eskiye
 const ONLY = String(arg('only', 'standings,top,fixtures,matches,teamstats,players,clubs,ekstra,hakem')).split(',');
 
-let used = 0, remaining = null, gapMs = 700;
-const left = () => (remaining === null ? 0 : remaining) - used;
+let used = 0, remaining = null, gapMs = 700, kalanBaz = 0;
+// kalan = son bilinen gercek kalan (cevap basligi) - o andan beri yapilan istek
+const left = () => (remaining === null ? 0 : remaining) - (used - kalanBaz);
 const can = () => used < BUDGET && left() > RESERVE;
 let lastReq = 0;
 async function api(p) {
@@ -48,6 +49,9 @@ async function api(p) {
     const r = await fetch(HOST + p, { headers: { 'x-apisports-key': KEY } });
     const pm = Number(r.headers.get('x-ratelimit-limit')); if (pm > 0) gapMs = Math.ceil(60000 / pm) + 300;
     used++;
+    // GERCEK kalan gunluk kota (tum surecler dahil): 21 Kas olayi, iki cekim paralel calisinca yedek delindi
+    const kg = Number(r.headers.get('x-ratelimit-requests-remaining'));
+    if (Number.isFinite(kg) && r.headers.get('x-ratelimit-requests-remaining') !== null) { remaining = kg; kalanBaz = used; }
     const j = await r.json();
     const er = j.errors && (Array.isArray(j.errors) ? j.errors : Object.values(j.errors));
     if (er && er.length) {
@@ -59,8 +63,8 @@ async function api(p) {
   throw new Error(p + ' -> hiz siniri 3 kez');
 }
 
-// kota
-{
+// kota (yalniz hakem hesabi istendiyse kota kontrolu yok: istek atmaz)
+if (!(ONLY.length === 1 && ONLY[0] === 'hakem')) {
   const st = await fetch(HOST + '/status', { headers: { 'x-apisports-key': KEY } }).then(r => r.json()).catch(() => null);
   const rq = st?.response?.requests;
   if (rq && Number.isFinite(rq.limit_day)) remaining = rq.limit_day - rq.current;
@@ -80,6 +84,7 @@ const ad = (tid, apiAd) => APPN[tid] || apiAd;
 const taze = (f, s, saat) => { const o = rd(f); if (!o) return false; if (s !== CUR) return true; return age(o.at) < HRS(saat); };
 const log = [];
 let durdu = false;
+if (ONLY.length === 1 && ONLY[0] === "hakem") hakemlerYalniz();
 const dur = () => { if (!can()) { if (!durdu) console.log(`Butce/kota siniri: ${used} istek harcandi, durdu (sonraki calistirma kaldigi yerden surer).`); durdu = true; } return durdu; };
 
 // ---------- 1. puan durumu ----------
@@ -301,7 +306,7 @@ function hakemler() {
           if (!x.ref) continue; const r = sk[id]; if (!r) continue;
           const h = H[x.ref] = H[x.ref] || { n: 0, s: 0, k: 0, p: 0, e: 0, b: 0, d: 0, l: {}, son: '' };
           h.n++; h.l[c] = (h.l[c] || 0) + 1; const t = r[1].slice(0, 10); if (t > h.son) h.son = t;
-          for (const e of x.ev) { if (e[3] === 'K') { if (/Red/.test(e[4])) h.k++; else h.s++; } if (e[3] === 'G' && /Penalty/.test(e[4])) h.p++; }
+          for (const e of x.ev) { if (e[3] === 'K') { if (/Red/.test(e[4])) h.k++; else h.s++; } if (e[3] === 'G' && /Penalty/.test(e[4]) && !(e[0] >= 120)) h.p++; /* 120. dk ve sonrasi: penalti atislari sayilmaz */ }
           if (r[4] != null) { if (r[4] > r[5]) h.e++; else if (r[4] < r[5]) h.d++; else h.b++; }
         }
       }
@@ -359,4 +364,6 @@ if (!durdu && ONLY.includes('clubs')) await clubs();
 if (!durdu && ONLY.includes('ekstra')) await ekstra();
 if (ONLY.includes('hakem') || ONLY.includes('matches')) { try { hakemler(); } catch (e) { log.push('hakem hata: ' + e.message); } }
 console.log(log.join('\n'));
-console.log(`\nHarcanan istek: ${used}, kalan gunluk (yaklasik): ${remaining - used}.${durdu ? ' Yarim kaldi; sonraki calistirma surdurur.' : ' Tamam.'}`);
+console.log(`\nHarcanan istek: ${used}, kalan gunluk: ${left()}.${durdu ? ' Yarim kaldi; sonraki calistirma surdurur.' : ' Tamam.'}`);
+// yalniz hakem hesabi: yukaridaki fonksiyon bildirimi (hoisting) sayesinde kota kontrolunden once cagrilir
+function hakemlerYalniz() { hakemler(); console.log(log.join('\n')); process.exit(0); }

@@ -1759,7 +1759,7 @@
       const g = tp && tp.g && tp.g[0];
       sat.push(`<tr><td>${E(sezAd({ c, s }))}</td><td class="tk" data-tm="${E(r.n)}">${bd(r.n)}<span>${E(r.n)}</span></td><td>${r.p}</td><td>${g ? `${E(g[1])} <small>(${g[4]})</small>` : '–'}</td></tr>`);
     }
-    return sat.length ? card('kmtablo kmgecmis', `<h3 class="kmb">Geçmiş sezonlar</h3><table><thead><tr><th>Sezon</th><th>Şampiyon</th><th>P</th><th>Gol kralı</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
+    return sat.length ? card('kmgecmis', `<h3 class="kmb">Geçmiş sezonlar</h3><table><thead><tr><th>Sezon</th><th>Şampiyon</th><th>P</th><th>Gol kralı</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
   }
   // takim: sezon istatistigi (gol dakikalari, gol yemeden, gol atamadan, seri, dizilisler)
   function takimApiSezon(n) {
@@ -1788,7 +1788,7 @@
       const r = st && st.rows && st.rows.find(x => x.tid === id); if (!r) continue;
       sat.push(`<tr><td>${E(sezAd({ c, s }))}</td><td><b>${r.r}.</b></td><td>${r.p}</td><td>${r.w}-${r.d}-${r.l}</td><td>${r.f}:${r.a}</td></tr>`);
     }
-    return sat.length ? card('kmtablo kmgecmis', `<h3 class="kmb">Geçmiş sezonlar <small>${E(ligAd(c))}</small></h3><table><thead><tr><th>Sezon</th><th>Sıra</th><th>P</th><th>G-B-M</th><th>Gol</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
+    return sat.length ? card('kmgecmis', `<h3 class="kmb">Geçmiş sezonlar <small>${E(ligAd(c))}</small></h3><table><thead><tr><th>Sezon</th><th>Sıra</th><th>P</th><th>G-B-M</th><th>Gol</th></tr></thead><tbody>${sat.join('')}</tbody></table>${APIKAY}`) : '';
   }
   // takim: teknik direktor + stadyum + transferler (data/api/clubs.json)
   function takimKulupApi(n, stadVar) {

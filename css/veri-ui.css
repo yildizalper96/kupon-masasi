@@ -66,7 +66,7 @@
 .kmkral>.kmb{padding:18px 24px 0;margin:0}
 @media (max-width:900px){.kmec3 .kmuc.kmuc4{grid-template-columns:repeat(2,1fr)}.kmec3 .kmuc.kmuc4>div:nth-child(3){border-left:0}.kmec3 .kmuc.kmuc4>div:nth-child(n+3){border-top:1px solid var(--ln)}}
 .kmgecmis table{width:100%;border-collapse:collapse}.kmgecmis td,.kmgecmis th{padding:7px 8px;text-align:left;border-bottom:1px solid var(--ln);font-size:13px}
-.kmgecmis th{color:var(--mut);font-weight:600}.kmgecmis td.tk{display:flex;align-items:center;gap:6px;cursor:pointer}.kmgecmis td small{color:var(--mut)}
+.kmgecmis th{color:var(--mut);font-weight:600}.kmgecmis td{white-space:nowrap}.kmgecmis td.tk{cursor:pointer}.kmgecmis td:last-child{white-space:normal}.kmgecmis td.tk .bd{vertical-align:middle;margin-right:6px}.kmgecmis td small{color:var(--mut)}
 .kmdkh{margin:14px 0 6px;font:600 13px var(--f);color:var(--mut)}
 .kmdkg{display:flex;gap:6px;align-items:flex-end;height:96px;padding-bottom:18px;position:relative}
 .kmdkg>div{flex:1;display:flex;gap:2px;align-items:flex-end;height:100%;position:relative}
@@ -75,3 +75,8 @@
 .kmdkl{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--mut);margin:8px 0 0}.kmdkl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}.kmdkl i.a{background:var(--ok)}.kmdkl i.y{background:var(--hot)}
 .kmtrf h4{margin:0 0 8px;font:600 13px var(--f);color:var(--mut)}.kmtrs{padding:5px 0;border-bottom:1px solid var(--ln)}.kmtrs b{display:block;font-weight:600;cursor:pointer}.kmtrs small{color:var(--mut)}
 .kmhkev{margin:8px 0 0;font-size:13px;color:var(--mut)}.kmhkev b{color:var(--ink)}
+@media (max-width:700px){.kmkral .kmuc4>div .kmec:nth-of-type(n+4){display:none}.kmgecmis td,.kmgecmis th{padding:6px 5px;font-size:12px}.kmdkg{gap:3px}.kmdkg small{font-size:9px}}
+.kmgecmis table{margin:4px 24px 0;width:calc(100% - 48px)}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:0 24px}
+.kmdkh,.kmdkg,.kmdkl{margin-left:24px!important;margin-right:24px!important}.kmtrf .kmiki>div{padding:0 24px 12px}
+@media (max-width:700px){.kmgecmis table{margin:4px 16px 0;width:calc(100% - 32px)}.kmdkh,.kmdkg,.kmdkl{margin-left:16px!important;margin-right:16px!important}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:0 16px}.kmtrf .kmiki>div{padding:0 16px 12px}}
+.kmhkev{padding:0 24px}@media (max-width:700px){.kmhkev{padding:0 16px}}
