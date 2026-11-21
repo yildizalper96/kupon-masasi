@@ -1775,12 +1775,16 @@
   const APIKAY = '<p class="kmkay">Kaynak: API-Football</p>';
   const sr2 = (a, b) => (b == null || b === '' ? '' : `<div class="kmsr"><span>${a}</span><b>${b}</b></div>`);
   // lig: gol / asist / sari / kirmizi kralligi (guncel sezon)
+  let KRL = 0; // krallik sekmesi (mobil): 0 gol, 1 asist, 2 sari, 3 kirmizi
   function ligKrallar(c) {
     if (!APIL.has(c)) return '';
     const t = apiJ(`${c}/${APIS}/top.json`); if (!t || !(t.g || []).length) return '';
     const sat = r => { const [a, b] = renk(r[3]); return `<div class="kmec" data-pn="${E(r[3] + '|' + r[1])}"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(basH(r[1]))}</i>${fotoImg(oyFoto(r[0]))}</span><div><b>${E(r[1])}</b><small>${bd(r[3])}${E(r[3])}</small></div><em>${r[4]}</em></div>`; };
-    const kol = (ad, l) => `<div><h4>${ad}</h4>${(l || []).filter(r => r[4] > 0).slice(0, 5).map(sat).join('') || '<p class="kmbos">Veri yok.</p>'}</div>`;
-    return card('kmec3 kmkral', `<h3 class="kmb">Krallıklar <small>${E(sezAd({ c, s: APIS }))}</small></h3><div class="kmuc kmuc4">${kol('Gol', t.g)}${kol('Asist', t.a)}${kol('Sarı kart', t.y)}${kol('Kırmızı kart', t.r)}</div>${APIKAY}`);
+    const kol = (ad, l, i) => `<div class="${KRL === i ? 'on' : ''}"><h4>${ad}</h4>${(l || []).filter(r => r[4] > 0).slice(0, 5).map(sat).join('') || '<p class="kmbos">Veri yok.</p>'}</div>`;
+    // mobilde dort liste alt alta cok uzuyordu: sekmeli (masaustunde sekmeler gizli, dort sutun)
+    const AD = ['Gol', 'Asist', 'Sarı kart', 'Kırmızı kart'];
+    const sek = `<div class="kmsek kmkral-t">${AD.map((a, i) => `<button type="button" data-kmkrl="${i}" class="${KRL === i ? 'on' : ''}">${a}</button>`).join('')}</div>`;
+    return card('kmec3 kmkral', `<h3 class="kmb">Krallıklar <small>${E(sezAd({ c, s: APIS }))}</small></h3>${sek}<div class="kmuc kmuc4">${kol(AD[0], t.g, 0)}${kol(AD[1], t.a, 1)}${kol(AD[2], t.y, 2)}${kol(AD[3], t.r, 3)}</div>${APIKAY}`);
   }
   // lig: gecmis sezonlar (sampiyon, puan, gol krali)
   function ligGecmis(c) {
@@ -2025,6 +2029,8 @@
     if (tms) { if (!tms.disabled) { TMS.i = Math.max(0, TMS.i + 10 * (+tms.dataset.kmtms)); render(); } return; }
     const krs = e.target.closest && e.target.closest('[data-kmkrs]');
     if (krs) { KRS = krs.dataset.kmkrs; render(); return; }
+    const krl = e.target.closest && e.target.closest('[data-kmkrl]');
+    if (krl) { KRL = +krl.dataset.kmkrl || 0; render(); return; }
     const lf = e.target.closest && e.target.closest('[data-kmlfx]');
     if (lf) { if (!lf.disabled) { LFX.i += +lf.dataset.kmlfx; render(); } return; }
     const dv = e.target.closest && e.target.closest('[data-kmdv]');

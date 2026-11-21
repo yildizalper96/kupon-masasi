@@ -25,9 +25,20 @@ export function sonucEkle(log = []) {
   // uygulamadaki adlar: lig tablosu satiri "LIG|Ad:sira:..." + sonuc satirlari "LIG|ev|dep|x|y"
   const LIGLER = new Set(), AD = {};
   const ekleAd = (c, n) => { (AD[c] = AD[c] || new Set()).add(n); };
-  for (const m of app.matchAll(/^([A-Z]{2,4})\|([^\n`]*:\d+:\d+[^\n`]*)$/gm)) { LIGLER.add(m[1]); m[2].split(',').forEach(x => ekleAd(m[1], x.split(':')[0])); }
+  for (const m of app.matchAll(/^`?([A-Z]{2,4})\|([^\n`|]*:\d+:\d+[^\n`|]*)`?$/gm)) { LIGLER.add(m[1]); m[2].split(',').forEach(x => ekleAd(m[1], x.split(':')[0])); }
   for (const m of app.matchAll(/(?:^|[\n`])([A-Z]{2,4})\|([^|\n`]+)\|([^|\n`]+)\|\d+\|\d+/g)) { ekleAd(m[1], m[2]); ekleAd(m[1], m[3]); }
+  const TABLOLU = new Set(LIGLER); // app.js'te sabit tablosu olan ligler
+  // app.js'te sezonun ilk kismi kodlu mac listesi olarak YOK, yalniz sabit tablo var: sezonun tamami kayda eklenir ve istemci tabloyu buradan hesaplar
+  const TAM_SEZON = new Set(['KSA']);
   hSat.forEach(l => { const [c, h, a] = l.split('|'); LIGLER.add(c); ekleAd(c, h); ekleAd(c, a); });
+  // sabit tablosu olmayan lig (KSA): resmi puan durumundaki uygulama adlari
+  for (const c of TAM_SEZON) if (LIGLER.has(c)) for (const r of (rd(`data/standings/${c}.json`) || {}).rows || []) if (r.n) ekleAd(c, r.n);
+  // resmi puan durumundaki uygulama adlari: ayni kimlikle kayitta baska ad yoksa (takma ad cift sayim yaratmasin)
+  for (const c of LIGLER) for (const r of (rd(`data/standings/${c}.json`) || {}).rows || []) {
+    if (!r.n || (AD[c] && AD[c].has(r.n))) continue;
+    const id = r.tid || ids[r.n]; if (id && (idAd[id] || []).some(x => AD[c] && AD[c].has(x))) continue;
+    ekleAd(c, r.n);
+  }
   // CL: CLR satirlari "gg.aa|ev|dep|x|y"; EL/ECL: EUR={EL:`ev|dep|x|y ...`}
   const clm = app.match(/CLR=`([^`]*)`/); if (clm) clm[1].split('\n').forEach(l => { const p = l.split('|'); if (p[2]) { ekleAd('CL', p[1]); ekleAd('CL', p[2]); } });
   const eurm = app.match(/EUR=\{([\s\S]*?)\}\s*[,;]/); const EUR0 = {};
@@ -42,6 +53,21 @@ export function sonucEkle(log = []) {
   const M = new Map();
   for (const x of (rd('data/fixtures/finished.json') || {}).m || []) if (x && x.id != null && Number.isFinite(+x.x) && Number.isFinite(+x.y)) M.set(x.id, { c: x.c, t: x.t, h: x.h, a: x.a, x: +x.x, y: +x.y });
   for (const x of (rd('data/fixtures/latest.json') || {}).m || []) if (x && FIN.has(x.st) && Array.isArray(x.sc)) M.set(x.id, { c: x.c, t: x.t, h: x.h, a: x.a, x: +x.sc[0], y: +x.sc[1] });
+  // API sezon fiksturu (data/api/<LIG>/<S>/fixtures.json, fetch-history yazar): ertelenmis / pencere disinda kalmis maclar da gelsin.
+  // Guvenlik: ligin TUM takimlari uygulamadaki adlara eslesmiyorsa o lig atlanir (ad farki cift sayim yaratmasin).
+  const S = new Date().getUTCMonth() >= 6 ? new Date().getUTCFullYear() : new Date().getUTCFullYear() - 1;
+  for (const c of LIGLER) {
+    const fx = rd(`data/api/${c}/${S}/fixtures.json`); if (!fx || !Array.isArray(fx.m) || !AD[c]) continue;
+    const ad = id => { const n = (fx.tn || {})[id]; const k = n ? kanon(c, n) : null; return k && AD[c].has(k) ? k : (idAd[id] || []).find(x => AD[c].has(x)) || null; };
+    const tids = new Set(); fx.m.forEach(r => { tids.add(r[2]); tids.add(r[3]); });
+    const bilinmeyen = [...tids].filter(id => !ad(id));
+    if (bilinmeyen.length) { log.push(`sonuc-ekle: ${c} API fiksturu atlandi (eslesmeyen takim: ${bilinmeyen.map(id => (fx.tn || {})[id] || id).join(', ')})`); continue; }
+    // sabit tablolu liglerde sezonun ilk kismi app.js'te kodlu duruyor (or. "9|BJK|BAS|2-0"): yalniz sezon kaydinin
+    // basladigi gunden (history'deki en eski tarih) sonra oynanan maclar eklenir; tablosu olmayan lig (KSA) tum sezon.
+    let kesim = 0;
+    if (!TAM_SEZON.has(c)) { const t = hSat.filter(l => l.startsWith(c + '|')).map(l => { const d = l.split('|')[5] || ''; const [g, a, y] = d.split('.'); return Date.UTC(+y, +a - 1, +g); }).filter(Number.isFinite); if (!t.length) continue; kesim = Math.min(...t); }
+    for (const r of fx.m) if (FIN.has(r[6]) && r[4] != null && r[5] != null && !M.has(r[0]) && Date.parse(r[1]) >= kesim) M.set(r[0], { c, t: r[1], h: ad(r[2]), a: ad(r[3]), x: +r[4], y: +r[5] });
+  }
 
   const var_ = (c, h, a) => hSat.some(l => l.startsWith(`${c}|${h}|${a}|`)) || app.includes(`${c}|${h}|${a}|`);
   const tarih = t => { const d = new Date(String(t).length === 17 ? String(t).replace('Z', ':00Z') : t); return isNaN(d) ? '' : d; };

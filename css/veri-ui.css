@@ -75,7 +75,7 @@
 .kmdkl{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--mut);margin:8px 0 0}.kmdkl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}.kmdkl i.a{background:var(--ok)}.kmdkl i.y{background:var(--hot)}
 .kmtrf h4{margin:0 0 8px;font:600 13px var(--f);color:var(--mut)}.kmtrs{padding:5px 0;border-bottom:1px solid var(--ln)}.kmtrs b{display:block;font-weight:600;cursor:pointer}.kmtrs small{color:var(--mut)}
 .kmhkev{margin:8px 0 0;font-size:13px;color:var(--mut)}.kmhkev b{color:var(--ink)}
-@media (max-width:700px){.kmkral .kmuc4>div .kmec:nth-of-type(n+4){display:none}.kmgecmis td,.kmgecmis th{padding:6px 5px;font-size:12px}.kmdkg{gap:3px}.kmdkg small{font-size:9px}}
+@media (max-width:700px){.kmgecmis td,.kmgecmis th{padding:6px 5px;font-size:12px}.kmdkg{gap:3px}.kmdkg small{font-size:9px}}
 .kmgecmis table{margin:4px 24px 0;width:calc(100% - 48px)}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:8px 24px 16px}
 .kmdkh,.kmdkg,.kmdkl{margin-left:24px!important;margin-right:24px!important}.kmtrf .kmiki>div{padding:0 24px 12px}
 @media (max-width:700px){.kmgecmis table{margin:4px 16px 0;width:calc(100% - 32px)}.kmdkh,.kmdkg,.kmdkl{margin-left:16px!important;margin-right:16px!important}.kmgecmis .kmkay,.kmsezapi .kmkay,.kmtrf .kmkay{padding:8px 16px 14px}.kmtrf .kmiki>div{padding:0 16px 12px}}
@@ -99,3 +99,6 @@
 .kmgl .kmgk{white-space:normal;display:inline}.kmgl td.gk{overflow-wrap:break-word}
 /* oyuncu kariyeri: kiralik etiketi takim adinin altinda tek satir (ad ile ust uste binmesin) */
 .kmkr-s em{display:block;line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* krallıklar: masaüstünde 4 sütun, mobilde sekmeli tek liste */
+.kmec3.kmkral>.kmkral-t{display:none!important}
+@media (max-width:700px){.kmec3.kmkral>.kmkral-t{display:flex!important;margin-top:4px;gap:20px!important;padding:0 16px!important}.kmkral-t button{white-space:nowrap}.kmkral .kmuc4>div:not(.on){display:none!important}.kmkral .kmuc4>div>h4{display:none}.kmkral .kmuc4{padding-top:6px}}
