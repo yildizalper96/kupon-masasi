@@ -102,6 +102,10 @@ jobs:
         if: github.event_name == 'schedule'
         run: node tools/keepalive.mjs
 
+      # Biten maclar puan tablosu / form icin sezon kaydina (data/history/all.json, results/latest.json); istek yok
+      - name: Biten maçları sezon kaydına ekle
+        run: node tools/sonuc-ekle.mjs || true
+
       - name: Siteyi paketle
         run: node tools/build-site.mjs _site
 
