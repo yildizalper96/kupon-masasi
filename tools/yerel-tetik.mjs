@@ -17,8 +17,12 @@ if (!lat || Date.now() - Date.parse(lat.at) > 14 * 3600e3) { log('Veri eski/yok:
 
 let done = {};
 try { done = JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch {}
-const now = Date.now(), MAXLATE = 6 * 3600e3, PH = [['ilk11', -58], ['yari', 50], ['son', 120]];
+// 'son' 130 dk: fetch-details mac sonunu ancak baslamadan 125 dk sonra ceker (120'de tetiklenirse bos gecip bir daha denenmiyordu)
+// 'ilk11b' -25 dk: resmi 11 -58'de henuz aciklanmadiysa ikinci deneme (fetch-details luOk olani tekrar cekmez)
+const now = Date.now(), MAXLATE = 6 * 3600e3, PH = [['ilk11', -58], ['ilk11b', -25], ['yari', 50], ['son', 130]];
+let det = {}; try { det = JSON.parse(fs.readFileSync(path.join(root, 'data/fixtures/details.json'), 'utf8')).m || {}; } catch {}
 const due = [];
+let eksik = 0;
 for (const m of lat.m) {
   if (m.st === 'PST' || m.st === 'CANC') continue;
   const t0 = Date.parse(m.t.length === 17 ? m.t.replace('Z', ':00Z') : m.t);
@@ -27,7 +31,12 @@ for (const m of lat.m) {
     const at = t0 + off * 60e3, key = `${m.id}|${ph}`;
     if (!done[key] && at <= now && now - at <= MAXLATE) due.push(key);
   }
+  // telafi: son 30 saatte bitmis ama mac sonu / ilk 11 verisi gelmemis mac (kota bitti, bilgisayar kapaliydi vb.)
+  const e = det[m.id];
+  if (e && e.hid && now - t0 > 130 * 60e3 && now - t0 < 30 * 3600e3 && ((!e.ftOk && (e.ftTry || 0) < 4) || (e.ftOk && !e.luRaw && (e.luTry || 0) < 2))) eksik++;
 }
+// telafi tetigi saatte en cok bir kez (fetch-details --back=30 ile bu maclari ceker; kota yoksa istek yapmaz)
+if (eksik) { const k = 'telafi|' + Math.floor(now / 3600e3); if (!done[k]) { due.push(k); log(`Telafi: ${eksik} macin verisi eksik`); } }
 if (!due.length) process.exit(0);
 log(`${due.length} tetik vakti geldi, guncelleniyor`);
 const rc = run('tetik');

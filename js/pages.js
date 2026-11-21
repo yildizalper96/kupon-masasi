@@ -347,9 +347,10 @@
     return { f: dz.split(' ')[0], xi, bn, yok: yok.length };
   }
   function muhtemelSaha(m) {
-    if (stt(m).k !== 'wait') return '';
+    // mac saati gecmis ama resmi 11 henuz gelmemisse (veri gecikmesi) de tahmini 11 gosterilir; yalnizca bitmis macta gosterilmez
+    const k = stt(m).k; if (k === 'ft') return '';
     const h = muhtemelKadro(m, 'h'), a = muhtemelKadro(m, 'a'); if (!h || !a) return '';
-    return hamSaha(m, { h, a }, { baslik: 'Muhtemel 11 <small>tahmini</small>', yb: 'Kadrodaki diğer oyuncular',
+    return hamSaha(m, { h, a }, { baslik: k === 'wait' ? 'Muhtemel 11 <small>tahmini</small>' : 'Muhtemel 11 <small>tahmini · resmi 11 bekleniyor</small>', yb: 'Kadrodaki diğer oyuncular',
       kay: 'Tahmini dizilim: takımın bu sezon en sık kullandığı diziliş; her mevkiye o mevkide oynayan ve en çok süre alan oyuncu yerleştirildi; açıklanan sakat ve cezalılar (takım haberleri, API-Football) çıkarıldı. Resmi ilk 11 maçtan yaklaşık 1 saat önce açıklanınca bunun yerine gelir. Kaynak: Transfermarkt.' });
   }
   function kulupKadroKarti(m) {
@@ -366,7 +367,9 @@
   function kadroKarti(m) {
     try { const raw = window.KMX && typeof KMX.luRaw === 'function' && KMX.luRaw(m); if (raw) { const h = hamSaha(m, raw); if (h) return h; } } catch (e) { }
     const lu = LU[key(m)];
-    if (!lu) return davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || (muhtemelSaha(m) ? muhtemelSaha(m) + (dt === 'k' ? kulupKadroKarti(m) : '') : '') || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`);
+    // bitmis mac, resmi 11 verisi henuz gelmemis: sessizce sezon kadrosu gosterme, durumu acikca yaz
+    const bekle = !lu && stt(m).k === 'ft' && PS[m.c + '|' + m.h] ? card('kmkadro', `<h3 class="kmb">Resmi ilk 11</h3><p class="kmbos">Bu maçın resmi ilk 11 ve dizilişi henüz gelmedi; bir sonraki veri güncellemesinde eklenecek.</p>`) : '';
+    if (!lu) return bekle + (davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || (muhtemelSaha(m) ? muhtemelSaha(m) + (dt === 'k' ? kulupKadroKarti(m) : '') : '') || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`));
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
