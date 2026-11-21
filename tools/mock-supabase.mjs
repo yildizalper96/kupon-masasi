@@ -37,6 +37,7 @@ http.createServer(async (req, res) => {
     const b = await readBody(req); log.push('signup ' + b.email);
     if (!b.password || b.password.length < 6) return send(res, 422, { code: 422, error_code: 'weak_password', msg: 'Password should be at least 6 characters.' });
     if (!/^\S+@\S+\.\S+$/.test(b.email || '')) return send(res, 400, { code: 400, error_code: 'validation_failed', msg: 'Unable to validate email address: invalid format' });
+    if (users.has(b.email) && globalThis.__confirm) return send(res, 200, { id: crypto.randomUUID(), email: b.email, identities: [] });
     if (users.has(b.email)) return send(res, 422, { code: 422, error_code: 'user_already_exists', msg: 'User already registered' });
     const nu = { id: crypto.randomUUID(), email: b.email, password: b.password, meta: b.data || {}, ok: !globalThis.__confirm }; users.set(b.email, nu);
     if (globalThis.__confirm) return send(res, 200, { id: nu.id, email: nu.email, user_metadata: nu.meta });
