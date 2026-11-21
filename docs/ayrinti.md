@@ -237,3 +237,17 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - `yerel-tetik.mjs`: tam çekim 6 saatte bir (`full|<6 saat dilimi>` anahtarı; `lat.at`'e bakmaz çünkü canlı mod onu güncelliyor), aktif maç (−90…+150 dk) varken her çalışmada 'tetik', saatte bir 'live'. Çıkış kodları: 0 tamam, 2 veri çekildi ama push edilemedi (tamam sayılır), 3 kilit, 1 çökme → tekrar denenir.
 - GitHub cron açıldı (yedek): `*/20 * * * *` canlı, `7 */6 * * *` tam; depodaki `latest.json` 75 dk'dan tazeyse MODE=none (yerel PC çalışıyor demek).
 - Pro bitince bu sınırlar ücretsiz plan için çok yüksek: plan yenilenmezse `yerel-guncelle`/workflow parametreleri ve GAP geri alınmalı.
+
+## Geçmiş ve sezon verisi: data/api (21 Kas 2026, Pro plan) — TASARIM OTURUMU İÇİN
+- Üretici `tools/fetch-history.mjs` (devam ettirilebilir; kota bitince kaldığı yerden). Yerel görev günde bir, 00:30 UTC sonrası ARKA PLANDA çalıştırır (`tools/cache/.gecmis-lock`, günlük `tools/gecmis.log`, bütçe 4500, yedek 1500); çıktıyı sonraki `yerel-guncelle` commit'ler. `build-site` `data/api`'yi yayına koyar. Ligler: SL PL LL SA BL L1 ERE POR BEL SCO KSA BRA ARG MLS MX; sezonlar 2021–2026 (2026 = güncel). Geçmiş sezon bir kez çekilir; güncel sezon: puan durumu 6 sa, krallık 12 sa, fikstür 6 sa, takım/oyuncu istatistiği 3 gün, kulüp bilgisi 30 gün (transfer 14 gün).
+- `data/standings/<C>.json` (güncel sezon, resmi): BRA ile aynı biçim `rows[{n,r,p,pl,w,d,l,f,a,gd,form(G/B/M),ds,tid}]`. `seo-pages` bunu kullanır; uygulama tablosu hâlâ tarayıcıda hesaplanıyor (istenirse buna geçirilebilir).
+- `data/api/<C>/<S>/standings.json` `{at, rows:[{tid,n,r,p,pl,w,d,l,f,a,gd,form,ds,gr?,h:[O,G,B,M,A,Y],aw:[...]}]}`.
+- `top.json` `{g,a,y,r}` gol/asist/sarı/kırmızı krallığı; satır `[oyuncuId, ad, takımId, takım, değer, maç]`.
+- `fixtures.json` `{tn:{tid:ad}, m:[[id, tarihISO, evId, depId, evG, depG, durum, hafta, iyEv, iyDep]]}`.
+- `m-YYYY-MM.json` (aylık maç ayrıntısı) `{stk:[istatistik adları], m:{id:{ref, ev, st, lu, pl}}}`: ev `[dk, ek, takımId, tür G/K/D/V, ayrıntı, oyuncuId, ad(gol/kart), asistId, asistAd(gol)]`; st `{tid:[stk sırasıyla]}`; lu `{tid:[diziliş, hoca, [[id,no,mevki,grid]×11]]}`; pl `{tid:[[id, ad, dk, puan, gol, asist, sarı, kırmızı, şut, isabetli, pas, kilit pas, top kapma, kurtarış, yedekten]]}` (yalnız oynayanlar). Maç başı ~3,5 KB.
+- `teamstats.json` `{t:{tid:{form, o/w/d/l/gf/ga:[ev,dep], gfm/gam:{"0-15":n..}, ou, cs, fts, seri, eb, ey, pen, diz:[[diziliş,maç]], kart:{y,r}}}}`.
+- `players.json` `{tam, p:[{id,n,fn,ln,yas,dt,dy,du,uy,boy,kilo,sak,tid,t, s:[{tid,mac,il,dk,no,mv,pu,kap,g,a,yg,kur,sut:[t,i],pas:[t,kilit,%],top:[t,blok,kesme],ik:[t,kaz],drib:[d,b],fa:[kazanılan,yapılan],kart:[s,ss,k],pen:[kaz,yap,gol,kaç,kurt]}]}]}` — oyuncu profili (boy, kilo, uyruk, doğum) burada.
+- `data/api/clubs.json` `{t:{tid:{n,c,kur,ul, v:{n,sh,adr,kap,zem,img}, co:{id,n,yas,uy,dt,kar:[[tid,ad,başl,bitiş]]}, tr:[[oyuncuId,ad,tarih,tür,gelenTid,gelenAd,gidenTid,gidenAd]] (son 3 yıl)}}}`.
+- Kadrolar: tüm kulüpler (369) `details.json sq`; `ph` alanı yalnız kimlikten türetilemeyen adreste saklanır (istemci kimlikten kurar).
+- Adlar: `n`/`t` uygulama adı (`data/teams/ids.json` tersine), yoksa API adı. İstemci dosyaları TEMBEL yüklemeli (sayfa açılınca o lig/sezon).
+- Henüz arayüzde kullanılmıyor: oyuncu/takım sayfaları, krallıklar, resmi tablo, stadyum/hoca/transfer, hakem istatistiği (maçlardaki `ref` alanından hesaplanır).

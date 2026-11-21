@@ -29,7 +29,7 @@ const steps = {
 for (const [s, ...a] of steps) run(node, [s, ...a]);
 if (mode === 'full') run(node, ['tools/keepalive.mjs']); // Supabase 1 hafta islemsizlikte durur
 
-const DATA = ['data/fixtures', 'data/teams', 'data/players/season.json', 'data/lineups', 'data/results'];
+const DATA = ['data/fixtures', 'data/teams', 'data/players/season.json', 'data/lineups', 'data/results', 'data/standings', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
 run('git', ['add', '--', ...DATA]);
 if (!out('git', ['diff', '--cached', '--name-only'])) { console.log('Degisiklik yok.'); process.exit(0); }
 run('git', ['commit', '-q', '-m', `Veri guncelle (yerel, ${mode})`]);

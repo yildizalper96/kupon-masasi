@@ -5,8 +5,24 @@
 // Gunun ilk calismasinda veri 14 saatten eskiyse once tam cekim yapar (yeni maclar ogrenilsin).
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
+
+// Gecmis/sezon verisi (tools/fetch-history.mjs): gunde bir, kota sifirlandiktan sonra (00:30 UTC = 19:30 Toronto), ARKA PLANDA ve kendi kilidiyle.
+// details.json'a dokunmaz; canli turlari bekletmez. Ciktisini (data/api, data/standings) bir sonraki yerel-guncelle commit'ler.
+{
+  const GK = path.join(root, 'tools/cache/.gecmis-lock'), GD = path.join(root, 'tools/cache/gecmis-gun.txt');
+  const gun = new Date().toISOString().slice(0, 10), utcDk = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+  let son = ''; try { son = fs.readFileSync(GD, 'utf8').trim(); } catch {}
+  let kilitli = false; try { kilitli = Date.now() - fs.statSync(GK).mtimeMs < 3 * 3600e3; } catch {}
+  if (son !== gun && utcDk >= 30 && !kilitli) {
+    fs.mkdirSync(path.dirname(GK), { recursive: true }); fs.writeFileSync(GD, gun);
+    const out = fs.openSync(path.join(root, 'tools/gecmis.log'), 'a');
+    // kilit alt surecte alinir/silinir: cmd uzerinden zincir (node bitince kilit kalkar)
+    spawn(process.env.ComSpec || 'cmd.exe', ['/c', `echo %date% %time% > "${GK}" && "${process.execPath}" tools\\fetch-history.mjs --budget=4500 --reserve=1500 & del "${GK}"`], { cwd: root, detached: true, stdio: ['ignore', out, out], windowsHide: true, windowsVerbatimArguments: true }).unref();
+    console.log(`[${new Date().toISOString()}] Gecmis verisi cekimi arka planda baslatildi`);
+  }
+}
 const LATEST = path.join(root, 'data/fixtures/latest.json'), STATE = path.join(root, 'tools/cache/tetik-durum.json');
 const run = mode => spawnSync(process.execPath, ['tools/yerel-guncelle.mjs', mode], { cwd: root, stdio: 'inherit' }).status;
 // 0 = tamam, 2 = veri cekildi ama push edilemedi (tamam sayilir, kota bosa gitmesin). 3 = kilit, 1/null = cokme: tekrar denenir.

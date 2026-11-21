@@ -265,6 +265,14 @@ for (const m of cand) {
   }
 }
 
+// kadro kaydini kucult: fotograf adresi kimlikten turetilebiliyorsa saklanmaz (istemci fotoUrl/KMX.photo kimlikten kurar), bos alanlar atilir
+function kisa(o) {
+  if (o.ph && o.id && o.ph === `https://media.api-sports.io/football/players/${o.id}.png`) delete o.ph;
+  for (const k of Object.keys(o)) if (o[k] === null || o[k] === '') delete o[k];
+  return o;
+}
+for (const s of Object.values(D.sq)) if (s && Array.isArray(s.p)) s.p = s.p.map(kisa);
+
 D.at = new Date().toISOString();
 // eski maclari temizle (baslamasindan 30 gun gecmis; 2 gun iken gecmis gunlerin skor/istatistik/kadrosu kayboluyordu)
 // HICBIR MAC SILINMEZ (kullanici karari, 15 Kas 2026). Dosya buyurse eski aylar data/fixtures/arsiv/YYYY-MM.json'a tasinacak (yapilacak).

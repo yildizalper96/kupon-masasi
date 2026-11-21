@@ -15,3 +15,5 @@ yerel-notlar/
 data/players/foot-belirsiz.txt
 
 tools/yerel-guncelle.log
+tools/gecmis.log
+data/api/**/*.tmp
