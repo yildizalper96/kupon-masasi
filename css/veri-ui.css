@@ -60,3 +60,18 @@
 }
 .kmsez-ay{font-style:normal;margin:0 4px;opacity:.6}
 @media(max-width:1099px){.kmsez-b .kmsez-gh span{visibility:hidden}.kmsez-gh{padding:0 16px}}
+
+/* API-Football gecmis/sezon kartlari (21 Kas 2026): kralliklar, gecmis sezonlar, gol dakikalari, transferler, hakem */
+.kmec3 .kmuc.kmuc4{grid-template-columns:repeat(4,1fr)}
+.kmkral>.kmb{padding:18px 24px 0;margin:0}
+@media (max-width:900px){.kmec3 .kmuc.kmuc4{grid-template-columns:repeat(2,1fr)}.kmec3 .kmuc.kmuc4>div:nth-child(3){border-left:0}.kmec3 .kmuc.kmuc4>div:nth-child(n+3){border-top:1px solid var(--ln)}}
+.kmgecmis table{width:100%;border-collapse:collapse}.kmgecmis td,.kmgecmis th{padding:7px 8px;text-align:left;border-bottom:1px solid var(--ln);font-size:13px}
+.kmgecmis th{color:var(--mut);font-weight:600}.kmgecmis td.tk{display:flex;align-items:center;gap:6px;cursor:pointer}.kmgecmis td small{color:var(--mut)}
+.kmdkh{margin:14px 0 6px;font:600 13px var(--f);color:var(--mut)}
+.kmdkg{display:flex;gap:6px;align-items:flex-end;height:96px;padding-bottom:18px;position:relative}
+.kmdkg>div{flex:1;display:flex;gap:2px;align-items:flex-end;height:100%;position:relative}
+.kmdkg span{flex:1;border-radius:3px 3px 0 0;min-height:2px}.kmdkg span.a{background:var(--ok)}.kmdkg span.y{background:var(--hot);opacity:.8}
+.kmdkg small{position:absolute;bottom:-17px;left:0;right:0;text-align:center;font-size:10px;color:var(--mut);white-space:nowrap}
+.kmdkl{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--mut);margin:8px 0 0}.kmdkl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}.kmdkl i.a{background:var(--ok)}.kmdkl i.y{background:var(--hot)}
+.kmtrf h4{margin:0 0 8px;font:600 13px var(--f);color:var(--mut)}.kmtrs{padding:5px 0;border-bottom:1px solid var(--ln)}.kmtrs b{display:block;font-weight:600;cursor:pointer}.kmtrs small{color:var(--mut)}
+.kmhkev{margin:8px 0 0;font-size:13px;color:var(--mut)}.kmhkev b{color:var(--ink)}
