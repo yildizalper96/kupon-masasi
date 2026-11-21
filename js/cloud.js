@@ -265,6 +265,8 @@
 
   // yeniden cizimde yazilan sifreler silinmesin
   function redraw() { var p = val('kap'), p2 = val('kap2'); try { profDraw(); } catch (e) {} var a = document.getElementById('kap'), b = document.getElementById('kap2'); if (a && p) a.value = p; if (b && p2) b.value = p2; rulesLive(); }
+  // giris yapinca Maclar sayfasina git
+  A.toMatches = function () { try { tab = 'k'; det = null; PMV = null; Q = ''; QX = ''; render(); try { scrollTo(0, 0); } catch (e) {} } catch (e) {} };
   A.afterLogin = async function () {
     try {
       PRF = null; PROFL = false; PMSG = ''; KPUID = null; KPDBR = false; FUID = null; SOUT = false;
@@ -296,7 +298,7 @@
     if (r.error) return fail(r.error === 'confirm' ? 'confirmin' : r.error);
     if (r.needsConfirm) { A.mode = 'verify'; A.msg = ''; A.cool = Date.now() + 60000; tick(); redraw(); return; }
     A.msg = ''; A.email = ''; A.name = ''; A.terms = false; A.mode = 'in';
-    await A.afterLogin();
+    await A.afterLogin(); A.toMatches();
   }
   function tick() { clearInterval(A.ti); A.ti = setInterval(function () { if (A.mode !== 'verify') { clearInterval(A.ti); return; } if (Date.now() > A.cool + 1000) clearInterval(A.ti); var b = document.getElementById('kab_rs'); if (b) redraw(); }, 1000); }
   async function resend() {
@@ -343,7 +345,7 @@
       ov.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:.011;overflow:hidden;z-index:2';
       var hold = document.createElement('div'); hold.style.position = 'relative'; wrap.insertBefore(hold, gb); hold.appendChild(gb); hold.appendChild(ov);
       C.googleBtn(ov, async function (ok, er) {
-        if (ok) { await A.afterLogin(); } else { A.msg = er || 'net'; redraw(); }
+        if (ok) { await A.afterLogin(); A.toMatches(); } else { A.msg = er || 'net'; redraw(); }
       }).then(function (r) { if (r) gis = true; else ov.remove(); });
     }
     ['kan', 'kae', 'kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key !== 'Enter') return; if (A.mode === 'in' || A.mode === 'up') act(A.mode); else if (A.mode === 'forgot') forgot(); else if (A.mode === 'newpw') newpw(); }; });
