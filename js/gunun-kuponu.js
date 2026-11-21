@@ -16,8 +16,7 @@
     orta: { ad: 'Orta risk', lo: 0.55, hi: 0.675, h: 0.61, n: 3, keys: ['1', '2', '1X', 'X2', 'Ü1.5', 'Ü2.5', 'KG Var', 'EG1', 'DG1'] },
     yuksek: { ad: 'Yüksek risk', lo: 0.33, hi: 0.475, h: 0.40, n: 2, keys: ['1', '2', 'Ü2.5', 'Ü3.5', 'KG Var', 'EG2', 'DG1'] }
   };
-  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [], BASLIK = null, MIK = 0;
-  var miktar = function () { var v = MIK || (typeof KPST !== 'undefined' && +KPST) || 10; return String(v); };
+  var SIRA = ['lo', 'orta', 'yuksek'], sekme = 'lo', KUTU = [], BASLIK = null;
 
   var bekleyen = function (ms) { var now = Date.now(); return (ms || []).filter(function (m) { try { return m && !m.np && m.p && +m.t > now + 10 * 60e3 && stt(m).k === 'wait'; } catch (e) { return false; } }); };
 
@@ -63,7 +62,7 @@
       var oz = sekme === 'lo' ? (loOz ? 'Düşük risk · ' + loOz : 'Düşük risk') : ozet(ms, sekme);
       bas = bas.replace(/<h3>[^<]*<\/h3>/, '<h3>' + (BASLIK || 'Günün kuponu') + '</h3>').replace(/<span class='mut'>[^<]*<\/span>$/, "<span class='mut'>" + oz + '</span>');
       var tabs = '<div class="gk-t" data-gkid="' + id + '">' + SIRA.map(function (k) { return '<button class="gk-c' + (k === sekme ? ' on' : '') + '" data-gks="' + k + '">' + (k === 'lo' ? 'Düşük risk' : KAT[k].ad) + '</button>'; }).join('') + '</div>';
-      return bas + '</summary>' + tabs + '<div class="gk-lo"' + (sekme === 'lo' ? '' : ' hidden') + ' data-oz="' + loOz.replace(/"/g, '') + '">' + lo + '</div><div class="gk-p">' + (sekme === 'lo' ? '' : panel(ms, sekme)) + '</div><div class="gk-shr"><label>Miktar<input data-gkst inputmode="decimal" value="' + miktar() + '"></label><button class="gk-sh" data-gksh="1">Görsel olarak paylaş</button></div></details>';
+      return bas + '</summary>' + tabs + '<div class="gk-lo"' + (sekme === 'lo' ? '' : ' hidden') + ' data-oz="' + loOz.replace(/"/g, '') + '">' + lo + '</div><div class="gk-p">' + (sekme === 'lo' ? '' : panel(ms, sekme)) + '</div></details>';
     } catch (e) { if (window.console) console.warn('gunun-kuponu:', e); return h; }
   };
 
@@ -85,7 +84,7 @@
     };
   }
 
-  /* Paylaşılabilir görsel (21 Kas 2026): görünen sekmenin kuponu 1080x1350 PNG olur (Instagram/X/WhatsApp).
+  /* Paylaşılabilir görsel (21 Kas 2026): Simülatördeki kupon (taslak ya da kayıtlı) 1080x1350 PNG olur (Instagram/X/WhatsApp).
    * Telefonda paylaşım menüsü açılır (Web Share), olmazsa dosya iner. Köşede simuleto.com; "simülasyon, bahis tavsiyesi değildir". */
   function satirSar(ctx, t, w) { var k = String(t).split(' '), out = [], cur = ''; k.forEach(function (x) { var y = cur ? cur + ' ' + x : x; if (ctx.measureText(y).width > w && cur) { out.push(cur); cur = x; } else cur = y; }); if (cur) out.push(cur); return out; }
   function kirp(ctx, t, w) { t = String(t); if (ctx.measureText(t).width <= w) return t; while (t.length > 1 && ctx.measureText(t + '…').width > w) t = t.slice(0, -1); return t + '…'; }
@@ -110,10 +109,10 @@
     x.textBaseline = 'alphabetic'; logo(x, F, P, 122, 64);
     x.fillStyle = '#93a1ad'; x.font = '500 30px ' + F; x.textAlign = 'right';
     x.fillText(new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }), W - P, 118); x.textAlign = 'left';
-    x.fillStyle = '#ffffff'; x.font = '800 74px ' + F; x.fillText(baslik, P, 250);
-    x.font = '700 34px ' + F; var bw = x.measureText(risk).width + 48;
+    x.fillStyle = '#ffffff'; x.font = '800 74px ' + F; x.fillText(kirp(x, baslik, W - 2 * P), P, 250);
+    if (risk) { x.font = '700 34px ' + F; var bw = x.measureText(risk).width + 48;
     x.fillStyle = RC; x.beginPath(); if (x.roundRect) x.roundRect(P, 284, bw, 60, 30); else x.rect(P, 284, bw, 60); x.fill();
-    x.fillStyle = '#fff'; x.fillText(risk, P + 24, 326);
+    x.fillStyle = '#fff'; x.fillText(risk, P + 24, 326); }
     var y = 390, kh = legs.length > 3 ? 158 : 186;
     legs.forEach(function (l) {
       x.fillStyle = 'rgba(255,255,255,.05)'; x.beginPath(); if (x.roundRect) x.roundRect(P, y, W - 2 * P, kh - 24, 26); else x.rect(P, y, W - 2 * P, kh - 24); x.fill();
@@ -143,27 +142,26 @@
     x.fillText('simuleto.com · Simülasyondur, bahis tavsiyesi değildir · Hiçbir bahis risksiz değildir · 18+', W / 2, H - 50); x.textAlign = 'left';
     return cv;
   }
-  function paylas(el) {
-    var lo = el.querySelector('.gk-lo'), pan = sekme === 'lo' ? lo : el.querySelector('.gk-p'), b = pan && pan.querySelector('[data-kall]');
-    var L = b ? KPC[+b.getAttribute('data-kall')] : null;
+  // Simülatör kuponu (taslak KPD ya da kayıtlı KPS) -> görsel; seçimlerin kayıtlı ihtimal/oranı kullanılır
+  function paylas(baslik, L, mik) {
     if (!L || !L.length) { try { kToast('Paylaşılacak kupon yok', 2); } catch (e) { } return; }
     var legs = L.map(function (q) {
       var m = (R || []).find(function (r) { return [r.c, r.h, r.a].join('|') === q.mk; }); if (!m) return null;
-      var p = null, od = null; try { p = kprob(m, q.k); od = kodd(m, q.k); } catch (e) { }
+      var p = +q.p || null, od = +q.od || null; try { if (!p) p = kprob(m, q.k); if (!od) od = kodd(m, q.k); } catch (e) { }
       if (!p) return null;
-      var lig = (typeof LGNM !== 'undefined' && LGNM[m.c]) || m.c, saat = ''; try { saat = new Date(m.t).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); } catch (e) { }
+      var lig = (typeof LGNM !== 'undefined' && LGNM[m.c]) || m.c, saat = ''; try { saat = new Date(m.t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) + ' ' + new Date(m.t).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); } catch (e) { }
       var sec = q.k; try { sec = String(labx(q.k, m)).replace(/\s*\([^)]*\)\s*$/, ''); } catch (e) { }
       return { mac: m.h + ' – ' + m.a, alt: lig + ' · ' + saat, sec: sec, p: p, od: od || 1 / p };
     }).filter(Boolean);
-    if (!legs.length) return;
-    var h3 = el.querySelector('summary h3'), risk = sekme === 'lo' ? 'Düşük risk' : KAT[sekme].ad;
-    var inp = el.querySelector('[data-gkst]'), mik = inp ? parseFloat(String(inp.value).replace(',', '.')) : 0; if (!(mik > 0 && mik < 1e7)) mik = 0; else MIK = mik;
-    var cv = gorsel(h3 ? h3.textContent : 'Günün kuponu', risk, legs, mik);
+    if (!legs.length) { try { kToast('Paylaşılacak kupon yok', 2); } catch (e) { } return; }
+    var risk = null; try { var r = window.KMA && KMA.analyze(L).risk; risk = r === 'low' ? 'Düşük risk' : r === 'mid' ? 'Orta risk' : r === 'high' ? 'Yüksek risk' : null; } catch (e) { }
+    mik = +mik; if (!(mik > 0 && mik < 1e7)) mik = 0;
+    var cv = gorsel(baslik, risk, legs, mik);
     cv.toBlob(function (blob) {
       if (!blob) return;
       var ad = 'simuleto-kupon.png', file = null; try { file = new File([blob], ad, { type: 'image/png' }); } catch (e) { }
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: 'Simuleto', text: (h3 ? h3.textContent : 'Günün kuponu') + ' · ' + risk + ' · simuleto.com' }).catch(function () { });
+        navigator.share({ files: [file], title: 'Simuleto', text: baslik + ' · simuleto.com' }).catch(function () { });
         return;
       }
       var u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = ad; document.body.appendChild(a); a.click(); a.remove();
@@ -171,11 +169,28 @@
       try { kToast('Kupon görseli indirildi', 1); } catch (e) { }
     }, 'image/png');
   }
+  // Simülatör: taslağa ve kayıtlı kuponlara "Görsel olarak paylaş" düğmesi
+  if (typeof window.kupHtml === 'function') {
+    var _kh = window.kupHtml;
+    window.kupHtml = function () {
+      var h = _kh.apply(this, arguments);
+      try {
+        h = h.replace("<button class='kpb2' data-kclr='1'>Taslağı temizle</button></div>", "$&<button class='kpb2 gk-shd' data-gksd='1'>Görsel olarak paylaş</button>");
+        h = h.replace(/<button class='kpc-b' data-kshare='([^']+)'>[^<]*<\/button>/g, function (x, id) { return x + "<button class='kpc-b' data-gkss='" + id + "'>Görsel olarak paylaş</button>"; });
+      } catch (e) { }
+      return h;
+    };
+  }
   window.KMGK_gorsel = gorsel;
 
   document.addEventListener('click', function (e) {
-    var sh = e.target && e.target.closest && e.target.closest('[data-gksh]');
-    if (sh) { e.preventDefault(); e.stopPropagation(); var d = sh.closest('details'); if (d) paylas(d); return; }
+    var sd = e.target && e.target.closest && e.target.closest('[data-gksd],[data-gkss]');
+    if (sd) {
+      e.preventDefault(); e.stopPropagation();
+      if (sd.hasAttribute('data-gksd')) { var nm = ((document.getElementById('kpname') || {}).value || (typeof KPEN !== 'undefined' && KPEN) || '').trim(); paylas(nm || 'Kuponum', typeof KPD !== 'undefined' ? KPD : [], typeof KPST !== 'undefined' ? KPST : 0); }
+      else { var id = sd.getAttribute('data-gkss'), sl = (typeof KPS !== 'undefined' ? KPS : []).find(function (z) { return String(z.id) === id; }); if (sl) paylas(sl.name || 'Kuponum', sl.legs, sl.stake); }
+      return;
+    }
     var b = e.target && e.target.closest && e.target.closest('[data-gks]'); if (!b) return;
     e.preventDefault(); e.stopPropagation();
     var el = b.closest('details'), t = el && el.querySelector('.gk-t'), ms = t && KUTU[+t.getAttribute('data-gkid')]; if (!ms) return;
@@ -190,9 +205,7 @@
     var s = document.createElement('style');
     s.textContent = '.gk-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}' +
       '.gk-c{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 13px var(--f,inherit);padding:7px 4px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--mut);cursor:pointer}' +
-      '.gk-shr{display:flex;gap:8px;align-items:center;margin:8px 0 0}.gk-shr label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);flex:none}.gk-shr input{width:64px;font:600 13.5px var(--f,inherit);padding:8px 10px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--ink);text-align:center}' +
-      '.gk-sh{display:block;flex:1;min-width:0;margin:0;padding:9px 12px;border-radius:999px;border:1px solid var(--ln);background:none;color:var(--ink);font:600 13.5px var(--f,inherit);cursor:pointer}.gk-sh:hover{border-color:var(--ink)}' +
-      '.gk-lig{margin-bottom:12px}.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
+      '.gk-shd{display:block;width:100%!important;margin:8px 0 0!important}.gk-lig{margin-bottom:12px}.gk-c.on{background:var(--sf2,var(--sf));color:var(--ink);border-color:var(--ink)}' +
       '@media (max-width:360px){.gk-t{gap:4px}.gk-c{font-size:11.5px;padding:7px 1px;letter-spacing:-.1px}}';
     document.head.appendChild(s);
   })();
