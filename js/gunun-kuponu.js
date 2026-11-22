@@ -72,7 +72,7 @@
     window.leagueView = function (c) {
       var h = _lv.apply(this, arguments);
       try {
-        if (typeof LGS !== 'undefined' && LGS && LGS.c === c && LGS.s && LGS.s !== 'o') return h;
+        if (typeof LGS !== 'undefined' && LGS && LGS.c === c && LGS.s && LGS.s !== 'o') return h; if (window.KMLigY && window.KMLigY()) return h;
         var son = Date.now() + 7 * 864e5, ms = bekleyen((R || []).filter(function (m) { return m.c === c && +m.t <= son; }));
         if (!ms.length) return h;
         BASLIK = 'Haftanın kuponu';
