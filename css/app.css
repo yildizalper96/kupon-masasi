@@ -1004,7 +1004,7 @@ input,button,select,textarea{font-family:var(--f)}
   .kmpmc td.tk{text-align:left;cursor:pointer;max-width:200px;overflow:hidden;text-overflow:ellipsis}
   .kmpmc td.tk span{margin-left:8px;vertical-align:middle}
   .kmpmc td.tk .bd{width:20px!important;height:20px!important;line-height:20px!important;font-size:6px!important;vertical-align:middle}
-  .kmpmc td.sk{display:flex;align-items:center;justify-content:center;gap:8px}
+  .kmpmc td.sk{vertical-align:middle}.kmpmc td.sk>*{vertical-align:middle}.kmpmc td.sk .kmkare{display:inline-flex;margin-right:8px}
   .kmpmc td.sk .kmkare{width:18px;height:18px;font-size:10px}
   .kmpmc tr.bz td{color:var(--mut)}
   .kmpmc .kmkay,.kmpsz .kmkay{padding:0 24px 18px;margin:8px 0 0}
