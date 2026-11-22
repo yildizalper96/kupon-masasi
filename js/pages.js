@@ -976,6 +976,11 @@
   }
   // ---- takim Maclar sekmesi (FotMob): 10'luk sayfali tum maclar + sonraki mac karsilastirmasi + takim tahmin karnesi ----
   let TMS = { n: '', i: -1 };
+  // takim maclari: turnuva filtresi (ctx: takim|sezon). Cipler tiklaninca yalniz o turnuvanin maclari
+  let YZF = { n: '', k: '' };
+  const yzSec = (ctx, yar) => (YZF.n === ctx && yar.includes(YZF.k) ? YZF.k : '');
+  const yzCip = (ctx, yar, say, top, akt) => yar.length > 1 ? '<div class="kmtm-yz" role="tablist">' + '<button type="button" class="' + (akt ? '' : 'on') + '" data-kmyz="" data-kmyzc="' + E(ctx) + '">Tümü <b>' + top + '</b></button>'
+    + yar.map(k => '<button type="button" class="' + (akt === k ? 'on' : '') + '" data-kmyz="' + E(k) + '" data-kmyzc="' + E(ctx) + '">' + ligLg(k, 'kucuk') + E(yarAd(k)) + ' <b>' + say(k) + '</b></button>').join('') + '</div>' : '';
   function takimTumMaclari(n) {
     const l = R.filter(m => m.h === n || m.a === n).map(m => ({ m, t: m.t }));
     const var_ = new Set(l.map(x => x.m.h + '|' + x.m.a + '|' + new Date(x.t).toISOString().slice(0, 10)));
@@ -988,9 +993,12 @@
     return esk.concat(l);
   }
   function takimMaclarKarti(n) {
-    const l = takimTumMaclari(n), SAY = 10;
-    if (!l.length) return card('kmtm', `<h3 class="kmb">Maçlar</h3><p class="kmbos">Bu takım için maç verisi yok.</p>`);
-    if (TMS.n !== n || TMS.i < 0) { let g = l.findIndex(x => x.m ? stt(x.m).k !== 'ft' : false); if (g < 0) g = l.length; TMS = { n, i: Math.max(0, Math.min(g - 3, l.length - SAY)) }; }
+    const hep = takimTumMaclari(n), SAY = 10;
+    if (!hep.length) return card('kmtm', `<h3 class="kmb">Maçlar</h3><p class="kmbos">Bu takım için maç verisi yok.</p>`);
+    const cOf = x => x.m ? x.m.c : x.b ? x.b.c : (TM[n] || {}).l;
+    const ctx = n + '|cur', yar = [...new Set(hep.map(cOf).filter(Boolean))], akt = yzSec(ctx, yar);
+    const l = akt ? hep.filter(x => cOf(x) === akt) : hep, tk = n + '|' + akt;
+    if (TMS.n !== tk || TMS.i < 0) { let g = l.findIndex(x => x.m ? stt(x.m).k !== 'ft' : false); if (g < 0) g = l.length; TMS = { n: tk, i: Math.max(0, Math.min(g - 3, l.length - SAY)) }; }
     const sayfa = l.slice(TMS.i, TMS.i + SAY);
     const sat = x => {
       const m = x.m, b = x.b, r0 = x.s, T0 = TM[n] || {};
@@ -1002,7 +1010,7 @@
         <div class="kmtm-m"><span data-tm="${E(h)}">${E(h)}${bd(h)}</span>${orta}<span data-tm="${E(a)}">${bd(a)}${E(a)}</span></div></div>`;
     };
     const ok = (yon, akt) => `<button class="kmok" data-kmtms="${yon}" ${akt ? '' : 'disabled'} aria-label="${yon < 0 ? 'Önceki maçlar' : 'Sonraki maçlar'}">${yon < 0 ? '‹' : '›'}</button>`;
-    return card('kmtm', `<div class="kmmh">${ok(-1, TMS.i > 0)}<div><h3>Maçlar</h3><small>${TMS.i + 1}–${Math.min(TMS.i + SAY, l.length)} / ${l.length}</small></div>${ok(1, TMS.i + SAY < l.length)}</div>${sayfa.map(sat).join('')}`);
+    return card('kmtm', `<div class="kmmh">${ok(-1, TMS.i > 0)}<div><h3>Maçlar</h3><small>${TMS.i + 1}–${Math.min(TMS.i + SAY, l.length)} / ${l.length}</small></div>${ok(1, TMS.i + SAY < l.length)}</div>${yzCip(ctx, yar, k => hep.filter(x => cOf(x) === k).length, hep.length, akt)}${sayfa.map(sat).join('')}`);
   }
   function sonrakiKarsilastir(n) {
     const x = siradaki(n); if (!x) return sonrakiKutusu(n);
@@ -1873,13 +1881,13 @@
   function takimSezonMaclari(n, s, baslik) {
     const j = takimIdx(n);
     if (j === undefined) return card('kmtm', '<p class="kmbos">Yükleniyor…</p>');
-    const l = ((j && j.m) || []).filter(x => +x[2] === s);
-    const c = takimLig(n) || (l[0] && l[0][1]);
-    const ust = '<h3 class="kmb">' + E(baslik || 'Maçlar') + ' <small>' + E(sezAd({ c: c || '', s })) + ' · ' + l.length + ' maç</small></h3>';
-    if (!l.length) return card('kmtm', ust + '<p class="kmbos">Bu sezon için maç verisi yok.</p>');
-    const yar = [...new Set(l.map(x => x[1]))];
-    const ozet = yar.length > 1 ? '<div class="kmtm-yz">' + yar.map(k => '<span>' + ligLg(k, 'kucuk') + E(yarAd(k)) + ' <b>' + l.filter(x => x[1] === k).length + '</b></span>').join('') + '</div>' : '';
-    return card('kmtm kmtm-gs', ust + ozet + l.map(x => idxSatir(x, j.t || {}, n)).join('') + APIKAY);
+    const hep = ((j && j.m) || []).filter(x => +x[2] === s);
+    const c = takimLig(n) || (hep[0] && hep[0][1]);
+    const ust = '<h3 class="kmb">' + E(baslik || 'Maçlar') + ' <small>' + E(sezAd({ c: c || '', s })) + ' · ' + hep.length + ' maç</small></h3>';
+    if (!hep.length) return card('kmtm', ust + '<p class="kmbos">Bu sezon için maç verisi yok.</p>');
+    const ctx = n + '|' + s, yar = [...new Set(hep.map(x => x[1]))], akt = yzSec(ctx, yar);
+    const l = akt ? hep.filter(x => x[1] === akt) : hep;
+    return card('kmtm kmtm-gs', ust + yzCip(ctx, yar, k => hep.filter(x => x[1] === k).length, hep.length, akt) + l.map(x => idxSatir(x, j.t || {}, n)).join('') + APIKAY);
   }
   function takimGecmisSezon(n, s) {
     const c = takimLig(n), id = takimId(n);
@@ -2148,6 +2156,8 @@
     if (e.target.closest && e.target.closest('[data-kmpgeri]')) { e.preventDefault(); try { if (!back()) { Q = ''; QX = ''; render(); } } catch (x) { } return; }
     const tms = e.target.closest && e.target.closest('[data-kmtms]');
     if (tms) { if (!tms.disabled) { TMS.i = Math.max(0, TMS.i + 10 * (+tms.dataset.kmtms)); render(); } return; }
+    const yz = e.target.closest && e.target.closest('[data-kmyz]');
+    if (yz) { YZF = { n: yz.dataset.kmyzc, k: yz.dataset.kmyz }; TMS.i = -1; render(); return; }
     const krs = e.target.closest && e.target.closest('[data-kmkrs]');
     if (krs) { KRS = krs.dataset.kmkrs; render(); return; }
     const krl = e.target.closest && e.target.closest('[data-kmkrl]');

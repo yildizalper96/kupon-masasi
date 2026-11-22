@@ -2200,9 +2200,11 @@ header .hr{position:relative}
 .kmsezsec{appearance:none;-webkit-appearance:none;background:var(--card,transparent) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 fill=%27none%27 stroke=%27%23888%27 stroke-width=%271.6%27/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:30px;cursor:pointer}.kmsezsec option{color:#111;background:#fff}
 .kmtablo .kmgr{margin:14px 0 6px;font:700 13px var(--f);color:var(--mut)}
 .kmtm-yz{display:flex;flex-wrap:wrap;gap:6px;padding:4px 16px 10px}.kmtm-yz span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--sf2,var(--bg));font:600 12px var(--f);color:var(--mut)}.kmtm-yz b{color:var(--ink)}.kmtm-yz .kmlo{width:16px;height:16px}
+.kmtm-yz button{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:var(--sf2,var(--bg));font:600 12px var(--f);color:var(--mut);cursor:pointer}.kmtm-yz button:hover{color:var(--ink)}.kmtm-yz button.on{border-color:var(--brand);color:var(--ink);background:color-mix(in srgb,var(--brand) 14%,transparent)}
+@media(max-width:700px){.kmtm-yz{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:4px 12px 10px}.kmtm-yz::-webkit-scrollbar{display:none}.kmtm-yz button{flex:none}}
 .kmh2t{display:block;width:calc(100% - 32px);margin:10px 16px 4px;min-height:40px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer}
 .kmh2h-ix .kmtm-r,.kmtm-gs .kmtm-r{padding-left:16px;padding-right:16px}.kmh2h-ix .kmtm-m span.b{font-weight:700}.kmtm-ad{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis}.kmtm-m .kmh2sk{justify-self:center}
-.kmth-b{margin-left:auto;display:flex;align-items:center;gap:10px;flex:none}.kmth-b .kmtakip{margin-left:0!important}
+.kmth-b,.kmth-u>.kmth-b{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:none}.kmth-b .kmtakip{margin-left:0!important}
 @media(max-width:700px){#app>.kmth .kmth-b{margin-left:74px;flex:1 1 100%}}
 .kmltk{min-height:36px;padding:0 18px;border-radius:999px;border:0;background:var(--ink);color:var(--sf);font:700 14px var(--f);cursor:pointer}
 .kmltk.on{background:transparent;color:var(--brand);border:1px solid var(--brand)}
