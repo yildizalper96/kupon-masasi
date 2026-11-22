@@ -68,7 +68,7 @@ const ALIAS = {
   'olympique marseille': 'Marseille', 'stade brestois 29': 'Brest', 'caykur rizespor': 'Rizespor', 'rizespor': 'Rizespor',
   'istanbul basaksehir': 'Başakşehir', 'gaziantep fk': 'Gaziantep', 'corum fk': 'Çorum', 'erzurum bb': 'Erzurumspor', 'fk crvena zvezda': 'Crvena Zvezda',
   'red star belgrade': 'Crvena Zvezda', 'slavia praha': 'Slavia Prague', 'sparta prague': 'Sparta Praha', 'union saint gilloise': 'Union SG',
-  'royale union saint gilloise': 'Union SG', 'sint truidense': 'Sint-Truidense', 'bodo glimt': 'Bodø/Glimt', 'fk bodo glimt': 'Bodø/Glimt',
+  'royale union saint gilloise': 'Union SG', 'sint truidense': 'STVV', 'sint truidense vv': 'STVV', 'amed': 'Amedspor', 'amed sk': 'Amedspor', 'amedspor': 'Amedspor', 'hamburger sv': 'Hamburg', 'hamburg sv': 'Hamburg', 'bodo glimt': 'Bodø/Glimt', 'fk bodo glimt': 'Bodø/Glimt',
   'olympiakos piraeus': 'Olympiacos', 'olympiacos piraeus': 'Olympiacos', 'dundee united': 'Dundee Utd', 'heart of midlothian': 'Hearts',
   'sporting cp': 'Sporting', 'sporting braga': 'Braga', 'sc braga': 'Braga', 'vitoria guimaraes': 'Guimarães', 'vitoria sc': 'Guimarães',
   'fc copenhagen': 'Copenhagen', 'aek athens fc': 'AEK Atina', 'aek athens': 'AEK Atina', 'club brugge kv': 'Club Brugge', 'fc salzburg': 'Salzburg',
