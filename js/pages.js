@@ -1809,30 +1809,6 @@
     const govde = grup.length > 1 ? grup.map(g => `<h4 class="kmgr">${E(g)}</h4>${tbl(rows.filter(r => (r.gr || '') === g))}`).join('') : tbl(rows);
     return card('kmtablo', tv + bas + govde + APIKAY);
   }
-  // lig: egilimler (son 5 sezonun bitmis mac skorlarindan; istek yok). sz verilirse yalnizca o sezon.
-  function ligEgilim(c, sz) {
-    if (!APIL.has(c)) return '';
-    const sezon = sz ? [sz] : [APIS - 1, APIS - 2, APIS - 3, APIS - 4, APIS - 5];
-    const sat = [], top = { n: 0, h: 0, d: 0, a: 0, g: 0, u: 0, kg: 0 };
-    for (const s of sezon) {
-      const fx = apiJ(c + '/' + s + '/fixtures.json'); if (fx === undefined) return '';
-      const l = ((fx && fx.m) || []).filter(x => x[6] === 'FT' && x[4] != null && x[5] != null); if (!l.length) continue;
-      const v = { s, n: l.length, h: 0, d: 0, a: 0, g: 0, u: 0, kg: 0 };
-      l.forEach(x => { const e = +x[4], d = +x[5]; if (e > d) v.h++; else if (e < d) v.a++; else v.d++; v.g += e + d; if (e + d > 2) v.u++; if (e > 0 && d > 0) v.kg++; });
-      sat.push(v); for (const k in top) top[k] += v[k];
-    }
-    if (!sat.length) return '';
-    const y = (a, n) => Math.round(a / n * 100);
-    const bar = '<div class="kmeg-bar" role="img" aria-label="Ev sahibi %' + y(top.h, top.n) + ', beraberlik %' + y(top.d, top.n) + ', deplasman %' + y(top.a, top.n) + '">'
-      + '<i class="h" style="width:' + (top.h / top.n * 100).toFixed(1) + '%"></i><i class="d" style="width:' + (top.d / top.n * 100).toFixed(1) + '%"></i><i class="a" style="width:' + (top.a / top.n * 100).toFixed(1) + '%"></i></div>'
-      + '<div class="kmeg-lj"><span><b class="h"></b>Ev %' + y(top.h, top.n) + '</span><span><b class="d"></b>Beraberlik %' + y(top.d, top.n) + '</span><span><b class="a"></b>Deplasman %' + y(top.a, top.n) + '</span></div>';
-    const kut = (ad, d) => '<div><small>' + ad + '</small><b>' + d + '</b></div>';
-    const ozet = '<div class="kmeg-oz">' + kut('Gol / maç', (top.g / top.n).toFixed(2).replace('.', ',')) + kut('2,5 üst', '%' + y(top.u, top.n)) + kut('Karşılıklı gol', '%' + y(top.kg, top.n)) + '</div>';
-    const tab = sat.length > 1 ? '<table class="kmeg-t"><thead><tr><th>Sezon</th><th>1</th><th>X</th><th>2</th><th>Gol</th><th>2,5Ü</th><th>KG</th></tr></thead><tbody>'
-      + sat.map(v => '<tr><td>' + E(sezAd({ c, s: v.s })) + '</td><td>%' + y(v.h, v.n) + '</td><td>%' + y(v.d, v.n) + '</td><td>%' + y(v.a, v.n) + '</td><td>' + (v.g / v.n).toFixed(2).replace('.', ',') + '</td><td>%' + y(v.u, v.n) + '</td><td>%' + y(v.kg, v.n) + '</td></tr>').join('') + '</tbody></table>' : '';
-    const alt = sz ? E(sezAd({ c, s: sz })) + ' · ' + top.n + ' maç' : 'Son ' + sat.length + ' sezon · ' + top.n + ' maç';
-    return card('kmeg', '<h3 class="kmb">Lig eğilimleri <small>' + alt + '</small></h3>' + bar + ozet + tab + '<p class="kmkay">Bitmiş maç skorlarından hesaplanır. Kaynak: API-Football</p>');
-  }
   function ligApiMaclar(c, s) {
     const fx = apiJ(`${c}/${s}/fixtures.json`), st = apiJ(`${c}/${s}/standings.json`);
     if (fx === undefined || st === undefined) return card('kmlfk', '<p class="kmbos">Yükleniyor…</p>');
@@ -1967,11 +1943,11 @@
         const tabloYok = card('kmtablo', `<h3 class="kmb">${E(ligAd(c))}</h3><p class="kmbos">Bu lig için puan durumu verisi yok.</p>`);
         if (LGS.y) { // gecmis sezon
           if (LGS.s === 'm') return bas + ligApiMaclar(c, LGS.y);
-          return bas + ligApiTablo(c, LGS.y) + (LGS.s === 'p' ? '' : ligKrallar(c, LGS.y) + ligEgilim(c, LGS.y));
+          return bas + ligApiTablo(c, LGS.y) + (LGS.s === 'p' ? '' : ligKrallar(c, LGS.y));
         }
         if (LGS.s === 'p') return bas + (ligTabloSekme(c) || tabloYok) + `<div class="mside">${ligHafta(c)}${karne}</div>`;
         if (LGS.s === 'm') return bas + ligMaclar(c) + `<div class="mside">${karne}</div>`;
-        return bas + (tablo || '') + (ligKrallar(c) || ligEnCoklar(c) || ligEnCoklarDis(c)) + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}${ligEgilim(c)}</div>`;
+        return bas + (tablo || '') + (ligKrallar(c) || ligEnCoklar(c) || ligEnCoklarDis(c)) + (tablo ? '' : ligMaclar(c)) + takimNotlari(ligTakimlari(c), 'Haberler ve takım notları') + `<div class="mside">${ligHafta(c)}${karne}</div>`;
       } catch (e) { try { console.warn("leagueView", e); } catch (x) { } return eskiLeagueView(c); }
     };
     document.addEventListener('click', e => {
