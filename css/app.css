@@ -983,6 +983,7 @@ input,button,select,textarea{font-family:var(--f)}
   .kmkrt.s{background:#f2c94c}
   .kmpmc table{width:100%;border-collapse:collapse;font-size:13.5px}
   .kmpmc tr[hidden]{display:none}
+  .kmpmc tr[data-kmm]{cursor:pointer}.kmpmc tr[data-kmm]:hover td{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .kmmg[hidden]{display:none}
   .kmmt{display:flex;gap:8px;flex-wrap:wrap;padding:2px 24px 10px}
   .kmmt button{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--ln);background:var(--sf);color:var(--mut);font:600 13.5px var(--f);cursor:pointer}

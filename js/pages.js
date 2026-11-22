@@ -1508,6 +1508,22 @@
     }
     return ps.concat(apiMaclari(o.e, ps)).sort((x, y) => (y.t || 0) - (x.t || 0));
   }
+  // oyuncu: takimin guncel sezondaki tum bitmis maclari (takim dizini); oyuncu verisi olmayanlar "–", tahminli maclar tiklanabilir
+  function oyuncuTumMaclar(o, ml) {
+    const id = o.team ? takimId(o.team) : null, j = id ? takimIdx(o.team) : null;
+    const ix = ((j && j.m) || []).filter(x => +x[2] === APIS && BITTI.has(x[7]) && x[5] != null);
+    if (!ix.length) return ml;
+    const kul = new Set(), out = ml.slice(), tt = j.t || {};
+    const rBul = (x, t) => (typeof R !== 'undefined' ? R : []).find(m => Math.abs(+new Date(m.t) - t) < 2 * 864e5 && takimId(m.h) === +x[3] && takimId(m.a) === +x[4]);
+    ix.forEach(x => {
+      const ev = +x[3] === id, rk = tt[ev ? x[4] : x[3]] || '', skor = x[5] + ' - ' + x[6], t = Date.parse(x[0]), rm = rBul(x, t), kmm = rm ? key(rm) : '';
+      const k = ml.findIndex((m, i) => !kul.has(i) && !m.ki && m.skor === skor && ayniTk(m.rakip, rk));
+      if (k >= 0) { kul.add(k); out[k] = Object.assign({}, ml[k], { c: yarAd(x[1]), t: ml[k].t || t, kmm }); return; }
+      const gf = +(ev ? x[5] : x[6]), ga = +(ev ? x[6] : x[5]), tr = turAd(x[8]);
+      out.push({ t, d: /Hafta$/.test(tr) ? tr.replace('Hafta', 'hafta') : kisaTarih(t), c: yarAd(x[1]), rakip: rk, ev, skor, r: gf > ga ? 'G' : gf < ga ? 'M' : 'B', dk: null, dur: '', g: 0, a: 0, y: 0, bilinmez: true, ki: 0, kmm });
+    });
+    return out.sort((x, y) => (y.t || 0) - (x.t || 0));
+  }
   function oyuncuVeri(v) {
     const e = oyuncuBul(v), x = e.ps;
     const p = x ? x.p : null, c = x ? x.c : (e.c || ''), team = e.team;
@@ -1558,7 +1574,7 @@
     const saha = nokta ? `<div class="kmph-saha"><i class="ce"></i><i class="ku"></i><i class="ka"></i><b style="left:${nokta[0]}%;top:${nokta[1]}%">${({ Kaleci: 'KL', Defans: 'DF', 'Orta saha': 'OS', Forvet: 'FV' })[mev] || ''}</b></div>` : '';
     const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h, tk]) => `<div${tk ? ` class="kmph-lk" data-tm="${E(tk)}" title="${E(tk)} milli takımı"` : ''}><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
         <div class="kmph-m"><h4>Mevki</h4>${mev || tmk.sp ? `<b>${E(tmk.sp || mev)}</b>` : '<p class="kmbos">veri yok</p>'}${saha}</div></div>${(kf.b || kf.v || kf.n || kf.no) ? '<p class="kmkay kmph-kay">Kaynak: Transfermarkt</p>' : ''}</div>`;
-    const ml = oyuncuMaclari(o), api = ml.filter(m => m.pu !== undefined && !m.ml); // mlog satirlari (Sofascore) toplam karti uretmez: sezon karti zaten var
+    const ml = oyuncuTumMaclar(o, oyuncuMaclari(o)), api = ml.filter(m => m.pu !== undefined && !m.ml); // mlog satirlari (Sofascore) toplam karti uretmez: sezon karti zaten var
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;
     const f2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
     let sezon;
@@ -1592,11 +1608,12 @@
     if (!sezon) sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı</h3><p class="kmbos">Bu oyuncu için istatistik verisi yok.</p>`);
     const tire = x => x == null || x === '' ? '–' : x;
     // maclar yarisma bazinda ayri tablolar; her tablo en fazla 10 mac, ileri/geri dugmesiyle sayfalanir
-    const mSatir = (m, i) => `<tr data-i="${i}"${i >= 10 ? ' hidden' : ''}${m.bilinmez ? ' class="bz"' : ''}>
+    const mSatir = (m, i) => `<tr data-i="${i}"${i >= 10 ? ' hidden' : ''}${m.kmm ? ` data-kmm="${E(m.kmm)}"` : ''}${m.bilinmez ? ' class="bz"' : ''}>
         <td><span>${E(m.d)}</span><small>${E(m.c || '')}</small></td><td class="tk"${m.rakip ? ` data-tm="${E(m.rakip)}"` : ''}>${m.rakip ? bd(m.rakip) : ''}<span>${E(m.rakip)}</span></td>
         <td class="sk">${m.r ? `<i class="kmkare ${sonuc(m.r)}">${E(m.r)}</i>` : ''}<span>${E(m.skor)}</span></td>
         <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`;
     const mGrup = []; ml.forEach(m => { const k = m.c || 'Diğer'; let g = mGrup.find(x => x.k === k); if (!g) mGrup.push(g = { k, a: [] }); g.a.push(m); });
+    if (mGrup.length > 1) mGrup.unshift({ k: 'Tümü', a: ml });
     const mTablo = (g, gi) => { const pg = Math.ceil(g.a.length / 10); return `<div class="kmmg" data-pg="${pg}" data-p="0"${gi ? ' hidden' : ''}>${pg > 1 ? '<div class="kmmh">' : ''}${pg > 1 ? `<span class="kmmn"><button type="button" data-kmpg="-1" disabled aria-label="Önceki">‹</button><b>1/${pg}</b><button type="button" data-kmpg="1" aria-label="Sonraki">›</button></span></div>` : ''}<table><thead><tr><th>Tarih</th><th class="tk">Rakip</th><th></th><th>Durum</th><th title="Oynadığı dakika">Dk</th><th title="Gol">Gol</th><th title="Asist">Ast</th><th title="Sarı kart"><i class="kmkrt s"></i></th><th>Puan</th></tr></thead><tbody>${g.a.map(mSatir).join('')}</tbody></table></div>`; };
     const maclar = ml.length ? card('kmpmc', `<h3 class="kmb">Maç istatistikleri</h3><div class="kmmt">${mGrup.map((g, gi) => `<button type="button" data-kmmt="${gi}" class="${gi ? '' : 'on'}">${E(g.k)}<small>${g.a.length}</small></button>`).join('')}</div>${mGrup.map(mTablo).join('')}
         <p class="kmkay">Kaynak: API-Football${ml.some(m => m.ml) ? ", Sofascore" : ""}</p>`) : '';
