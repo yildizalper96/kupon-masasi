@@ -992,15 +992,32 @@
       .map((r, i) => ({ s: r, t: ilk - (1000 - i) * 60e3 }));
     return esk.concat(l);
   }
+  // guncel sezon: takim dizinindeki tum maclar (tum turnuvalar) + tahminli/kayitli maclar (tiklanabilir olanlar onlar)
+  function takimGuncelMaclar(n) {
+    const eski = takimTumMaclari(n), j = takimIdx(n), id = takimId(n);
+    const ix = ((j && j.m) || []).filter(x => +x[2] === APIS);
+    if (!ix.length) return eski;
+    const ids = x => x.m ? [takimId(x.m.h), takimId(x.m.a)] : x.b ? [takimId(x.b.h), takimId(x.b.a)] : [];
+    const kul = new Set(), out = [];
+    ix.forEach(row => {
+      const t = Date.parse(row[0]);
+      const k = eski.findIndex((x, i) => !kul.has(i) && (x.m || x.b) && Math.abs(x.t - t) < 2 * 864e5 && (([h, a]) => h === +row[3] && a === +row[4])(ids(x)));
+      if (k >= 0) { kul.add(k); out.push(Object.assign({}, eski[k], { c: row[1] })); } else out.push({ i: row, it: j.t, t, c: row[1] });
+    });
+    const bas = Math.min(...out.map(o => o.t)) - 20 * 864e5;
+    eski.forEach((x, i) => { if (!kul.has(i) && (x.m || x.b) && x.t >= bas && !(id && out.some(o => o.i && Math.abs(o.t - x.t) < 2 * 864e5 && ids(x).includes(+o.i[3]) && ids(x).includes(+o.i[4])))) out.push(x); });
+    return out.sort((a, b) => a.t - b.t);
+  }
   function takimMaclarKarti(n) {
-    const hep = takimTumMaclari(n), SAY = 10;
+    const hep = takimGuncelMaclar(n), SAY = 10;
     if (!hep.length) return card('kmtm', `<h3 class="kmb">Maçlar</h3><p class="kmbos">Bu takım için maç verisi yok.</p>`);
-    const cOf = x => x.m ? x.m.c : x.b ? x.b.c : (TM[n] || {}).l;
+    const cOf = x => x.c || (x.m ? x.m.c : x.b ? x.b.c : (TM[n] || {}).l);
     const ctx = n + '|cur', yar = [...new Set(hep.map(cOf).filter(Boolean))], akt = yzSec(ctx, yar);
     const l = akt ? hep.filter(x => cOf(x) === akt) : hep, tk = n + '|' + akt;
-    if (TMS.n !== tk || TMS.i < 0) { let g = l.findIndex(x => x.m ? stt(x.m).k !== 'ft' : false); if (g < 0) g = l.length; TMS = { n: tk, i: Math.max(0, Math.min(g - 3, l.length - SAY)) }; }
+    if (TMS.n !== tk || TMS.i < 0) { let g = l.findIndex(x => x.m ? stt(x.m).k !== 'ft' : x.i ? !BITTI.has(x.i[7]) : false); if (g < 0) g = l.length; TMS = { n: tk, i: Math.max(0, Math.min(g - 3, l.length - SAY)) }; }
     const sayfa = l.slice(TMS.i, TMS.i + SAY);
     const sat = x => {
+      if (x.i) return idxSatir(x.i, x.it || {}, n);
       const m = x.m, b = x.b, r0 = x.s, T0 = TM[n] || {};
       const c = m ? m.c : b ? b.c : T0.l, h = m ? m.h : b ? b.h : (r0.H ? n : r0.o), a = m ? m.a : b ? b.a : (r0.H ? r0.o : n);
       let sc = null, k = 'wait'; if (m) { const s = stt(m); sc = s.sc; k = s.k; } else if (b) { sc = [b.x, b.y]; k = 'ft'; } else { sc = r0.H ? [r0.f, r0.c] : [r0.c, r0.f]; k = 'ft'; }
@@ -1866,7 +1883,7 @@
     const id = takimId(n), h = t[x[3]] || '–', a = t[x[4]] || '–', fin = BITTI.has(x[7]) && x[5] != null;
     let rz = ''; if (fin && id) { const gf = +x[3] === id ? +x[5] : +x[6], ga = +x[3] === id ? +x[6] : +x[5]; rz = gf > ga ? 'g' : gf < ga ? 'm' : 'b'; }
     const DUR = { PST: 'Ertelendi', CANC: 'İptal', ABD: 'Yarıda kaldı', AWD: 'Hükmen', WO: 'Hükmen' };
-    const orta = fin ? (n ? '<i class="kmhap ' + (rz || 'b') + '">' : '<i class="kmh2sk">') + x[5] + ' - ' + x[6] + '</i>' : '<b class="kmtm-s">' + E(DUR[x[7]] || (x[7] === 'NS' || x[7] === 'TBD' ? hm(Date.parse(x[0])) : x[7])) + '</b>';
+    const orta = fin ? (n ? '<i class="kmhap ' + (rz || 'b') + '">' : '<i class="kmh2sk">') + x[5] + ' - ' + x[6] + '</i>' : '<b class="kmtm-s">' + E(DUR[x[7]] || (x[7] === 'NS' || x[7] === 'TBD' ? hm(new Date(Date.parse(x[0]))) : x[7])) + '</b>';
     const pen = x[7] === 'PEN' ? ' · pen.' : x[7] === 'AET' ? ' · uzt.' : '';
     const tr = turAd(x[8]);
     return '<div class="kmtm-r"><div class="kmtm-u"><small>' + E(new Date(Date.parse(x[0])).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })) + (tr ? ' · ' + E(tr) : '') + pen + '</small><small class="kmtm-l">' + E(yarAd(x[1])) + ligLg(x[1], 'kucuk') + '</small></div>'
