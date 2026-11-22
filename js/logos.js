@@ -33,7 +33,7 @@
 // Lig logolari (API-Football): kimlik once fixtures latest.json meta'sindan (KMX.lgId), yoksa sabit tablodan (tools/fetch-fixtures.mjs LEAGUES).
 // Yuklenmezse img kaldirilir; altindaki yedek (bayrak/harf) gorunur.
 (function () {
-  const LGID = { PL: 39, LL: 140, SA: 135, BL: 78, L1: 61, SL: 203, ERE: 88, POR: 94, BEL: 144, SCO: 179, KSA: 307, CL: 2, EL: 3, ECL: 848, UNL: 5, FAC: 45, EFL: 48, CDR: 143, CIT: 137, DFB: 81, CDF: 66, TUK: 206, KNV: 90, TDP: 96, BCP: 147, SFA: 181, USC: 531, BRA: 71, CBR: 73, ARG: 128, CAR: 130, MLS: 253, MX: 262 };
+  const LGID = { PL: 39, LL: 140, SA: 135, BL: 78, L1: 61, SL: 203, ERE: 88, POR: 94, BEL: 144, SCO: 179, KSA: 307, CL: 2, EL: 3, ECL: 848, UNL: 5, FAC: 45, EFL: 48, CDR: 143, CIT: 137, DFB: 81, CDF: 66, TUK: 206, KNV: 90, TDP: 96, BCP: 147, SFA: 181, USC: 531, BRA: 71, CBR: 73, ARG: 128, CAR: 130, MLS: 253, MX: 262, TRSK: 551, ENCS: 528, ESSK: 556, ITSK: 547, DESK: 529, FRTC: 526, NLSK: 543, PTSK: 550, BESK: 519, SASK: 826, BRSC: 632, ARTC: 517, ARSC: 810, MXCC: 857 };
   window.kmLigId = function (c) { try { const k = window.KMX && KMX.lgId && KMX.lgId[c]; if (k) return k; } catch (e) { } return LGID[c] || null; };
   // yedek: logo yuklenmezse gosterilecek html (bayrak ya da renkli nokta)
   window.kmLigLogo = function (c, yedek, cls) {

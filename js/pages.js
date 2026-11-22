@@ -1837,6 +1837,7 @@
   // m: [tarihISO, C, S, evId, depId, evGol, depGol, durum, tur], t: { id: ad }
   const YAR = { SL: 'Süper Lig', PL: 'Premier Lig', LL: 'La Liga', SA: 'Serie A', BL: 'Bundesliga', L1: 'Ligue 1', ERE: 'Eredivisie', POR: 'Liga Portugal', BEL: 'Belçika Pro Lig', SCO: 'İskoçya Premiership', KSA: 'Suudi Pro Lig', BRA: 'Brezilya Serie A', ARG: 'Arjantin Ligi', MLS: 'MLS', MX: 'Liga MX',
     CL: 'Şampiyonlar Ligi', EL: 'Avrupa Ligi', ECL: 'Konferans Ligi', USC: 'UEFA Süper Kupa', FAC: 'FA Cup', EFL: 'İngiltere Lig Kupası', CDR: 'İspanya Kral Kupası', CIT: 'İtalya Kupası', DFB: 'Almanya Kupası', CDF: 'Fransa Kupası', TUK: 'Türkiye Kupası', KNV: 'Hollanda Kupası', TDP: 'Portekiz Kupası', BCP: 'Belçika Kupası', SFA: 'İskoçya Kupası', CBR: 'Brezilya Kupası', CAR: 'Arjantin Kupası',
+    TRSK: 'Türkiye Süper Kupası', ENCS: 'Community Shield', ESSK: 'İspanya Süper Kupası', ITSK: 'İtalya Süper Kupası', DESK: 'Almanya Süper Kupası', FRTC: 'Fransa Süper Kupası', NLSK: 'Hollanda Süper Kupası', PTSK: 'Portekiz Süper Kupası', BESK: 'Belçika Süper Kupası', SASK: 'Suudi Süper Kupası', BRSC: 'Brezilya Süper Kupası', ARTC: 'Arjantin Şampiyonlar Kupası', ARSC: 'Arjantin Süper Kupası', MXCC: 'Campeón de Campeones',
     UNL: 'Uluslar Ligi', WC: 'Dünya Kupası', EURO: 'Avrupa Şampiyonası', WCQE: 'Dünya Kupası Avrupa Elemeleri', EUROQ: 'EURO Elemeleri', COPA: 'Copa América', WCQSA: 'Dünya Kupası G. Amerika Elemeleri', FRI: 'Hazırlık maçı' };
   const yarAd = c => YAR[c] || ligAd(c) || c;
   const turAd = r => {
@@ -1861,7 +1862,7 @@
     const pen = x[7] === 'PEN' ? ' · pen.' : x[7] === 'AET' ? ' · uzt.' : '';
     const tr = turAd(x[8]);
     return '<div class="kmtm-r"><div class="kmtm-u"><small>' + E(new Date(Date.parse(x[0])).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })) + (tr ? ' · ' + E(tr) : '') + pen + '</small><small class="kmtm-l">' + E(yarAd(x[1])) + ligLg(x[1], 'kucuk') + '</small></div>'
-      + '<div class="kmtm-m"><span data-tm="' + E(h) + '"' + (!n && fin && +x[5] > +x[6] ? ' class="b"' : '') + '>' + E(h) + bd(h) + '</span>' + orta + '<span data-tm="' + E(a) + '"' + (!n && fin && +x[6] > +x[5] ? ' class="b"' : '') + '>' + bd(a) + E(a) + '</span></div></div>';
+      + '<div class="kmtm-m"><span data-tm="' + E(h) + '"' + (!n && fin && +x[5] > +x[6] ? ' class="b"' : '') + '><em class="kmtm-ad">' + E(h) + '</em>' + bd(h) + '</span>' + orta + '<span data-tm="' + E(a) + '"' + (!n && fin && +x[6] > +x[5] ? ' class="b"' : '') + '>' + bd(a) + '<em class="kmtm-ad">' + E(a) + '</em></span></div></div>';
   }
   // takim: gecmis sezonlar (dizinde maci olan sezonlar, guncel haric)
   function takimSezonlar(n) {

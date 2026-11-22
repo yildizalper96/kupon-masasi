@@ -30,6 +30,7 @@ const LIGLER = { SL: 203, PL: 39, LL: 140, SA: 135, BL: 78, L1: 61, ERE: 88, POR
 // kupalar, Avrupa ve milli takim turnuvalari (21 Kas 2026): yalnizca puan durumu/grup, kralliklar, fikstur ve mac ayrintilari (takim/oyuncu sezon istatistigi yok)
 const KUPA = {
   CL: 2, EL: 3, ECL: 848, USC: 531, FAC: 45, EFL: 48, CDR: 143, CIT: 137, DFB: 81, CDF: 66, TUK: 206, KNV: 90, TDP: 96, BCP: 147, SFA: 181, CBR: 73, CAR: 130,
+  TRSK: 551, ENCS: 528, ESSK: 556, ITSK: 547, DESK: 529, FRTC: 526, NLSK: 543, PTSK: 550, BESK: 519, SASK: 826, BRSC: 632, ARTC: 517, ARSC: 810, MXCC: 857, // ulusal super kupalar (21 Kas 2026)
   UNL: 5, WC: 1, EURO: 4, WCQE: 32, EUROQ: 960, COPA: 9, WCQSA: 34, FRI: 10,
 };
 const LIG = { ...LIGLER, ...KUPA };
