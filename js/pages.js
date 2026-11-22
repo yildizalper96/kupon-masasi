@@ -500,7 +500,24 @@
     return card('kmform', `<h3 class="kmb orta">Takım formu</h3><div class="kmiki"><div>${sat(m.h)}</div><div>${sat(m.a)}</div></div>`);
   }
   // Karsilasmalar (FotMob H2H): galibiyet/beraberlik ozeti + son maclar
+  let H2HA = '';
   function h2hKarti(m) {
+    try {
+      const ix = typeof idxH2h === 'function' ? idxH2h(m) : null;
+      if (ix && ix.l.length) {
+        const a = takimId(m.h), b = takimId(m.a), l = ix.l;
+        const kaz = id => l.filter(x => (+x[3] === id && +x[5] > +x[6]) || (+x[4] === id && +x[6] > +x[5])).length, ber = l.filter(x => +x[5] === +x[6]).length;
+        const ka = kaz(a), kb = kaz(b), hep = H2HA === key(m), SAY = 10;
+        const yar = [...new Set(l.map(x => x[1]))];
+        const ozet = yar.length > 1 ? '<div class="kmtm-yz">' + yar.map(k => '<span>' + ligLg(k, 'kucuk') + E(yarAd(k)) + ' <b>' + l.filter(x => x[1] === k).length + '</b></span>').join('') + '</div>' : '';
+        const ilk = l[l.length - 1];
+        return card('kmh2h kmh2h-ix', '<h3 class="kmb orta">Karşılaşmalar <small>' + l.length + ' maç · ' + new Date(Date.parse(ilk[0])).getFullYear() + '’den beri</small></h3>'
+          + '<div class="kmh2o"><div>' + bd(m.h, 1) + '<b>' + ka + '</b><small>Galibiyet</small></div><div><b>' + ber + '</b><small>Beraberlik</small></div><div>' + bd(m.a, 1) + '<b>' + kb + '</b><small>Galibiyet</small></div></div>'
+          + '<div class="kmh2bar"><i class="h" style="flex:' + ka + '"></i><i class="b" style="flex:' + ber + '"></i><i class="a" style="flex:' + kb + '"></i></div>'
+          + ozet + l.slice(0, hep ? l.length : SAY).map(x => idxSatir(x, ix.t, null)).join('')
+          + (l.length > SAY ? '<button type="button" class="kmh2t" data-kmh2t="' + E(key(m)) + '">' + (hep ? 'Daha az göster' : 'Tümünü göster (' + l.length + ')') + '</button>' : '') + APIKAY);
+      }
+    } catch (e) { }
     let l = null, tmK = false; try { l = HH[[m.h, m.a].sort().join('|')]; } catch (e) { }
     if (!Array.isArray(l) || !l.length) { l = tmH2h(m); tmK = true; if (!l) return ''; }
     const kaz = n => l.filter(r => (r.h === n && r.x > r.y) || (r.a === n && r.y > r.x)).length, ber = l.filter(r => r.x === r.y).length;
@@ -762,12 +779,17 @@
     return `<div class="kmms" data-kmm="${E(key(x))}"><div class="kmms-u"><span>${E(kisaTarih(x.t))}</span><span>${E(ligAd(x.c))}</span></div>
       <div class="kmms-s"><span class="${x.h === n ? 'b' : ''}">${E(x.h)}${bd(x.h)}</span>${orta}<span class="${x.a === n ? 'b' : ''}">${bd(x.a)}${E(x.a)}</span></div></div>`;
   }
+  function takimSezSec(n) {
+    let l = []; try { l = takimSezonlar(n); } catch (e) { }
+    if (!l.length) return '';
+    const c = takimLig(n) || '', y = TY.n === n ? TY.y : 0;
+    return '<select class="kmsezon kmsezsec kmtsez" data-kmtsez="1" aria-label="Sezon"><option value="0">' + E(sezAd({ c, s: APIS })) + '</option>' + l.map(s => '<option value="' + s + '"' + (y === s ? ' selected' : '') + '>' + E(sezAd({ c, s })) + '</option>').join('') + '</select>';
+  }
   function takimBaslik(n) {
     const t = TM[n] || {}, x = xt(n);
     const ul = x.country || ulke(t.l || (R.find(m => m.h === n || m.a === n) || {}).c || '');
     return `<div class="kmc kmth">
-      <div class="kmth-u">${bd(n, 1)}<div><h2>${E(n)}</h2><small>${E(ul)}</small></div>
-        <button class="kmtakip${FAV.has(n) ? ' on' : ''}" data-kmfav="${E(n)}">${FAV.has(n) ? '★ Favoride' : '☆ Favorilere ekle'}</button></div>
+      <div class="kmth-u">${bd(n, 1)}<div><h2>${E(n)}</h2><small>${E(ul)}</small></div><div class="kmth-b">${takimSezSec(n)}<button class="kmtakip${FAV.has(n) ? ' on' : ''}" data-kmfav="${E(n)}">${FAV.has(n) ? '★ Favoride' : '☆ Favorilere ekle'}</button></div></div>
       <div class="kmsek">${[['o', 'Genel bakış'], ['t', 'Tablo'], ['m', 'Maçlar'], ['k', 'Kadro'], ['i', 'Oyuncu istatistikleri']].map(([k, l]) => `<button data-kmtt="${k}" class="${TT === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     </div>`;
   }
@@ -1269,11 +1291,13 @@
     if (!MQ.matches || !tek) { eskiTeamView(); try { aramaOyuncu(); } catch (e) { } return; }
     const n = QX;
     if (TTn !== n) { TTn = n; TT = 'o'; }
+    if (TY.n !== n) TY = { n, y: 0 };
     {
       document.getElementById('app').classList.remove('kmeskitv');
       const x = xt(n);
       let ic;
-      if (TT === 't') ic = tabloKutusu(n) + takimGecmis(n) + `<div class="mside">${sezonKutusu(n)}</div>`;
+      if (TY.y) ic = takimGecmisSezon(n, TY.y);
+      else if (TT === 't') ic = tabloKutusu(n) + takimGecmis(n) + `<div class="mside">${sezonKutusu(n)}</div>`;
       else if (TT === 'k') ic = kadroTablosu(n);
       else if (TT === 'm') ic = takimMaclarKarti(n) + `<div class="mside">${sonrakiKarsilastir(n)}${tahminKarnesi(R.filter(m => m.h === n || m.a === n), n, 'Bu takım için kayıtlı tahmin yok.')}</div>`;
       else if (TT === 'i') ic = oyuncuIstatSekmesi(n);
@@ -1795,19 +1819,82 @@
     return l;
   }
   const haftaApi = h => (/^\d+$/.test(String(h || '')) ? h + '. Hafta' : haftaAd(h));
-  function ligApiTablo(c, s) {
+  function ligApiTablo(c, s, vurguId) {
     const st = apiJ(`${c}/${s}/standings.json`);
     const bas = `<h3 class="kmb">${DAR.matches ? ligLg(c, 'orta') : ''}${E(ligAd(c))} <small>${E(sezAd({ c, s }))}</small></h3>`;
     if (st === undefined) return card('kmtablo', bas + '<p class="kmbos">Yükleniyor…</p>');
     const rows = (st && st.rows) || [];
     if (!rows.length) return card('kmtablo', bas + '<p class="kmbos">Bu sezon için puan durumu verisi yok.</p>');
     const tv = DAR.matches ? `<div class="kmtv"><button data-kmtv="k" class="on">Kısa</button><button data-kmtv="t">Tam</button><button data-kmtv="f">Form</button></div>` : '';
-    const satir = v => `<tr><td>${v.r}</td><td class="tk" data-tm="${E(v.n)}">${bd(v.n)}<span>${E(v.n)}</span></td><td>${v.pl ?? (v.w + v.d + v.l)}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.gd > 0 ? '+' : ''}${v.gd ?? (v.f - v.a)}</td><td><b>${v.p}</b></td>
+    const satir = v => `<tr class="${vurguId && +v.tid === +vurguId ? 'hl' : ''}"><td>${v.r}</td><td class="tk" data-tm="${E(v.n)}">${bd(v.n)}<span>${E(v.n)}</span></td><td>${v.pl ?? (v.w + v.d + v.l)}</td><td>${v.w}</td><td>${v.d}</td><td>${v.l}</td><td>${v.f}-${v.a}</td><td>${v.gd > 0 ? '+' : ''}${v.gd ?? (v.f - v.a)}</td><td><b>${v.p}</b></td>
         <td class="fm">${String(v.form || '').slice(-5).split('').filter(r => /[GBM]/.test(r)).map(r => `<i class="kmkare ${sonuc(r)}">${r}</i>`).join('')}</td></tr>`;
     const grup = [...new Set(rows.map(r => r.gr || ''))];
     const tbl = l => `<table><thead><tr><th>#</th><th class="tk">Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>+/-</th><th>AV</th><th>PUAN</th><th>Form</th></tr></thead><tbody>${l.map(satir).join('')}</tbody></table>`;
     const govde = grup.length > 1 ? grup.map(g => `<h4 class="kmgr">${E(g)}</h4>${tbl(rows.filter(r => (r.gr || '') === g))}`).join('') : tbl(rows);
     return card('kmtablo', tv + bas + govde + APIKAY);
+  }
+  // ===== Takim basina tum maclar dizini (data/api/takim/<id>.json, tools/team-index.mjs; istek yok) =====
+  // m: [tarihISO, C, S, evId, depId, evGol, depGol, durum, tur], t: { id: ad }
+  const YAR = { SL: 'Süper Lig', PL: 'Premier Lig', LL: 'La Liga', SA: 'Serie A', BL: 'Bundesliga', L1: 'Ligue 1', ERE: 'Eredivisie', POR: 'Liga Portugal', BEL: 'Belçika Pro Lig', SCO: 'İskoçya Premiership', KSA: 'Suudi Pro Lig', BRA: 'Brezilya Serie A', ARG: 'Arjantin Ligi', MLS: 'MLS', MX: 'Liga MX',
+    CL: 'Şampiyonlar Ligi', EL: 'Avrupa Ligi', ECL: 'Konferans Ligi', USC: 'UEFA Süper Kupa', FAC: 'FA Cup', EFL: 'İngiltere Lig Kupası', CDR: 'İspanya Kral Kupası', CIT: 'İtalya Kupası', DFB: 'Almanya Kupası', CDF: 'Fransa Kupası', TUK: 'Türkiye Kupası', KNV: 'Hollanda Kupası', TDP: 'Portekiz Kupası', BCP: 'Belçika Kupası', SFA: 'İskoçya Kupası', CBR: 'Brezilya Kupası', CAR: 'Arjantin Kupası',
+    UNL: 'Uluslar Ligi', WC: 'Dünya Kupası', EURO: 'Avrupa Şampiyonası', WCQE: 'Dünya Kupası Avrupa Elemeleri', EUROQ: 'EURO Elemeleri', COPA: 'Copa América', WCQSA: 'Dünya Kupası G. Amerika Elemeleri', FRI: 'Hazırlık maçı' };
+  const yarAd = c => YAR[c] || ligAd(c) || c;
+  const turAd = r => {
+    const t = String(r || '').trim(); if (!t) return '';
+    let m;
+    if ((m = /^(?:Regular Season|Apertura|Clausura|League Stage|Group Stage|1st Phase|2nd Phase)\s*-\s*(\d+)$/i.exec(t))) return m[1] + '. Hafta';
+    if (/^\d+$/.test(t)) return t + '. Hafta';
+    if ((m = /^Group\s+([A-Z0-9]+)(?:\s*-\s*\d+)?$/i.exec(t))) return 'Grup ' + m[1];
+    const TR = [[/^Final$/i, 'Final'], [/^Semi-finals?$/i, 'Yarı final'], [/^Quarter-finals?$/i, 'Çeyrek final'], [/^Round of 16$/i, 'Son 16'], [/^Round of 32$/i, 'Son 32'], [/^Round of 64$/i, 'Son 64'], [/^(?:Knockout Round Play-offs|Play-offs?)$/i, 'Play-off'], [/^3rd Place Final$/i, 'Üçüncülük maçı'],
+      [/^(\d)(?:st|nd|rd|th) Qualifying Round$/i, '$1. ön eleme'], [/^(\d)(?:st|nd|rd|th) Round$/i, '$1. tur'], [/^Preliminary Round$/i, 'Ön tur'], [/^8th Finals$/i, 'Son 16'], [/^Friendlies.*$/i, '']];
+    for (const [re, tr] of TR) if (re.test(t)) return t.replace(re, tr);
+    return t;
+  };
+  const takimIdx = n => { const id = takimId(n); return id ? apiJ('takim/' + id + '.json') : null; };
+  const BITTI = new Set(['FT', 'AET', 'PEN']);
+  // tek satir (takim sayfasi ve karsilasmalar): ust satir tarih · tur + yarisma; alt satir skor
+  function idxSatir(x, t, n) {
+    const id = takimId(n), h = t[x[3]] || '–', a = t[x[4]] || '–', fin = BITTI.has(x[7]) && x[5] != null;
+    let rz = ''; if (fin && id) { const gf = +x[3] === id ? +x[5] : +x[6], ga = +x[3] === id ? +x[6] : +x[5]; rz = gf > ga ? 'g' : gf < ga ? 'm' : 'b'; }
+    const DUR = { PST: 'Ertelendi', CANC: 'İptal', ABD: 'Yarıda kaldı', AWD: 'Hükmen', WO: 'Hükmen' };
+    const orta = fin ? (n ? '<i class="kmhap ' + (rz || 'b') + '">' : '<i class="kmh2sk">') + x[5] + ' - ' + x[6] + '</i>' : '<b class="kmtm-s">' + E(DUR[x[7]] || (x[7] === 'NS' || x[7] === 'TBD' ? hm(Date.parse(x[0])) : x[7])) + '</b>';
+    const pen = x[7] === 'PEN' ? ' · pen.' : x[7] === 'AET' ? ' · uzt.' : '';
+    const tr = turAd(x[8]);
+    return '<div class="kmtm-r"><div class="kmtm-u"><small>' + E(new Date(Date.parse(x[0])).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })) + (tr ? ' · ' + E(tr) : '') + pen + '</small><small class="kmtm-l">' + E(yarAd(x[1])) + ligLg(x[1], 'kucuk') + '</small></div>'
+      + '<div class="kmtm-m"><span data-tm="' + E(h) + '"' + (!n && fin && +x[5] > +x[6] ? ' class="b"' : '') + '>' + E(h) + bd(h) + '</span>' + orta + '<span data-tm="' + E(a) + '"' + (!n && fin && +x[6] > +x[5] ? ' class="b"' : '') + '>' + bd(a) + E(a) + '</span></div></div>';
+  }
+  // takim: gecmis sezonlar (dizinde maci olan sezonlar, guncel haric)
+  function takimSezonlar(n) {
+    const j = takimIdx(n); if (!j || !j.m) return [];
+    return [...new Set(j.m.map(x => +x[2]))].filter(s => s < APIS).sort((a, b) => b - a).slice(0, 5);
+  }
+  let TY = { n: '', y: 0 };
+  function takimSezonMaclari(n, s, baslik) {
+    const j = takimIdx(n);
+    if (j === undefined) return card('kmtm', '<p class="kmbos">Yükleniyor…</p>');
+    const l = ((j && j.m) || []).filter(x => +x[2] === s);
+    const c = takimLig(n) || (l[0] && l[0][1]);
+    const ust = '<h3 class="kmb">' + E(baslik || 'Maçlar') + ' <small>' + E(sezAd({ c: c || '', s })) + ' · ' + l.length + ' maç</small></h3>';
+    if (!l.length) return card('kmtm', ust + '<p class="kmbos">Bu sezon için maç verisi yok.</p>');
+    const yar = [...new Set(l.map(x => x[1]))];
+    const ozet = yar.length > 1 ? '<div class="kmtm-yz">' + yar.map(k => '<span>' + ligLg(k, 'kucuk') + E(yarAd(k)) + ' <b>' + l.filter(x => x[1] === k).length + '</b></span>').join('') + '</div>' : '';
+    return card('kmtm kmtm-gs', ust + ozet + l.map(x => idxSatir(x, j.t || {}, n)).join('') + APIKAY);
+  }
+  function takimGecmisSezon(n, s) {
+    const c = takimLig(n), id = takimId(n);
+    const tablo = c ? ligApiTablo(c, s, id) : '';
+    if (TT === 't') return tablo || card('kmtablo', '<p class="kmbos">Bu sezon için puan durumu verisi yok.</p>');
+    if (TT === 'm') return takimSezonMaclari(n, s);
+    if (TT === 'k' || TT === 'i') return card('kmtm', '<p class="kmbos">Kadro ve oyuncu istatistikleri güncel sezonu gösterir. Güncel sezona dönmek için üstteki sezon seçiciyi kullan.</p>');
+    return takimSezonMaclari(n, s, 'Sezonun maçları') + '<div class="mside">' + tablo + '</div>';
+  }
+  window.KMTakimY = () => (TY.n === QX ? TY.y : 0);
+  // karsilasmalar: iki takimin dizindeki ortak maclari (tum yarismalar), yeniden eskiye
+  function idxH2h(m) {
+    const a = takimId(m.h), b = takimId(m.a); if (!a || !b) return null;
+    const j = takimIdx(m.h); if (!j) return j; // undefined: yukleniyor
+    const l = (j.m || []).filter(x => BITTI.has(x[7]) && x[5] != null && ((+x[3] === a && +x[4] === b) || (+x[3] === b && +x[4] === a)));
+    return { l, t: j.t || {} };
   }
   function ligApiMaclar(c, s) {
     const fx = apiJ(`${c}/${s}/fixtures.json`), st = apiJ(`${c}/${s}/standings.json`);
@@ -1959,6 +2046,8 @@
       if (t.dataset.kmltakip && window.KMLig) { if (window.KMLig.degistir(t.dataset.kmltakip)) { try { KMHap(); } catch (x) { } try { render(); } catch (x) { } } }
     }, true);
     document.addEventListener('change', e => {
+      const ts = e.target.closest && e.target.closest('[data-kmtsez]');
+      if (ts) { TY = { n: QX, y: +ts.value || 0 }; try { render(); } catch (x) { } return; }
       const t = e.target.closest && e.target.closest('[data-kmsez]'); if (!t) return;
       LGS.y = +t.value || 0; try { render(); } catch (x) { }
     });
@@ -2070,6 +2159,8 @@
     if (oi) { OIS = oi.dataset.kmois; OSS = { k: '', y: -1 }; render(); return; }
     const os = e.target.closest && e.target.closest('[data-kmoss]');
     if (os) { const kk = os.dataset.kmoss, cur = OSS.k || (os.classList.contains('on') ? kk : ''); OSS = cur === kk ? { k: kk, y: -OSS.y } : { k: kk, y: -1 }; render(); return; }
+    const h2t = e.target.closest && e.target.closest('[data-kmh2t]');
+    if (h2t) { H2HA = H2HA === h2t.dataset.kmh2t ? '' : h2t.dataset.kmh2t; render(); return; }
     const tt = e.target.closest && e.target.closest('[data-kmtt]');
     if (tt) { TT = tt.dataset.kmtt; render(); return; }
     const sf = e.target.closest && e.target.closest('[data-kmsmf]');
