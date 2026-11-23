@@ -163,7 +163,8 @@ for (const m of appSrc.matchAll(/^[A-Z0-9]{2,4}\|\d\d-\d\dT\d\d:\d\d\|([^|\n]+)\
 for (const m of appSrc.matchAll(/^\d{4}-\d\d-\d\dT\d\d:\d\d\|([^|\n]+)\|([^|\n]+)$/gm)) handPairs.add(m[1] + '|' + m[2]);
 
 // ---------- ana akis ----------
-const today = new Date().toISOString().slice(0, 10);
+// Gun Turkiye saatine gore (UTC+3): TR'de gece 00-03 arasi UTC hala dunu gosterir, yarin penceresi kayardi.
+const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
 // Ucretsiz plan yalnizca dun-bugun-yarin tarihlerine izin veriyor (UTC). Ucretli planda --days arttirilir.
 const from = arg('from', addDays(today, -1)), days = +arg('days', 3), maxPred = +arg('max-pred', 40);
