@@ -41,7 +41,22 @@
   };
   const sonuc = r => r === 'G' ? 'g' : r === 'M' ? 'm' : 'b';
   const son5 = n => (typeof SLG !== 'undefined' && SLG[n] ? SLG[n].slice(-5) : []);
-  const siradaki = n => R.filter(x => (x.h === n || x.a === n) && stt(x).k === 'wait').sort((a, b) => a.t - b.t)[0];
+  // siradaki mac: yuklu maclar (R) + takimin tum yarismalari (data/api/takim/<id>.json; CL/kupa maclari R'de olmayabilir)
+  const siradaki = n => {
+    const r = R.filter(x => (x.h === n || x.a === n) && stt(x).k === 'wait').sort((a, b) => a.t - b.t)[0];
+    try {
+      const j = takimIdx(n), id = takimId(n); if (!j || !Array.isArray(j.m) || !id) return r;
+      const now = Date.now(), lim = r ? r.t.getTime() - 3 * 36e5 : Infinity;
+      const row = j.m.filter(x => (x[7] === 'NS' || x[7] === 'TBD') && (+x[3] === id || +x[4] === id) && Date.parse(x[0]) > now && Date.parse(x[0]) < lim).sort((p, q) => Date.parse(p[0]) - Date.parse(q[0]))[0];
+      if (!row) return r;
+      const t = new Date(Date.parse(row[0])), ad = k => +k === id ? n : tkKanon((j.t || {})[k] || '');
+      const ayni = R.find(x => Math.abs(x.t - t) < 2 * 864e5 && takimId(x.h) === +row[3] && takimId(x.a) === +row[4]);
+      if (ayni) return stt(ayni).k === 'wait' ? ayni : r;
+      const h = ad(row[3]), a = ad(row[4]);
+      return h && a ? { c: row[1], h, a, t, yok: 1 } : r;
+    } catch (e) { return r; }
+  };
+  const kmmA = x => x && !x.yok ? ` data-kmm="${E(key(x))}"` : '';
 
   // ================= MAC SAYFASI =================
   function macBaslik(m) {
@@ -219,7 +234,7 @@
   // 5) Sonraki mac (iki takimin siradaki maci)
   function sonrakiMac(m) {
     const kol = n => { const x = siradaki(n); if (!x) return '';
-      return `<div class="kmsnm" data-kmm="${E(key(x))}"><small>${E(ligAd(x.c))}</small><div><span>${bd(x.h, 1)}<b>${E(x.h)}</b></span><span class="kmsnm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></span><span>${bd(x.a, 1)}<b>${E(x.a)}</b></span></div></div>`; };
+      return `<div class="kmsnm"${kmmA(x)}><small>${E(ligAd(x.c))}</small><div><span>${bd(x.h, 1)}<b>${E(x.h)}</b></span><span class="kmsnm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></span><span>${bd(x.a, 1)}<b>${E(x.a)}</b></span></div></div>`; };
     const a = kol(m.h), b = kol(m.a);
     if (!a && !b) return '';
     return card('kmsnmk', `<h3 class="kmb orta">Sonraki maç</h3><div class="kmiki">${a || '<p class="kmbos">Sonraki maç verisi yok.</p>'}${b || '<p class="kmbos">Sonraki maç verisi yok.</p>'}</div>`);
@@ -824,7 +839,7 @@
         <p class="kmkay">Takvimde sıradaki maç yok; son oynanan maç gösteriliyor.</p>`);
     }
     return card('kmsonraki', `<div class="kmb2"><h3 class="kmb">Sonraki maç</h3><small>${E(ligAd(x.c))}</small></div>
-      <div class="kmsm" data-kmm="${E(key(x))}"><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>`);
+      <div class="kmsm"${kmmA(x)}><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>`);
   }
   // yarismanin puan tablosu satirlari: lig (TM), Sampiyonlar Ligi (clT), Avrupa/Konferans Ligi (EUS)
   function tabloSatir(c) {
@@ -1052,7 +1067,7 @@
     const sat = (ad, vh, va, az, fmt) => vh == null || va == null ? '' : istatSatir(ad, fmt(vh), fmt(va), { na: vh, nb: va, az });
     const tablo = h && a ? sat('Tablodaki sıra', h.r, a.r, 1, v => v) + sat('Maç başına gol', h.g, a.g, 0, f2) + sat('Maç başına yenilen gol', h.y, a.y, 1, f2) : '';
     return card('kmsonraki kmsk2', `<div class="kmb2"><h3 class="kmb">Sonraki maç</h3><small>${ligLg(x.c, 'kucuk')} ${E(ligAd(x.c))}</small></div>
-      <div class="kmsm" data-kmm="${E(key(x))}"><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>
+      <div class="kmsm"${kmmA(x)}><div>${bd(x.h, 1)}<b>${E(x.h)}</b></div><div class="kmsm-o"><b>${hm(x.t)}</b><small>${E(gunEtiket(x.t) || kisaTarih(x.t))}</small></div><div>${bd(x.a, 1)}<b>${E(x.a)}</b></div></div>
       ${tablo ? `<div class="kmsk2-t">${tablo}</div>` : ''}`);
   }
   // oyuncu bilgisi: once kimlikle foot.json, yoksa ad ile lig dosyasi data/players/foot-ad/<LIG>.json ("Takim|Ad"; tembel yuklenir)
@@ -1640,13 +1655,13 @@
         <p class="kmkay">Kaynak: API-Football${ml.some(m => m.ml) ? ", Sofascore" : ""}</p>`) : '';
     const nx = o.team ? siradaki(o.team) : null;
     const takim = o.team ? card('kmpyan', `<h3 class="kmb">Takım</h3><div class="kmpy" data-tm="${E(o.team)}">${bd(o.team, 1)}<div><b>${E(kulupAd(o.team))}</b><small>${tl && tl.l ? E(ligAd(tl.l)) + ' · ' + tl.r + '. sıra' : ''}</small></div></div>
-        ${nx ? `<div class="kmpy-nx" data-kmm="${E(key(nx))}"><small>Sonraki maç</small><span>${E(nx.h)} – ${E(nx.a)}</span><small>${E(kisaTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}</small></div>` : ''}`) : '';
+        ${nx ? `<div class="kmpy-nx"${kmmA(nx)}><small>Sonraki maç</small><span>${E(nx.h)} – ${E(nx.a)}</span><small>${E(kisaTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}</small></div>` : ''}`) : '';
     // milli takim: son kadro (API) ya da Transfermarkt milli mac sayisi (cagrilmayan milli oyuncu da gorunur, 'Son kadroda yok')
     const tmI = (typeof tmOyuncu === 'function' && tmOyuncu(e)) || {}, mic = tmI.ic && +tmI.ic[0] > 0 ? tmI.ic : null;
     const sonK = !!(e.milli && e.milli !== o.team), mT = sonK ? e.milli : (mic && kf.n && kf.n !== o.team ? kf.n : null);
     const mnx = sonK ? siradaki(mT) : null;
     const milli = mT ? card('kmpyan', `<h3 class="kmb">Milli takım</h3><div class="kmpy" data-tm="${E(mT)}">${bd(mT, 1)}<div><b>${E(mT)}</b><small>${[sonK ? 'Son kadroda' + (e.milliNo ? ' · ' + e.milliNo + ' numara' : '') : 'Son kadroda yok', mic ? mic[0] + ' maç · ' + (mic[1] || 0) + ' gol' : ''].filter(Boolean).map(E).join(' · ')}</small></div></div>
-        ${mnx ? `<div class="kmpy-nx" data-kmm="${E(key(mnx))}"><small>Sonraki maç</small><span>${E(mnx.h)} – ${E(mnx.a)}</span><small>${E(kisaTarih(mnx.t))}, ${hm(mnx.t)} · ${E(ligAd(mnx.c))}</small></div>` : ''}`) : '';
+        ${mnx ? `<div class="kmpy-nx"${kmmA(mnx)}><small>Sonraki maç</small><span>${E(mnx.h)} – ${E(mnx.a)}</span><small>${E(kisaTarih(mnx.t))}, ${hm(mnx.t)} · ${E(ligAd(mnx.c))}</small></div>` : ''}`) : '';
     return bas + ust + tmk.deg + sezon + maclar + tmk.sez + `<div class="mside">${takim}${milli}${tmk.yan}${apo.kart}</div>`;
   }
   // arama: birlesik dizinden oyuncular (tam ad ya da kisaltma)
