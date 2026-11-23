@@ -276,7 +276,7 @@ if (process.argv.includes('--live')) {
   const seen = new Set();
   let upd = 0, add = 0;
   // bilinen hicbir mac oynanmiyor ya da 10 dk icinde baslamiyorsa canli istek yapma (kota tasarrufu)
-  { const nowMs = Date.now(); const inPlay = prev.m.some(m => { const t = Date.parse(m.t); return nowMs >= t - 10 * 60e3 && nowMs <= t + 170 * 60e3; }); if (!inPlay) { console.log('Canli: simdi oynanan ya da yaklasan bilinen mac yok, istek yapilmadi.'); process.exit(0); } }
+  { const nowMs = Date.now(); const inPlay = prev.m.some(m => { const t = Date.parse(m.t); return nowMs >= t - 10 * 60e3 && nowMs <= t + 170 * 60e3; }); if (!inPlay) { if (!DRY) { prev.at = new Date().toISOString(); fs.writeFileSync(latestPath, JSON.stringify(prev)); } console.log('Canli: simdi oynanan ya da yaklasan bilinen mac yok, istek yapilmadi (veri kontrol edildi, at yenilendi).'); process.exit(0); } }
   const j = await api('/fixtures?live=all&timezone=UTC');
   for (const x of j.response) {
     const m = toMatch(x);
