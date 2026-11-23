@@ -16,7 +16,9 @@ console.log(`[${new Date().toISOString()}] Mod: ${mode}`);
 // Ayni anda iki calisma olmasin (API hiz siniri): kilit dosyasi, 30 dk'dan eskiyse gecersiz
 import fs from 'node:fs';
 const LOCK = path.join(root, 'tools', 'cache', '.yerel-lock');
-try { if (Date.now() - fs.statSync(LOCK).mtimeMs < 30 * 60e3) { console.log('Baska bir guncelleme calisiyor, cikiliyor.'); process.exit(3); /* 3: hic calismadi, yerel-tetik tekrar dener */ } } catch {}
+// kilidi birakan surec olmusse (Ctrl+C, kapanma) kilit gecersiz: yoksa 30 dk boyunca hic veri yayinlanmiyordu
+const canli = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+try { if (Date.now() - fs.statSync(LOCK).mtimeMs < 30 * 60e3 && canli(+fs.readFileSync(LOCK, 'utf8'))) { console.log('Baska bir guncelleme calisiyor, cikiliyor.'); process.exit(3); /* 3: hic calismadi, yerel-tetik tekrar dener */ } } catch {}
 fs.mkdirSync(path.dirname(LOCK), { recursive: true }); fs.writeFileSync(LOCK, String(process.pid));
 process.on('exit', () => { try { fs.unlinkSync(LOCK); } catch {} });
 const steps = {

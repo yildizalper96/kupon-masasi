@@ -350,11 +350,13 @@
     }
     return l;
   }
-  function muhtemelKadro(m, s) {
-    const n = s === 'h' ? m.h : m.a, t = PS[m.c + '|' + n]; if (!t || !t.p || !t.p.length) return null;
+  // Avrupa kupalarinda (CL/EL/ECL) takimin sezon verisi cogu kez kendi liginde (SL|Fenerbahce): o lige dus
+  const psLig = (m, n) => PS[m.c + '|' + n] ? m.c : ((Object.keys(PS).find(k => k.slice(k.indexOf('|') + 1) === n) || '').split('|')[0] || m.c);
+  function muhtemelKadro(m0, s) {
+    const n = s === 'h' ? m0.h : m0.a, m = Object.assign({}, m0, { c: psLig(m0, n) }), t = PS[m.c + '|' + n]; if (!t || !t.p || !t.p.length) return null;
     const sp = tmSp(), fa = FAD[m.c]; if (!fa) fadYukle(m.c);
     if (sp === undefined || !fa || ayrilanlar() === undefined) return null; // mevki dizini / oyuncu dosyasi yukleniyor (gelince yeniden cizilir)
-    const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], inj = ((e && e.inj) || []).filter(x => x.s === s).map(x => nrm(String(x.n).split(' ').pop()));
+    const X = window.KMX, e = X && X.byKey && X.byKey[key(m0)], inj = ((e && e.inj) || []).filter(x => x.s === s).map(x => nrm(String(x.n).split(' ').pop()));
     let haber = []; try { haber = (NW || []).filter(x => x && x.tm === n && Array.isArray(x.out) && (+m.t - new Date(x.d)) < 6 * 864e5).flatMap(x => x.out.map(nrm)); } catch (er) { }
     const yok = [...inj, ...haber].filter(Boolean);
     const disari = ad => { const w = nrm(ad); return yok.some(k => w === k || w.split(/[\s-]+/).includes(k) || (k.includes(' ') && w.includes(k))); };
@@ -399,7 +401,8 @@
     const lu = LU[key(m)];
     // bitmis mac, resmi 11 verisi henuz gelmemis: sessizce sezon kadrosu gosterme, durumu acikca yaz
     const bekle = !lu && stt(m).k === 'ft' && PS[m.c + '|' + m.h] ? card('kmkadro', `<h3 class="kmb">Resmi ilk 11</h3><p class="kmbos">Bu maçın resmi ilk 11 ve dizilişi henüz gelmedi; bir sonraki veri güncellemesinde eklenecek.</p>`) : '';
-    if (!lu) return bekle + (davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || (muhtemelSaha(m) ? muhtemelSaha(m) + (dt === 'k' ? kulupKadroKarti(m) : '') : '') || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`));
+    // muhtemel 11 sahasi once: tum kulup kadrolari sq'da oldugu icin davet listesi (milli takim) kulup maclarinda sahayi gizliyordu
+    if (!lu) { const ms = muhtemelSaha(m); return bekle + ((ms ? ms + (dt === 'k' ? kulupKadroKarti(m) : '') : '') || davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`)); }
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
@@ -633,6 +636,7 @@
   let DV = 'tum';
   function devreVeri(m) { const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], th = e && e.live && e.live.th; if (!th) return null; const ok = v => Array.isArray(v) && v.length; return ok(th['1']) || ok(th['2']) ? th : null; }
   function pxVeri(m) {
+    pxHazir();
     const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], px = e && e.live && e.live.px;
     if (px && (px.h || px.a)) return { tam: true, h: px.h || [], a: px.a || [] };
     const st = stxOf(m); if (!st || !st.p) return null;
@@ -956,7 +960,7 @@
     if (X && X.byKey) Object.values(X.byKey).forEach(m => { if (!m || !m.luRaw) return; const s = m.h === n ? 'h' : m.a === n ? 'a' : null; if (!s || !m.luRaw[s]) return; const t = Date.parse(m.t) || 0; if (!son || t > son.t) son = { t, raw: m.luRaw[s], m, s }; });
     if (son && (son.raw.xi || []).length >= 10) {
       const satir = {}; son.raw.xi.forEach(p => { const r = +String(p.grid || '0:0').split(':')[0] || 0; (satir[r] = satir[r] || []).push(p); });
-      const px = son.m.live && son.m.live.px && son.m.live.px[son.s] || [];
+      pxHazir(); const px = son.m.live && son.m.live.px && son.m.live.px[son.s] || [];
       return { kay: 'API-Football (resmi ilk 11, ' + kisaTarih(son.t) + ')', satirlar: Object.keys(satir).map(Number).sort((a, b) => b - a).map(r => satir[r].sort((a, b) => (+String(b.grid).split(':')[1]) - (+String(a.grid).split(':')[1])).map(p => { const e = bul(p.n); const q = px.find(z => (p.id && z.id === p.id) || ayniAd(z.n, p.n)); return { n: e ? e.n : p.n, e: e || { team: n, n: p.n, ad: p.n, id: p.id }, no: p.no, r: q && q.r }; })) };
     }
     const ps = typeof PS !== 'undefined' ? Object.keys(PS).filter(k => k.endsWith('|' + n)).map(k => PS[k]) : [];
@@ -1094,6 +1098,17 @@
     TMC[anahtar] = undefined;
     try { Promise.resolve(yap()).then(v => { TMC[anahtar] = v || null; try { render(); } catch (e) { } }, () => { TMC[anahtar] = null; }); } catch (e) { TMC[anahtar] = null; }
     return undefined;
+  }
+  // Mac basi oyuncu istatistigi (live.px) yayinda details.json'dan ayrilir (tools/build-site.mjs -> data/fixtures/details-px.json).
+  // Gereken sayfada bir kez yuklenir, KMX kayitlarina geri eklenir ve sayfa yeniden cizilir. Yerelde px zaten details.json'da.
+  function pxHazir() {
+    const X = window.KMX; if (!X || !X.at || !X.byKey) return;
+    tmV('px:' + X.at, () => Object.values(X.byKey).some(e => e && e.live && e.live.px) ? null
+      : fetch('data/fixtures/details-px.json').then(r => r.ok ? r.json() : null).then(j => {
+        if (!j || !j.p) return null;
+        Object.keys(j.p).forEach(k => { const e = X.byKey[k]; if (e && e.live && !e.live.px) e.live.px = j.p[k]; });
+        return true;
+      }).catch(() => null));
   }
   const TMKAY = '<p class="kmkay">Kaynak: Transfermarkt</p>';
   const binEur = v => degerYaz((+v || 0) * 1000);
@@ -1418,7 +1433,7 @@
       o.id = o.id || p.id || null; o.ph = o.ph || p.ph || null; o.no = o.no || p.no || null; o.a = o.a || (yas ? p.a : null) || null; o.pos = o.pos || pos || null;
     };
     Object.values(sqs).forEach(s => (s && s.p || []).forEach(p => ekle(s.n, p, p.p, 1)));
-    Object.values(bk).forEach(e => { if (!e) return; ['h', 'a'].forEach(s => {
+    pxHazir(); Object.values(bk).forEach(e => { if (!e) return; ['h', 'a'].forEach(s => {
       const tm = e[s], r = e.luRaw && e.luRaw[s];
       if (r) [...(r.xi || []), ...(r.bn || [])].forEach(p => ekle(tm, p, APIMEV[p.pos]));
       ((e.live && e.live.px && e.live.px[s]) || []).forEach(p => ekle(tm, p, APIMEV[p.pos]));
@@ -1482,7 +1497,7 @@
     const bs = w.querySelectorAll('[data-kmpg]'); bs[0].disabled = p === 0; bs[1].disabled = p >= pg - 1;
   });
   function apiMaclari(e, ps) {
-    const X = window.KMX, out = []; if (!X || !X.byKey) return out;
+    pxHazir(); const X = window.KMX, out = []; if (!X || !X.byKey) return out;
     Object.values(X.byKey).forEach(m => {
       if (!m || !m.live || !m.live.px) return;
       ['h', 'a'].forEach(s => {
