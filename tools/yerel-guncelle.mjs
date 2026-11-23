@@ -31,11 +31,13 @@ for (const [s, ...a] of steps) run(node, [s, ...a]);
 run(node, ['tools/sonuc-ekle.mjs']);
 // gol kralligi: API cift sayimini mac olaylarindan duzelt (istek yok)
 run(node, ['tools/top-from-events.mjs']);
+// guc modeli: tum sonuclardan takim gucu -> yaklasan maclarin gol beklentisi (data/model/guc.json; istek yok)
+run(node, ['tools/model-guc.mjs']);
 // takim basina tum maclar dizini (takim sayfasi gecmis sezonlar + karsilasmalar; istek yok)
 if (mode === 'full') run(node, ['tools/team-index.mjs']);
 if (mode === 'full') run(node, ['tools/keepalive.mjs']); // Supabase 1 hafta islemsizlikte durur
 
-const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/lineups', 'data/results', 'data/standings', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
+const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/lineups', 'data/results', 'data/standings', 'data/model', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
 run('git', ['add', '--', ...DATA]);
 if (!out('git', ['diff', '--cached', '--name-only'])) { console.log('Degisiklik yok.'); process.exit(0); }
 run('git', ['commit', '-q', '-m', `Veri guncelle (yerel, ${mode})`]);
