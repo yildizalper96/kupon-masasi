@@ -1835,8 +1835,58 @@
     return cips ? govde.replace(/(<section[^>]*class="[^"]*kmtablo[^"]*"[^>]*>)/, '$1' + cips) : govde;
   }
   const haftaAd = rd => { const s = String(rd || ''); const m = /(\d+)\s*$/.exec(s); return /regular season|hafta/i.test(s) && m ? m[1] + '. Hafta' : (s || 'Maçlar'); };
+  // API liglerinde tam sezon fiksturu (data/api/<C>/<S>/fixtures.json) esas alinir: tum maclar, gercek tarih ve hafta numarasi.
+  // R'deki karsiligi (tahminli, tiklanabilir kayit) varsa o kullanilir; yoksa yalnizca gosterim kaydi (bt) olusur.
+  const FXBIT = new Set(['FT', 'AET', 'PEN', 'AWD', 'WO']);
+  function ligTurlarApi(c) {
+    if (!APIL.has(c)) return null;
+    const fx = apiJ(`${c}/${APIS}/fixtures.json`), ids = apiIds();
+    if (!fx || !Array.isArray(fx.m) || !fx.m.length || !ids) return null;
+    const rL = R.filter(m => m.c === c), rAd = new Set(); rL.forEach(x => { rAd.add(x.h); rAd.add(x.a); });
+    const tAd = new Set(tabloSatir(c).map(v => v.n)), ad = {}, puan = n => (rAd.has(n) ? 2 : 0) + (tAd.has(n) ? 1 : 0);
+    Object.entries(ids).forEach(([n, id]) => { if (!ad[id] || puan(n) > puan(ad[id])) ad[id] = n; });
+    const kul = new Set(), ms = [];
+    fx.m.forEach(r => {
+      const t = Date.parse(r[1]); if (!t) return;
+      const h = ad[r[2]] || (fx.tn && fx.tn[r[2]]), a = ad[r[3]] || (fx.tn && fx.tn[r[3]]); if (!h || !a) return;
+      // ayni ev/deplasman eslesmesi; ertelenen macta R'deki eski tarihli kayit da eslesir (45 gun), tarih fiksturden alinir
+      let ri = -1, en = 45 * 864e5;
+      rL.forEach((x, i) => { const f = Math.abs(+x.t - t); if (!kul.has(i) && f < en && (ayniId(x.h, h) || ayniTk(x.h, h)) && (ayniId(x.a, a) || ayniTk(x.a, a))) { ri = i; en = f; } });
+      let m;
+      if (ri >= 0) { kul.add(ri); m = rL[ri]; if (Math.abs(+m.t - t) > 2 * 3600e3) m = Object.assign({}, m, { t: new Date(t) }); } else {
+        m = { c, t: new Date(t), h, a, bt: 1 };
+        const k = key(m); if (!RES[k] && FXBIT.has(r[6]) && r[4] != null && r[5] != null) RES[k] = r[4] + '-' + r[5];
+      }
+      ms.push({ m, t, w: r[7] != null && r[7] !== '' ? String(r[7]) : null });
+    });
+    // fiksturde karsiligi bulunmayan R kayitlari (ornegin farkli yazilmis ad) kaybolmasin: en yakin haftaya
+    rL.forEach((x, i) => { if (!kul.has(i)) ms.push({ m: x, t: +x.t, w: null }); });
+    ms.sort((p, q) => p.t - q.t);
+    const l = [];
+    ms.forEach(o => {
+      let g = o.w != null ? l.find(x => x.w === o.w) : null;
+      if (!g && o.w == null) g = l.slice().reverse().find(x => Math.abs(o.t - x.l[x.l.length - 1].t) <= 3.5 * 864e5) || null;
+      if (!g) { g = { w: o.w, l: [] }; l.push(g); }
+      g.l.push(o.m);
+    });
+    l.forEach(g => g.l.sort((p, q) => p.t - q.t));
+    // ertelenen tek mac haftanin tarih araligini bozmasin: hafta zamani = medyan
+    l.forEach(g => { g.md = +g.l[Math.floor(g.l.length / 2)].t; });
+    l.sort((p, q) => p.md - q.md);
+    return l;
+  }
   function ligTurlar(c) {
-    const ms = R.filter(m => m.c === c).sort((a, b) => a.t - b.t); const l = [];
+    const ap = ligTurlarApi(c);
+    if (ap) { ap.forEach(g => { const ic = g.l.filter(m => Math.abs(+m.t - g.md) <= 4 * 864e5); g.ad = turAralik(ic.length ? ic : g.l);g.alt = g.w != null ? turAd(g.w) : ''; }); return ap; }
+    const ms = R.filter(m => m.c === c);
+    // R'de olmayan biten lig maclari (finished.json; ornegin elle listenin bittigi ile API penceresi arasindaki gunler) eklenir
+    BITEN.forEach(x => {
+      if (!x || x.c !== c || !Number.isFinite(+x.x) || !Number.isFinite(+x.y)) return; const t = Date.parse(x.t); if (!t) return;
+      if (ms.some(m => Math.abs(+m.t - t) < 3 * 3600e3 && (ayniTk(m.h, x.h) || ayniTk(m.a, x.a) || ayniId(m.h, x.h) || ayniId(m.a, x.a)))) return;
+      const m = { c, t: new Date(t), h: tkKanon(x.h), a: tkKanon(x.a), bt: 1 }, k = key(m);
+      if (!RES[k]) RES[k] = x.x + '-' + x.y; ms.push(m);
+    });
+    ms.sort((a, b) => a.t - b.t); const l = [];
     // tur bilgisi (rd) varsa hafta; yoksa birbirine 3,5 gunden yakin maclar ayni maç haftasi sayilir (etiket: tarih araligi)
     ms.forEach(m => {
       let g = m.rd ? l.find(x => x.k === m.rd) : null;
@@ -1844,24 +1894,34 @@
       if (!g) { g = { k: m.rd || ('t' + m.t), rd: !!m.rd, ad: m.rd ? haftaAd(m.rd) : '', l: [] }; l.push(g); }
       g.l.push(m);
     });
-    const ay = t => new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
-    l.forEach(g => { if (g.ad) return; const t0 = g.l[0].t, t1 = g.l[g.l.length - 1].t; g.ad = dk(t0) === dk(t1) ? ay(t0) : (new Date(t0).getMonth() === new Date(t1).getMonth() ? new Date(t0).getDate() + '–' + ay(t1) : ay(t0) + ' – ' + ay(t1)); });
+    l.forEach(g => { if (!g.ad) g.ad = turAralik(g.l); });
     return l;
   }
-  const lfSatir = m => { const s = stt(m); return `<div class="kmlf" data-kmm="${E(key(m))}"><span class="b">${E(m.h)}${bd(m.h)}</span><em>${s.sc ? `${E(s.sc[0])} - ${E(s.sc[1])}` : hm(m.t)}</em><span>${bd(m.a)}${E(m.a)}</span></div>`; };
+  function turAralik(ms) {
+    const ay = t => new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+    const t0 = ms[0].t, t1 = ms[ms.length - 1].t;
+    return dk(t0) === dk(t1) ? ay(t0) : (new Date(t0).getMonth() === new Date(t1).getMonth() ? new Date(t0).getDate() + '–' + ay(t1) : ay(t0) + ' – ' + ay(t1));
+  }
+  const lfSatir = m => { const s = stt(m); return `<div class="kmlf"${m.bt ? '' : ` data-kmm="${E(key(m))}"`}><span class="b">${E(m.h)}${bd(m.h)}</span><em>${s.sc ? `${E(s.sc[0])} - ${E(s.sc[1])}` : hm(m.t)}</em><span>${bd(m.a)}${E(m.a)}</span></div>`; };
   const gunlere = ms => { const g = []; ms.forEach(m => { const d = dk(m.t); let x = g[g.length - 1]; if (!x || x.d !== d) { x = { d, t: m.t, l: [] }; g.push(x); } x.l.push(m); }); return g; };
   const gunBaslik = t => new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
   const gunHtml = l => gunlere(l).map(d => `<div class="kmhf-g">${E(gunBaslik(d.t))}</div>${d.l.map(lfSatir).join('')}`).join('');
   let LHF = { c: '', i: -1 };
   function ligHafta(c) {
     const tr = ligTurlar(c); if (!tr.length) return '';
-    if (LHF.c !== c || LHF.i < 0 || LHF.i >= tr.length) { const bug = Date.now() - 3 * 3600e3; let i = tr.findIndex(g => g.l.some(m => m.t >= bug || stt(m).k === 'wait' || stt(m).k === 'live')); if (i < 0) i = tr.length - 1; LHF = { c, i }; }
+    if (LHF.c !== c || LHF.n !== tr.length || LHF.i < 0 || LHF.i >= tr.length) {
+      // guncel hafta: bitmemis maci olan ilk hafta (medyani 4 gunden eski ertelenmis haftalar sayilmaz)
+      const bug = Date.now() - 3 * 3600e3, esik = Date.now() - 4 * 864e5;
+      let i = tr.findIndex(g => (g.md == null || g.md >= esik) && g.l.some(m => m.t >= bug || stt(m).k === 'wait' || stt(m).k === 'live')); if (i < 0) i = tr.length - 1;
+      LHF = { c, i, n: tr.length };
+    }
     const g = tr[LHF.i];
-    return card('kmlfk kmhf', `<div class="kmmh"><button class="kmok" data-kmhf="-1" ${LHF.i > 0 ? '' : 'disabled'} aria-label="Önceki hafta">‹</button><div><h3>${E(g.ad)}</h3><small>${E(ligAd(c))}</small></div><button class="kmok" data-kmhf="1" ${LHF.i < tr.length - 1 ? '' : 'disabled'} aria-label="Sonraki hafta">›</button></div>${gunHtml(g.l)}`);
+    return card('kmlfk kmhf', `<div class="kmmh"><button class="kmok" data-kmhf="-1" ${LHF.i > 0 ? '' : 'disabled'} aria-label="Önceki hafta">‹</button><div><h3>${E(g.ad)}</h3><small>${g.alt ? E(g.alt) + ' · ' : ''}${E(ligAd(c))}</small></div><button class="kmok" data-kmhf="1" ${LHF.i < tr.length - 1 ? '' : 'disabled'} aria-label="Sonraki hafta">›</button></div>${gunHtml(g.l)}`);
   }
   function ligMaclar(c) {
     const tr = ligTurlar(c); if (!tr.length) return card('kmlfk', '<p class="kmbos">Bu lig için kayıtlı maç yok.</p>');
-    return tr.slice().reverse().map(g => card('kmlfk kmhf', `<div class="kmmh kmmh1"><div><h3>${E(g.ad)}</h3></div></div>${gunHtml(g.l)}`)).join('');
+    const son = Date.now() + 7 * 864e5; // tam fikstur: gelecekteki haftalar listeyi sisirmesin
+    return tr.filter(g => +g.l[0].t <= son).reverse().map(g => card('kmlfk kmhf', `<div class="kmmh kmmh1"><div><h3>${E(g.ad)}</h3>${g.alt ? `<small>${E(g.alt)}</small>` : ''}</div></div>${gunHtml(g.l)}`)).join('');
   }
   let LGS = { c: '', s: 'o', y: 0 }; window.KMLigY = () => LGS.y; // gecmis sezon secili mi (gunun-kuponu.js)
   const sezonAd = () => { const d = new Date(), y = d.getUTCFullYear(); return d.getUTCMonth() >= 6 ? `${y}/${y + 1}` : `${y - 1}/${y}`; };
