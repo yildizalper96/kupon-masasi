@@ -113,16 +113,39 @@ try {
 } catch (e) { }
 // genclik/B/yedek takimlari ana kulubun kimligine baglanir ("Sporting U19", "Man City U23", "Barça Youth", "Sporting B"): ek soyulur, ana kulup adi (birebir) out'ta aranir.
 {
-  const YS = /(\s+(U ?\d{2}|Sub-?\d{2}|Youth|Yth\.?|Juniors?|Jgd\.?|Jugend|Reserves?|Res\.?|Primavera|Academy|Akademi|II|III|B|C|Next))+$/i;
-  const idx = new Map(); for (const [k, v] of Object.entries(out)) { const z = nz(k); if (!idx.has(z)) idx.set(z, v); } for (const a of api) { if (!idx.has(a.n)) idx.set(a.n, a.id); }
-  const AL = { 'Barça': 'Barcelona', 'Bilbao': 'Athletic Club', 'W. Bremen': 'Werder Bremen', 'B. München': 'Bayern Munich', 'Din. Zagreb': 'Dinamo Zagreb', 'D. Zagreb': 'Dinamo Zagreb', 'Palace': 'Crystal Palace', 'Spurs': 'Tottenham', 'Stmk.-Sturm': 'Sturm Graz', 'Nordsjaell.': 'Nordsjælland', 'Sporting CP': 'Sporting', 'Vikt. Plzen': 'Viktoria Plzeň', 'Hajduk': 'Hajduk Split', 'FCK': 'FC Copenhagen', 'HSV': 'Hamburger SV', 'Boro': 'Middlesbrough', 'Sparta': 'Sparta Prague', 'AKA Salzb.': 'Red Bull Salzburg', 'BSC YB': 'Young Boys', 'AZ': 'AZ Alkmaar', 'Red Star': 'Crvena Zvezda', 'Legia': 'Legia Warszawa', 'Lech': 'Lech Poznań', 'RM Castilla': 'Real Madrid', 'RM Castilla': 'Real Madrid', 'Atl. Madrileño': 'Atletico Madrid' };
+  const YS = /(\s+(U\.? ?\d{2}|Sub-?\d{2}|[SY]\d{2}|Youth|Yth\.?|Yout|You|Yo|Yt|Y\.?|Juniors?|Jun\.?|Jgd\.?|Jugend|Jeugd|Reserves?|Res\.?|Reser\.?|Primavera|Giovanili|Giov\.?|Gio\.?|Academy|Akademi|Acad\.?|Aca\.?|Form\.?|For\.?|Prom|CJ|II|III|B|C|Next))+$/i;
+  const idx = new Map(); for (const [k, v] of Object.entries(out)) { const z = nz(k); if (!idx.has(z)) idx.set(z, v); } { const apiN = new Map(); for (const a of api) (apiN.get(a.n) || apiN.set(a.n, new Set()).get(a.n)).add(+a.id); for (const [z, s] of apiN) if (!idx.has(z) && s.size === 1) idx.set(z, [...s][0]); } // API'de ayni adli birden cok kulup (Progresso x3) varsa ad kullanilmaz
+  const AL = { 'Barça': 'Barcelona', 'Bilbao': 'Athletic Club', 'W. Bremen': 'Werder Bremen', 'B. München': 'Bayern Munich', 'Din. Zagreb': 'Dinamo Zagreb', 'D. Zagreb': 'Dinamo Zagreb', 'Palace': 'Crystal Palace', 'Spurs': 'Tottenham', 'Stmk.-Sturm': 'Sturm Graz', 'Nordsjaell.': 'Nordsjælland', 'Sporting CP': 'Sporting', 'Vikt. Plzen': 'Viktoria Plzeň', 'Hajduk': 'Hajduk Split', 'FCK': 'FC Copenhagen', 'HSV': 'Hamburger SV', 'Boro': 'Middlesbrough', 'Sparta': 'Sparta Prague', 'AKA Salzb.': 'Red Bull Salzburg', 'BSC YB': 'Young Boys', 'AZ': 'AZ Alkmaar', 'Red Star': 'Crvena Zvezda', 'Legia': 'Legia Warszawa', 'Lech': 'Lech Poznań', 'RM Castilla': 'Real Madrid', 'RM Castilla': 'Real Madrid', 'Atl. Madrileño': 'Atletico Madrid',
+    // 23 Kas 2026: TM kisaltmalari (ana adi GENEL olan kuluplerde yanlis takima gitmesin diye acik yazildi)
+    'Bayern': 'Bayern Munich', 'B. Munich': 'Bayern Munich', 'Atl. Madrid': 'Atletico Madrid', 'Atl.Madleño': 'Atletico Madrid', 'Atl. Madleño': 'Atletico Madrid', 'Barca': 'Barcelona', 'Olymp. Lyon': 'Lyon', 'Ol. Lyon': 'Lyon', 'Oly. Lyon': 'Lyon',
+    'Athletico': 'Atletico Paranaense', 'Athletico-PR': 'Atletico Paranaense', 'Atlético-PR': 'Atletico Paranaense', "K'lautern": 'Kaiserslautern', 'Huddersf.': 'Huddersfield', 'Nottingham': 'Nottingham Forest',
+    'Braunschw.': 'Eintracht Braunschweig', 'Gr. Fürth': 'Greuther Fürth', 'D. Dresden': 'Dynamo Dresden', 'E. Cottbus': 'Energie Cottbus', 'U. Berlin': 'Union Berlin', "U'haching": 'Unterhaching',
+    'Pr. Münster': 'Preussen Münster', 'St. Kickers': 'Stuttgarter Kickers', 'RW Erfurt': 'Rot-Weiss Erfurt', 'Hamilton A.': 'Hamilton', "Queen's P.": "Queen's Park", 'Hradec Kr.': 'Hradec Kralove',
+    'P. Ferreira': 'Pacos Ferreira', 'G.Birligi': 'Genclerbirligi', 'Zbroj. Brno': 'Zbrojovka Brno', 'St-Étienne': 'Saint Etienne', 'Go Ahead': 'Go Ahead Eagles', 'TSV 1860': '1860 München', 'Whitecaps': 'Vancouver Whitecaps' };
+  // eski kaydi ezen kisaltmalar (yalnizca kesin olanlar; 'Red Star' Paris/Belgrad belirsiz oldugu icin yok)
+  const AL_EZ = new Set(['B. München', 'B. Munich', 'Bayern']);
+  // B takimi olarak ayri adla gecenler
+  const BT = { 'Barça Atlètic': 'Barcelona', 'Barça Atletic': 'Barcelona', 'Bilbao Athletic': 'Athletic Club', 'Atl. Madrileño': 'Atletico Madrid', 'Sevilla Atl.': 'Sevilla', 'Las Palmas Atl.': 'Las Palmas', 'Celta Fortuna': 'Celta Vigo', 'Oviedo Vetusta': 'Oviedo', 'Elche Ilicitano': 'Elche', 'Milan Futuro': 'AC Milan', 'Lugo Polvorín': 'Lugo', 'Atl. Levante': 'Levante', 'Atl. Albacete': 'Albacete' };
+  for (const [k, v] of Object.entries(BT)) if (names.has(k) && !out[k]) { const id = idx.get(nz(v)); if (id) out[k] = +id; }
+  // kisaltma: ayni sayida sozcuk, her sozcuk ana addakiyle ayni ya da onun >=3 harflik on eki ('Atl. Madrid' ~ 'Atletico Madrid'); tek kimlik cikmali
+  const ana = Object.entries(out).filter(([k]) => !YS.test(k)).map(([k, v]) => [toks(k), v]);
+  // yalnizca gercek kisaltmada (adda nokta var: 'Huddersf.', 'Gr. Fürth'); 'Levadia' ~ 'Levadiakos', 'CA Unión' ~ 'Unionistas' gibi tam sozcukler eslenmez
+  const kisa = b => { const bt = toks(b); if (!bt.length || !/\./.test(b) || (bt.length === 1 && bt[0].length < 5)) return null; const ids = new Set(); for (const [t, v] of ana) if (t.length === bt.length && bt.every((w, i) => w === t[i] || (w.length >= 3 && t[i].startsWith(w))) && bt.some((w, i) => w !== t[i])) ids.add(+v); return ids.size === 1 ? [...ids][0] : null; };
   let yh = 0;
   for (const name of names) {
-    if (!name || out[name] || !(YS.test(name) || name === 'RM Castilla')) continue;
-    const base = name.replace(YS, '').trim().replace(/^RM Castilla$/, 'Real Madrid'); const id = out[base] || idx.get(nz(base)) || idx.get(nz(AL[base] || ''));
+    if (!name || !(YS.test(name) || name === 'RM Castilla')) continue;
+    const base = name.replace(YS, '').trim().replace(/^RM Castilla$/, 'Real Madrid');
+    // kisaltma tablosundaki ana ad eski (OLD) kaydi gecersiz kilar: 'B. München Yth.' 1860'a degil Bayern'e
+    const alId = AL[base] && idx.get(nz(AL[base]));
+    if (out[name] && !(alId && AL_EZ.has(base))) continue;
+    const id = alId || out[base] || idx.get(nz(base)) || kisa(base);
+    if (id && out[name] === +id) continue;
     if (id) { out[name] = +id; yh++; }
   }
   console.log('genclik/B takimi ana kulube baglandi:', yh);
+  // bilinen yanlislar (ayni sehrin baska kulubu; yanlis logo eksik logodan kotudur) - altyapilariyla birlikte silinir
+  const YANLIS = ['RW Frankfurt', 'RW Frankf.', 'FSV Frankfurt', 'FSV Frankf.', 'Freib. FC', 'Freiburger FC', 'Progresso Gio.'];
+  for (const k of Object.keys(out)) { const b = k.replace(YS, '').trim(); if (YANLIS.includes(k) || YANLIS.includes(b)) delete out[k]; }
 }
 fs.writeFileSync(path.join(root, 'data/tm/clublogo.json'), JSON.stringify(out));
 console.log(`TM kulup adi ${names.size}, API takim kaydi ${api.length}, eslesen ${hit}`);
