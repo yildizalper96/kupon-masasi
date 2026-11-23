@@ -29,7 +29,9 @@ if (MAX > 0) {
   let used = 0, lastReq = 0, gapMs = 7000;
   // once 2024 sezonu (guncel kulupler), sonra eski sezonlardan dusenler/yukselenler: Turk ligi (Giresunspor, Altay, Istanbulspor...) ve buyuk ligler
   const EXTRA = [[203, 2022], [204, 2024], [204, 2022], [203, 2020], [39, 2020], [140, 2020], [135, 2020], [78, 2020], [61, 2020], [40, 2022], [141, 2022], [136, 2022], [79, 2022], [62, 2022]];
-  const JOBS = [...new Set(LEAGUES)].map(l => [l, 2024, String(l)]).concat(EXTRA.map(([l, s]) => [l, s, `${l}-${s}`]));
+  // ek ligler (23 Kas 2026): data/tm/api-leagues.json (/leagues listesinden kadin/genc/amator haric, 2024 sezonu olan tum ligler)
+  let EXTRA_L = []; try { EXTRA_L = rd(path.join(root, 'data/tm/api-leagues.json')).l.map(x => x[0]); } catch (e) { }
+  const JOBS = [...new Set(LEAGUES)].map(l => [l, 2024, String(l)]).concat(EXTRA.map(([l, s]) => [l, s, `${l}-${s}`])).concat(EXTRA_L.filter(l => !LEAGUES.includes(l)).map(l => [l, 2024, String(l)]));
   for (const [lg, season, key] of JOBS) {
     if (AT[key]) continue; if (used >= MAX || (remaining === null ? 0 : remaining) - used <= RESERVE) break;
     const wait = lastReq + gapMs - Date.now(); if (lastReq && wait > 0) await new Promise(r => setTimeout(r, wait)); lastReq = Date.now();
@@ -44,25 +46,58 @@ if (MAX > 0) {
 }
 
 // ---- yerel eslestirme: TM kulup adi -> API takim kimligi ----
-const api = []; for (const [lg, a] of Object.entries(AT)) for (const [id, name] of a) api.push({ id, name, n: nz(name), t: toks(name) });
-try { const ids = rd(path.join(root, 'data/teams/ids.json')).t || {}; for (const [name, id] of Object.entries(ids)) api.push({ id, name, n: nz(name), t: toks(name) }); } catch (e) { }
+// fazla sozcuk izinleri (kucuk harf, nz sonrasi)
+const EK = new Set(['u15','u16','u17','u18','u19','u20','u21','u23','yth','youth','you','yout','yo','yt','y','jugend','jgd','jeugd','jong','ii','iii','b','c','reserves','reserve','res','academy','akademi','aca','acad','primavera','sub','juniors','junior','losc','kaa','krc','kas','aj','sm','stade','royal','calcio','gf','ff','il','sco','mfk','msk','ea','olympique','fco','lb','af','usl','ns','kf','pas','rkc','jc','r','g','e','d']);
+const EK_OK = w => EK.has(w) || /^(u|sub|s|y)?\d{2}$/.test(w) || /^\d+$/.test(w);
+// API'nin yedek/kadin/altyapi takimlari ("Rosenborg II", "Urawa Reds W", "Rubin Kazan 2", "Fulham U21") ana takim adlarina baglanmaz;
+// altyapi TM adlari asagida ana kulubun logosunu alir. Adi yalnizca ek sozcuklerden olusan kayitlar ("II") da atilir.
+const SEC = /\b(ii|iii|b|w|women|res|reserves|u ?\d\d|2)$/;
+const api = []; const HAM = []; const apiAdd = (id, name) => HAM.push({ id, name, n: nz(name), t: toks(name) });
+for (const [lg, a] of Object.entries(AT)) for (const [id, name] of a) apiAdd(id, name);
+try { const ids = rd(path.join(root, 'data/teams/ids.json')).t || {}; for (const [name, id] of Object.entries(ids)) apiAdd(id, name); } catch (e) { }
+{ const anaAd = new Set(HAM.map(a => a.n)); for (const a of HAM) { if (!a.t.length || a.t.every(w => /^(ii|iii|b|c|w|u?\d+)$/.test(w))) continue; if (SEC.test(a.n) && anaAd.has(a.n.replace(SEC, '').trim())) continue; if (/\b(w|women|u ?\d\d)$/.test(a.n)) continue; a.tn = a.t.filter(w => !/^\d+$/.test(w)); api.push(a); } }
 const byN = new Map(); for (const a of api) (byN.get(a.n) || byN.set(a.n, new Set()).get(a.n)).add(a.id);
 const names = new Set();
 for (const f of fs.readdirSync(path.join(root, 'data/tm/p'))) { const o = rd(path.join(root, 'data/tm/p', f)); for (const p of Object.values(o)) for (const t of p.tr || []) { names.add(t[1]); names.add(t[2]); } }
 try { for (const n of Object.values(rd(path.join(root, 'data/tm/club-names.json')))) names.add(n); } catch (e) { }
-const out = {}; let hit = 0;
-for (const name of names) {
+// onceki eslesmeler (23 Kas 2026): birden cok aday kalirsa eski kimlik secilir; hic aday yoksa eski kimlik ancak ad uyumu (uyum) gecerse korunur.
+let OLD = {}; try { OLD = rd(path.join(root, 'data/tm/clublogo.json')); } catch (e) { }
+const AL = { man: 'manchester', utd: 'united', 'nott m': 'nottingham', wolves: 'wolverhampton', sheff: 'sheffield', 'm tel aviv': 'maccabi tel aviv' };
+const alTok = n => { let nn = ' ' + n + ' '; for (const [a, b] of Object.entries(AL)) nn = nn.replace(new RegExp(' ' + a + ' ', 'g'), ' ' + b + ' '); return toks(nn); };
+for (const a of api) a.tn = alTok(a.n).filter(w => !/^\d+$/.test(w)); // API tarafinda da kisaltma acilir ("Sheffield Utd" ~ "Sheffield United")
+// ad parcalari altkumesi: API adi TM adinin icindeyse TM'deki FAZLA sozcuk, API adi TEK sozcukse yalnizca EK_OK olabilir ('Inter Bratislava' -> Inter,
+// 'Paris SG' -> Paris FC, 'Dundee United' -> Dundee, 'Arsenal Tula' -> Arsenal yanlis); cok sozcuklu API adlarinda serbest (Bayern Munich, Rubin Kazan).
+// Tek sozcuklu API adinda fazla sozcuge yalnizca TM adi o sozcukle basliyorsa ("Leeds United", "Rubin Kazan", "Urawa Reds") ya da resmi uzun adsa
+// (3+ parca: "ACF Fiorentina", "Willem II Tilburg") izin verilir; baska kulupte de gecen genel adlarda hic izin yok.
+const GENEL = new Set(['cp', 'inter', 'internacional', 'arsenal', 'aris', 'paris', 'dundee', 'juventus', 'racing', 'akron', 'sydney', 'dynamo', 'dinamo', 'lincoln', 'union', 'rangers', 'athletic', 'america', 'galaxy', 'wanderers', 'town', 'madrid', 'roma', 'zurich', 'salzburg', 'celtic', 'olympic', 'olympique', 'nacional', 'independiente', 'universidad', 'deportivo', 'atletico', 'ael', 'olimpia', 'liverpool', 'everton', 'santos', 'corinthians', 'lyon', 'porto', 'riga', 'aalborg', 'kharkiv', 'moscow', 'kyiv', 'ararat', 'levante', 'torino', 'milan', 'city', 'united', 'vitoria', 'botafogo', 'nautico', 'america', 'guarani', 'cerro', 'alianza', 'rapid', 'admira', 'kf', 'kosova', 'sporting', 'national', 'victoria', 'unirea', 'dacia', 'metalist', 'spartak', 'torpedo', 'slavia', 'sparta', 'vardar', 'apollon', 'omonia', 'anorthosis', 'hapoel', 'maccabi', 'beitar', 'bnei', 'ironi']);
+// fazla sozcuk: ilk parca API adiysa en cok 1 fazla sozcuk ("Leeds United"; "Oslo FA Dakar" olmaz); 2-3 harfli kisaltmalar yalnizca ONDE ve noktasiz ("ACF Fiorentina"; "Din. Minsk" olmaz)
+const tekOk = (u, nt, name) => { if (GENEL.has(u)) return false; if (nt.every(w => w === u || EK_OK(w))) return true;
+  const dot = new Set((String(name).match(/[^\s.]+\./g) || []).map(x => nz(x))); const ui = nt.indexOf(u), fz = nt.filter(w => w !== u && !EK_OK(w));
+  if (fz.some(w => w.length < 2)) return false;
+  if (fz.every(w => w.length <= 3 && nt.indexOf(w) < ui && !dot.has(w))) return true;
+  return (ui === 0 && fz.length === 1) || nt.length >= 3 && fz.length >= 2 && !fz.some(w => dot.has(w)); };
+const altKume = (a, nt) => a.tn.length > 0 && nt.some(w => !EK_OK(w)) && ((a.tn.every(w => nt.includes(w)) && (a.tn.length > 1 || tekOk(a.tn[0], nt, NAME))) || nt.every(w => a.tn.includes(w)));
+// kisaltmali TM adlari: "Arm. Bielefeld", "1.FC K'lautern", "Dep. La Coruña", "Sheff Wed". Genc/B/2 ve yil iceren adlar (Hajduk 1912, 1461 Trabzon) atlanir;
+// en az 2 parca; on ek yalnizca noktali kisaltmada ya da 3-5 harfte; son ek yalnizca tek harften sonra ("K'lautern").
+const kisaTok = name => { const raw = nz(name.replace(/\b(\d+)\.(?=\S)/g, '$1 ').replace(/\./g, ' DOT ')).split(' '); const tm = []; for (let i = 0; i < raw.length; i++) { const t = raw[i]; if (!t || t === 'dot' || STOP.has(t) || /^\d+$/.test(t)) continue; tm.push({ t, dot: raw[i + 1] === 'dot', after1: tm.length > 0 && tm[tm.length - 1].t.length === 1 }); } return tm; };
+const kisaEq = (o, u) => u === o.t || ((o.dot || o.t.length <= 5) && o.t.length >= 3 && u.startsWith(o.t)) || (o.after1 && o.t.length >= 5 && u.endsWith(o.t)) || (o.t.length === 1 && u[0] === o.t);
+const kisaUy = (name, tm) => !/\b(ii|iii|b|2|u ?\d\d|youth|yth|jgd|reserves?)\.?$/i.test(name) && !/\b\d{4}\b/.test(name) && tm.length >= 2 && tm.some(o => o.t.length >= 4);
+const kisaAday = (a, tm) => tm.every(o => a.t.some(u => kisaEq(o, u)));
+const sec = (s, name) => { if (s.size === 1) return [...s][0]; if (s.size > 1 && OLD[name] && s.has(+OLD[name])) return +OLD[name]; return null; };
+const uyum = (name, id) => { NAME = name; const n = nz(name), nt = alTok(n), tm = kisaTok(name); return api.some(a => +a.id === +id && (a.n === n || altKume(a, nt) || (a.tn.length > 0 && a.tn.every(w => nt.includes(w)) && !a.tn.some(w => GENEL.has(w))) || (kisaUy(name, tm) && kisaAday(a, tm)))); };
+let NAME = '';
+const out = {}; let hit = 0, eskiKoru = 0, eskiAt = 0;
+for (const name of names) { NAME = name;
   if (!name || /^(Unknown|Retired|Without Club|Career break)$/i.test(name)) continue;
   const n = nz(name); let id = null;
-  const ex = byN.get(n); if (ex && ex.size === 1) id = [...ex][0];
-  if (!id) { const nt = toks(name); if (nt.length) { const c = api.filter(a => a.t.length && a.t.length === nt.length && a.t.every(w => nt.includes(w))); const s = new Set(c.map(x => x.id)); if (s.size === 1) id = [...s][0]; } }
-  if (!id) { // ad parcalari birbirinin altkumesi ("Bayern Munich" ~ "Bayern", "Man Utd" ~ "Manchester Utd" icin kisaltma tablosu)
-    const AL = { man: 'manchester', utd: 'united', 'nott m': 'nottingham', wolves: 'wolverhampton', sheff: 'sheffield', 'm tel aviv': 'maccabi tel aviv' };
-    let nn = ' ' + n + ' '; for (const [a, b] of Object.entries(AL)) nn = nn.replace(new RegExp(' ' + a + ' ', 'g'), ' ' + b + ' ');
-    const nt = toks(nn); if (nt.length) { const c = api.filter(a => a.t.length && (a.t.every(w => nt.includes(w)) || nt.every(w => a.t.includes(w)))); const s = new Set(c.map(x => x.id)); if (s.size === 1) id = [...s][0]; }
-  }
+  const ex = byN.get(n); if (ex) id = sec(ex, name);
+  if (!id) { const nt = toks(name); if (nt.length) { const c = api.filter(a => a.t.length === nt.length && a.t.every(w => nt.includes(w))); id = sec(new Set(c.map(x => x.id)), name); } }
+  if (!id) { const nt = alTok(n); if (nt.length) id = sec(new Set(api.filter(a => altKume(a, nt)).map(x => x.id)), name); }
+  if (!id) { const tm = kisaTok(name); if (kisaUy(name, tm)) { const c = api.filter(a => kisaAday(a, tm)); let s = new Set(c.map(x => x.id)); if (s.size > 1) { const s2 = new Set(c.filter(a => a.t.every(u => tm.some(o => kisaEq(o, u)))).map(x => x.id)); if (s2.size === 1) s = s2; } id = sec(s, name); } }
+  if (!id && OLD[name]) { if (uyum(name, OLD[name])) { id = +OLD[name]; eskiKoru++; } else eskiAt++; }
   if (id) { out[name] = +id; hit++; }
 }
+console.log(`onceki eslesme: ${eskiKoru} korundu, ${eskiAt} ad uyumsuz diye atildi (altyapi adlari asagida ana kulube yeniden baglanabilir)`);
 // elle girilen kimlikler (data/tm/clublogo-elle.json, kullanici karari 15 Kas 2026): ustune yazar. API lig listelerinde (api-teams.json)
 // o kimlik varsa ve adiyla hic ortak parca yoksa YANLIS sayilip atilir (yanlis logo, eksik logodan kotudur).
 try {
@@ -71,7 +106,7 @@ try {
     const a = idName.get(String(id));
     if (a) { const nt = toks(name), at = a.t; const pre = (x, y) => { let i = 0; while (i < x.length && i < y.length && x[i] === y[i]) i++; return i; }; // ortak on ek >=4 harf: Rennes~Rennais, M'gladbach~Mönchengladbach (iceren parca)
     const A = nz(a.name).split(' ').filter(w => w.length >= 4), B = nz(name).split(' ').filter(w => w.length >= 4);
-    const share = nt.some(w => at.includes(w)) || A.some(x => B.some(y => pre(x, y) >= 4 || (x.length >= 5 && y.includes(x)) || (y.length >= 5 && x.includes(y)))); if (!share) { console.log('UYARI elle kimlik reddedildi:', name, id, '(API adi:', a.name + ')'); bad++; continue; } ok++; } else unv++;
+    const share = /^[A-Z]{2,5}$/.test(a.name) || nt.some(w => at.includes(w)) || A.some(x => B.some(y => pre(x, y) >= 4 || (x.length >= 5 && y.includes(x)) || (y.length >= 5 && x.includes(y)))); if (!share) { console.log('UYARI elle kimlik reddedildi:', name, id, '(API adi:', a.name + ')'); bad++; continue; } ok++; } else unv++;
     out[name] = +id;
   }
   console.log(`elle: ${Object.keys(man).length} kayit, dogrulanan ${ok}, henuz dogrulanamayan ${unv}, reddedilen ${bad}`);
