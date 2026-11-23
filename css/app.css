@@ -2770,3 +2770,11 @@ nav button,header nav button{cursor:pointer}
 .km18-i p{margin:0;font-size:13px;line-height:1.45;color:var(--mut)}.km18-i p b{color:var(--ink)}.km18-i a{color:inherit;text-decoration:underline}
 .km18-b{justify-self:start;margin-top:4px;border:0;border-radius:99px;padding:9px 16px;background:var(--acc);color:#fff;font:700 13px var(--f);cursor:pointer}
 @media (min-width:1100px){.km18{bottom:20px}}
+/* kayit onayi (js/cloud.js): ustteki onay kutusu, onaysiz Google dugmesi, onay penceresi */
+.kau-cb1{margin:0 0 14px;padding:10px 12px;border:1px solid var(--ln);border-radius:12px}.kau-cb a{color:inherit;text-decoration:underline}
+.kau-g.kau-off{opacity:.45;cursor:not-allowed}
+.kmonay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px}
+.kmonay-i{max-width:440px;width:100%;background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:18px;padding:20px}
+.kmonay-i h3{margin:0 0 8px;font:700 18px var(--f)}.kmonay-i p{margin:0 0 14px;font-size:14px;line-height:1.5;color:var(--mut)}.kmonay-i p a{color:inherit;text-decoration:underline}
+.kmonay-m{min-height:18px;font-size:13px;color:var(--hot);margin:-4px 0 8px}.kmonay-b{display:grid;gap:12px;justify-items:center}
+body:has(.kmonay) .km18{display:none}

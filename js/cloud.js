@@ -93,6 +93,21 @@
     return { id: u.id, email: u.email || '', name: m.full_name || m.name || (u.email ? u.email.split('@')[0] : ''), avatarUrl: m.avatar_url || m.picture || '' };
   };
 
+  // Kullanim Kosullari ve Gizlilik onayi (23 Kas 2026): hesap bilgisinde user_metadata.terms_at
+  C.termsOk = function () { return !!(S && S.user && S.user.user_metadata && S.user.user_metadata.terms_at); };
+  C.acceptTerms = async function () {
+    var s = await fresh(); if (!s) return { error: 'auth' };
+    var r = await authFetch('/user', 'PUT', { data: { terms_at: new Date().toISOString() } }, s.access_token);
+    if (r.ok && r.j && r.j.id) { s.user = r.j; saveS(s); return { ok: true }; }
+    return { error: errKey(r) };
+  };
+  // onaysiz Google girisi reddedilirse: hesap az once acildiysa (15 dk) silinir, eskiyse yalnizca cikis yapilir
+  C.declineTerms = async function () {
+    var s = await fresh();
+    if (s) { try { var r = await authFetch('/user', 'GET', null, s.access_token); var ca = r.ok && r.j.created_at ? Date.parse(r.j.created_at) : 0; if (ca && Date.now() - ca < 15 * 60e3) await C.deleteAccount(); } catch (e) {} }
+    C.signOut();
+  };
+
   C.signIn = async function (email, pw) {
     var r = await authFetch('/token?grant_type=password', 'POST', { email: email, password: pw });
     if (r.ok && r.j.access_token) { saveS(toSession(r.j)); return { ok: true }; }
@@ -100,7 +115,7 @@
   };
   var RTO = function () { return '?redirect_to=' + encodeURIComponent(location.origin + location.pathname); };
   C.signUp = async function (email, pw, name) {
-    var r = await authFetch('/signup' + RTO(), 'POST', { email: email, password: pw, data: name ? { full_name: name } : {} });
+    var r = await authFetch('/signup' + RTO(), 'POST', { email: email, password: pw, data: name ? { full_name: name, terms_at: new Date().toISOString() } : { terms_at: new Date().toISOString() } });
     if (r.ok && r.j.access_token) { saveS(toSession(r.j)); return { ok: true }; }
     // Supabase kayitli adreste hata vermez; identities bos doner ve mail gonderilmez
     if (r.ok && Array.isArray(r.j.identities) && r.j.identities.length === 0) return { error: 'exists' };
@@ -230,6 +245,7 @@
     var ul = document.getElementById('karl'); if (!ul) return;
     [].forEach.call(ul.children, function (li) { li.className = o[li.getAttribute('data-r')] ? 'ok' : ''; });
   }
+  function cb() { return "<label class=\"kau-cb kau-cb1\"><input type=\"checkbox\" id=\"kat\"" + (A.terms ? " checked" : "") + "><span>" + esc(t('terms')) + (window.LANG === 'tr' || !window.LANG ? " <a href=\"/kosullar/\" target=\"_blank\" rel=\"noopener\">Kullanım Koşulları</a> · <a href=\"/gizlilik/\" target=\"_blank\" rel=\"noopener\">Gizlilik Politikası</a>" : '') + "</span></label>"; }
   function form() {
     var up = A.mode === "up", dis = A.busy ? " disabled" : "";
     if (A.mode === 'verify') {
@@ -246,11 +262,11 @@
       return "<h3 class=\"kau-h\">" + esc(t('nt')) + "</h3><p class=\"kau-d\">" + esc(t('nd')) + "</p>" + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() + msg() + btn('kab_np', 'nsave') + foot();
     }
     var h = "<div class=\"kau-tabs\"><button id=\"kab_tin\" class=\"" + (up ? "" : "on") + "\" type=\"button\">" + esc(t("signin")) + "</button><button id=\"kab_tup\" class=\"" + (up ? "on" : "") + "\" type=\"button\">" + esc(t("signup")) + "</button></div>" +
-      "<button class=\"kau-g\" id=\"kab_g\"" + dis + ">" + GL + "<span>" + esc(t(up ? "googleup" : "google")) + "</span></button>" +
+      (up ? cb() : "") +
+      "<button class=\"kau-g" + (up && !A.terms ? " kau-off" : "") + "\" id=\"kab_g\"" + dis + ">" + GL + "<span>" + esc(t(up ? "googleup" : "google")) + "</span></button>" +
       "<div class=\"kau-or\"><span>" + esc(t("or")) + "</span></div>";
     if (up) {
-      h += inp('kan', 'text', 'nickname', t('name'), A.name) + inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() +
-        "<label class=\"kau-cb\"><input type=\"checkbox\" id=\"kat\"" + (A.terms ? " checked" : "") + "><span>" + esc(t('terms')) + (window.LANG === 'tr' || !window.LANG ? " <a href=\"/kosullar/\" target=\"_blank\" rel=\"noopener\">Koşullar</a> · <a href=\"/gizlilik/\" target=\"_blank\" rel=\"noopener\">Gizlilik</a>" : '') + "</span></label>" + msg() + (A.msg === 'exists' ? "<div class=\"kau-links\">" + lnk('in', 'signin') + lnk('forgot', 'forgot') + "</div>" : "") + btn('kab_go', 'signup');
+      h += inp('kan', 'text', 'nickname', t('name'), A.name) + inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() + msg() + (A.msg === 'exists' ? "<div class=\"kau-links\">" + lnk('in', 'signin') + lnk('forgot', 'forgot') + "</div>" : "") + btn('kab_go', 'signup');
     } else {
       h += inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'current-password', t('pass2')) +
         "<div class=\"kau-links r\">" + lnk('forgot', 'forgot') + "</div>" + msg() +
@@ -267,7 +283,30 @@
   function redraw() { var p = val('kap'), p2 = val('kap2'); try { profDraw(); } catch (e) {} var a = document.getElementById('kap'), b = document.getElementById('kap2'); if (a && p) a.value = p; if (b && p2) b.value = p2; rulesLive(); }
   // giris yapinca Maclar sayfasina git
   A.toMatches = function () { try { tab = 'k'; det = null; PMV = null; Q = ''; QX = ''; render(); try { scrollTo(0, 0); } catch (e) {} } catch (e) {} };
+  // Onay kapisi: oturum var ama Kosullar/Gizlilik onayi yoksa (Google ile ilk giris, eski hesap) pencere acilir.
+  // Kayit sekmesinde kutu isaretlenip Google'la gelindiyse sormadan onay yazilir. Vazgecilirse yeni hesap silinir.
+  A.termsGate = async function () {
+    if (!C.user() || C.termsOk()) return;
+    var on = false; try { on = sessionStorage.getItem('km_terms_ok') === '1'; sessionStorage.removeItem('km_terms_ok'); } catch (e) {}
+    if (on) { await C.acceptTerms(); if (C.termsOk()) return; }
+    await new Promise(function (bitti) {
+      if (document.getElementById('kmonay')) return bitti();
+      var d = document.createElement('div'); d.id = 'kmonay'; d.className = 'kmonay'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      d.innerHTML = '<div class="kmonay-i"><h3>Devam etmek için onay gerekli</h3><p>Simuleto hesabını kullanmak için 18 yaşından büyük olduğunu ve <a href="/kosullar/" target="_blank" rel="noopener">Kullanım Koşulları</a> ile <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik Politikası</a>’nı kabul ettiğini onaylaman gerekiyor. Simuleto bahis yaptırmayan bir simülatördür.</p>' +
+        '<label class="kau-cb"><input type="checkbox" id="kmonay-c"><span>18 yaşından büyüğüm; Kullanım Koşulları ile Gizlilik Politikası’nı okudum ve kabul ediyorum.</span></label><div class="kmonay-m" id="kmonay-m"></div>' +
+        '<div class="kmonay-b"><button type="button" class="kau-p" id="kmonay-e">Onayla ve devam et</button><button type="button" class="kau-l" id="kmonay-h">Vazgeç</button></div></div>';
+      document.body.appendChild(d);
+      var m = d.querySelector('#kmonay-m'), kapat = function () { d.remove(); bitti(); };
+      d.querySelector('#kmonay-e').onclick = async function () {
+        if (!d.querySelector('#kmonay-c').checked) { m.textContent = 'Devam etmek için onay kutusunu işaretle.'; return; }
+        this.disabled = true; var r = await C.acceptTerms(); this.disabled = false;
+        if (r.ok) { try { localStorage.setItem('km_18', String(Date.now())); var y = document.getElementById('km18'); if (y) y.remove(); } catch (e) {} kapat(); } else m.textContent = 'Bağlantı hatası, tekrar dene.';
+      };
+      d.querySelector('#kmonay-h').onclick = async function () { this.disabled = true; await C.declineTerms(); kapat(); };
+    });
+  };
   A.afterLogin = async function () {
+    await A.termsGate();
     try {
       PRF = null; PROFL = false; PMSG = ''; KPUID = null; KPDBR = false; FUID = null; SOUT = false;
       try { localStorage.removeItem('km_out'); } catch (e) {}
@@ -334,11 +373,16 @@
     if (g('kab_np')) g('kab_np').onclick = newpw;
     ['kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.addEventListener('input', rulesLive); });
     rulesLive();
+    if (g('kat')) g('kat').onchange = function () { keep(); if (A.msg === 'noterms') A.msg = ''; redraw(); };
     [].forEach.call(document.querySelectorAll('[data-kamode]'), function (el) { el.onclick = function () { keep(); A.mode = el.getAttribute('data-kamode'); A.msg = ''; redraw(); }; });
     [].forEach.call(document.querySelectorAll('[data-kaeye]'), function (el) { el.onclick = function () { keep(); var p = val('kap'), p2 = val('kap2'); A.show = !A.show; redraw(); var a = g('kap'), b = g('kap2'); if (a) a.value = p; if (b) b.value = p2; rulesLive(); }; });
     [['kab_tin', 'in'], ['kab_tup', 'up']].forEach(function (x) { var el = g(x[0]); if (el) el.onclick = function () { if (A.mode === x[1]) return; keep(); A.mode = x[1]; A.msg = ''; redraw(); }; });
     if (g('kab_sw')) g('kab_sw').onclick = function () { var e = g('kae'); if (e) A.email = e.value.trim(); A.mode = A.mode === 'up' ? 'in' : 'up'; A.msg = ''; redraw(); };
-    if (g('kab_g')) {
+    // kayit sekmesinde Google dugmesi onay kutusu isaretlenmeden calismaz (gorunmez Google katmani da eklenmez)
+    var onaysiz = A.mode === 'up' && !A.terms;
+    try { if (A.mode === 'up' && A.terms) sessionStorage.setItem('km_terms_ok', '1'); else sessionStorage.removeItem('km_terms_ok'); } catch (e) {}
+    if (g('kab_g') && onaysiz) g('kab_g').onclick = function () { fail('noterms'); };
+    if (g('kab_g') && !onaysiz) {
       var gb = g('kab_g'), gis = false;
       gb.onclick = function () { if (!gis) C.google(); };
       var wrap = gb.parentNode, ov = document.createElement('div');
@@ -351,4 +395,7 @@
     ['kan', 'kae', 'kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key !== 'Enter') return; if (A.mode === 'in' || A.mode === 'up') act(A.mode); else if (A.mode === 'forgot') forgot(); else if (A.mode === 'newpw') newpw(); }; });
   };
   window.KMAUTH = A;
+  // acilista: Google yonlendirmesinden donen veya onceden giris yapmis ama onayi olmayan hesap (vazgecerse cikis + yenile)
+  function acilisKapi() { if (!C.user() || C.termsOk()) return; A.termsGate().then(function () { if (!C.user()) location.reload(); }); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(acilisKapi, 300); }); else setTimeout(acilisKapi, 300);
 })();

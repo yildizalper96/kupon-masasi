@@ -70,7 +70,7 @@ export const KOSULLAR = {
 
 <div class="kart"><h2>3. Yaş sınırı ve sorumlu oyun</h2><p>Simuleto'yu yalnızca 18 yaşından büyükler kullanabilir. Kumar veya bahis alışkanlığınız sizi ya da çevrenizi olumsuz etkiliyorsa yardım alın: Türkiye'de Yeşilay Danışmanlık Merkezi (YEDAM) <b>115</b> numaralı hattı ücretsizdir.</p></div>
 
-<div class="kart"><h2>4. Veri doğruluğu</h2><p>Maç, kadro, sonuç ve istatistik verileri üçüncü taraf kaynaklardan otomatik olarak alınır. Verilerin doğru ve güncel olması için çaba gösteririz, ancak gecikme, eksiklik veya hata olabilir. Bir veri yoksa uydurmayız, "veri yok" olarak gösteririz.</p></div>
+<div class="kart"><h2>4. Veri kaynakları ve doğruluğu</h2><p>Maç, kadro, sonuç, oran ve istatistik verileri <b>API-Football</b> (API-Sports) hizmetinden otomatik olarak alınır. Oyuncu piyasa değeri, boy, tercih edilen ayak ve sezon kadrosu gibi bilgiler <b>Transfermarkt</b> kaynaklı, herkese açık bir veri setinden derlenir. Simuleto bu kaynaklarla bağlantılı değildir ve onlar tarafından onaylanmamıştır.</p><p> Verilerin doğru ve güncel olması için çaba gösteririz, ancak gecikme, eksiklik veya hata olabilir. Bir veri yoksa uydurmayız, "veri yok" olarak gösteririz.</p></div>
 
 <div class="kart"><h2>5. Hesabınız</h2><ul>
 <li>Hesap bilgilerinizin güvenliğinden siz sorumlusunuz; şifrenizi kimseyle paylaşmayın.</li>
