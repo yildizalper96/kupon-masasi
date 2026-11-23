@@ -459,7 +459,8 @@
       const gec = k => { let h = 0, n = 0; gm.forEach(([x, y]) => { try { const v = hit(k, x, y); if (v === true || v === false) { n++; if (v) h++; } } catch (e) { } }); return n >= 3 ? { h, n } : null; };
       const aile = k => /^(1|X|2|1X|X2|12)$/.test(k) ? 'mac' : /^[ÜA]\d/.test(k) ? 'gol' : /^KG/.test(k) ? 'kg' : /^E[GA]/.test(k) ? 'ev' : /^D[GA]/.test(k) ? 'dep' : k;
       const sec = (typeof pops === 'function' ? pops(m) : []).slice(0, 3).map(x => ({ k: x.k, p: x.p }));
-      if (!m.np && sec.length < 3 && typeof kprob === 'function') {
+      // mac bittiyse yalnizca kayitli secimler (liste rozeti ve Gecmis ile ayni sayim); ek secim kayda girmedigi icin sonucu gosterilmez
+      if (!m.np && !bitti && sec.length < 3 && typeof kprob === 'function') {
         const ADAY = ['1', 'X', '2', '1X', 'X2', '12', 'Ü1.5', 'Ü2.5', 'Ü3.5', 'A2.5', 'A3.5', 'KG Var', 'KG Yok', 'EG1', 'EG2', 'DG1', 'DG2'];
         const ad = ADAY.filter(k => !sec.some(x => x.k === k)).map(k => { const p = kprob(m, k), g = gec(k); return { k, p, g, s: p ? p + (g ? (g.h / g.n - .5) * .3 : 0) : 0 }; }).filter(o => o.p && o.p >= .45 && o.p <= .87 && o.g && o.g.h / o.g.n >= .5).sort((a, b) => b.s - a.s);
         for (const o of ad) { if (sec.length >= 3) break; if (sec.some(x => aile(x.k) === aile(o.k) && (/^(mac|kg)$/.test(aile(o.k)) || Math.abs(x.p - o.p) < .12))) continue; sec.push({ k: o.k, p: o.p, ek: 1 }); }
