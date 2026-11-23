@@ -62,7 +62,7 @@ end $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 
--- 7) Istemci hata kaydi (23 Kas 2026) — HENUZ CALISTIRILMADI. Calistirinca js/hata.js icinde GONDER = true yap.
+-- 7) Istemci hata kaydi (23 Kas 2026) — panelde calistirildi (23 Kas 2026, dogrulandi). Calistirinca js/hata.js icinde GONDER = true yap.
 --    Herkes (anon dahil) yalnizca EKLEYEBILIR; okuma yalniz panelden (service role). Boyut sinirli, 30 gunden eski kayitlar silinebilir.
 create table if not exists public.client_errors (
   id         bigserial   primary key,
