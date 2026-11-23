@@ -85,7 +85,7 @@ self.addEventListener('fetch', e => {
   if (/\/data\/.*\.json$/.test(url.pathname)) { e.respondWith(agOncelikli(req, DATA)); return; }
   if (YEREL || url.pathname.endsWith('/sw.js')) { e.respondWith(agOncelikli(req, CACHE)); return; }
   // statik SEO sayfalari (tools/seo-pages.mjs): uygulama kabugu degil, dogrudan agdan
-  if (/\/(mac\/|sitemap\.xml$|robots\.txt$)/.test(url.pathname)) return;
+  if (/\/(mac\/|lig\/|gizlilik\/|kosullar\/|sitemap\.xml$|robots\.txt$)/.test(url.pathname)) return;
   // kabuk: cihazdan aninda (sayfa adresi icin index.html kopyasi)
   e.respondWith(onbellekOncelikli(req, req.mode === 'navigate' ? 'index.html' : null));
 });

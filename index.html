@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Simuleto</title>
+<title>Simuleto: futbol maç analizi ve kupon simülatörü</title>
+<meta name="description" content="Futbol maçlarının kazanma olasılıkları, adil oranlar, puan durumu, kadrolar ve form. Kuponunu kur, tutma ihtimalini gör. Bahis yaptırmaz; analiz ve simülasyon aracıdır.">
 <link rel="preconnect" href="https://media.api-sports.io" crossorigin><link rel="dns-prefetch" href="https://media.api-sports.io"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
@@ -53,10 +54,11 @@ function ac1(){if(ac)return;ac=1;try{if(typeof render==="function")render()}catc
 function taze(){var L=Object.keys(BU);if(!L.length)return;Promise.all(L.map(function(u){return caches.match(u).then(function(h){return h?h.text():null}).then(function(eski){return of(u,{cache:"no-cache"}).then(function(r){return r.ok?r.text():eski}).then(function(t){return t!==eski})}).catch(function(){return false})})).then(function(d){if(!d.some(Boolean))return;var Y=window.kmReloaders||[];window.kmHold=true;Promise.all(Y.map(function(f){try{return Promise.resolve(f()).catch(function(){})}catch(e){}})).then(function(){window.kmHold=false;window.kmHoldP=0;try{var y=window.scrollY;render();window.scrollTo(0,y)}catch(e){}})})}
 window.kmBootOpen=ac1;
 document.addEventListener("DOMContentLoaded",function(){setTimeout(function(){Promise.race([Promise.all(P),new Promise(function(r){setTimeout(r,3000)})]).then(ac1)},0)})})()</script>
+<script src="js/hata.js"></script>
 <script src="js/config.js"></script>
 <script src="js/cloud.js"></script>
 <script src="js/data-shim.js"></script>
-<script src="js/i18n-keys.js"></script>
+<script>/* Yalniz Turkce (app.js KM_SADECE_TR=true): 557 KB ceviri dosyasi yuklenmez. Diller acilinca bu satir yerine js/i18n-keys.js betigini yukle. */var I18N_KEYS=[],I18N_T={};</script>
 <script src="js/app.js"></script>
 <script src="js/fixtures-api.js"></script>
 <script src="js/tm-data.js"></script>
@@ -71,6 +73,7 @@ document.addEventListener("DOMContentLoaded",function(){setTimeout(function(){Pr
 <script src="js/extras.js"></script>
 <script src="js/desktop.js"></script>
 <script src="js/menu.js"></script>
+<script src="js/yasal.js"></script>
 <script src="js/adres.js"></script>
 <script>if('serviceWorker' in navigator){(function(){var sw=navigator.serviceWorker,eski=!!sw.controller,yk=0;sw.addEventListener('controllerchange',function(){if(eski&&!yk){yk=1;location.reload()}});window.addEventListener('load',function(){sw.register('sw.js',{updateViaCache:'none'}).then(function(r){r.update().catch(function(){});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')r.update().catch(function(){})})}).catch(function(){})})})()}</script>
 </body></html>

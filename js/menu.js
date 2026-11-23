@@ -80,7 +80,7 @@
       '<button type="button" data-kmtema="dark" aria-label="Koyu tema">' + IC.moon + '<em>Koyu</em></button>' +
     '</span>';
   var DIL = '<span class="kmp-dils"><button type="button" class="on" aria-pressed="true">Türkçe</button><button type="button" disabled aria-disabled="true" title="Yakında">English</button></span>';
-  var NOT = '<div class="kmv-not">Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir.</div>';
+  var NOT = '<div class="kmv-not">Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir. 18 yaş altı için değildir.<span class="kmv-yasal"><a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a> · <a href="/kosullar/" target="_blank" rel="noopener">Kullanım Koşulları</a> · <a href="mailto:support@simuleto.com">İletişim</a></span></div>';
   function satir(git, ic, ad, alt) { return '<button type="button" class="kmv-r" data-kmgit="' + git + '"><i>' + ic + '</i><span><b>' + ad + '</b>' + (alt ? '<small>' + alt + '</small>' : '') + '</span>' + IC.ok + '</button>'; }
   function basHarf(u) { var p = String(u.name || '').trim().split(/\s+/).filter(Boolean); if (!p.length) p = [String(u.email || 'Ü')]; var h = p[0].charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : ''); return h.toLocaleUpperCase('tr'); }
   function ciz() {

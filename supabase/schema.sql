@@ -61,3 +61,21 @@ begin
 end $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- 7) Istemci hata kaydi (23 Kas 2026) — HENUZ CALISTIRILMADI. Calistirinca js/hata.js icinde GONDER = true yap.
+--    Herkes (anon dahil) yalnizca EKLEYEBILIR; okuma yalniz panelden (service role). Boyut sinirli, 30 gunden eski kayitlar silinebilir.
+create table if not exists public.client_errors (
+  id         bigserial   primary key,
+  created_at timestamptz not null default now(),
+  msg        text        not null check (length(msg) <= 300),
+  src        text        check (length(src) <= 160),
+  stack      text        check (length(stack) <= 600),
+  page       text        check (length(page) <= 160),
+  ua         text        check (length(ua) <= 160)
+);
+alter table public.client_errors enable row level security;
+drop policy if exists "client_errors_insert_all" on public.client_errors;
+create policy "client_errors_insert_all" on public.client_errors for insert to anon, authenticated with check (true);
+revoke all on public.client_errors from anon, authenticated;
+grant insert (msg, src, stack, page, ua) on public.client_errors to anon, authenticated;
+grant usage on sequence public.client_errors_id_seq to anon, authenticated;

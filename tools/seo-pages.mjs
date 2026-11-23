@@ -10,6 +10,7 @@
 // Kullanım: build-site.mjs çağırır; tek başına: node tools/seo-pages.mjs [cikis-klasoru]
 import fs from 'node:fs';
 import path from 'node:path';
+import { GIZLILIK, KOSULLAR } from './yasal-sayfalar.mjs';
 
 const SITE = 'https://simuleto.com';
 const root = path.resolve(import.meta.dirname, '..');
@@ -46,7 +47,7 @@ ${ld ? `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\
 <style>${CSS}</style></head><body><main>
 <header><a class="l" href="/">Simuleto</a><a href="/mac/">Maç analizleri</a></header>
 ${body}
-<footer>Simuleto bir analiz ve kupon simülatörüdür, bahis yaptırmaz. Olasılıklar istatistiksel tahmindir; bahis tavsiyesi değildir, hiçbir bahis risksiz değildir. 18 yaş altı için değildir.</footer>
+<footer>Simuleto bir analiz ve kupon simülatörüdür, bahis yaptırmaz. Olasılıklar istatistiksel tahmindir; bahis tavsiyesi değildir, hiçbir bahis risksiz değildir. 18 yaş altı için değildir.<br><a href="/gizlilik/">Gizlilik</a> · <a href="/kosullar/">Kullanım Koşulları</a> · <a href="mailto:support@simuleto.com">İletişim</a></footer>
 </main></body></html>`;
 
 const ARSIV = 'data/fixtures/seo-arsiv.json', GUN_TUT = 150;
@@ -171,8 +172,11 @@ ${gec.length ? `<div class="kart lst"><h2>Son 7 günün sonuçları</h2>${gec.ma
 <div class="kart lst"><h2>Ligler</h2>${ligUrl.map(l => `<a href="/lig/${l.s}/"><span>${E(ligAd(l.c))}</span><small>${l.n ? l.n + ' yaklaşan maç' : ''}</small></a>`).join('')}</div><a class="btn" href="/">Simuleto'yu aç</a>`,
   }));
 
+  // yasal sayfalar (tools/yasal-sayfalar.mjs)
+  for (const y of [GIZLILIK, KOSULLAR]) { const d = path.join(out, y.yol); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, 'index.html'), sayfa({ title: y.title, desc: y.desc, url: `${SITE}/${y.yol}/`, body: y.body() })); }
+
   const bugun = new Date().toISOString().slice(0, 10);
-  const urls = [[`${SITE}/`, bugun], [`${SITE}/mac/`, bugun], ...ligUrl.map(l => [`${SITE}/lig/${l.s}/`, bugun]),
+  const urls = [[`${SITE}/`, bugun], [`${SITE}/mac/`, bugun], ...ligUrl.map(l => [`${SITE}/lig/${l.s}/`, bugun]), [`${SITE}/gizlilik/`, bugun], [`${SITE}/kosullar/`, bugun],
     ...liste.map(x => [`${SITE}/mac/${x.s}/`, (x.bitti ? new Date(x.t.getTime() + 3 * 3600e3) : new Date()).toISOString().slice(0, 10)])];
   fs.writeFileSync(path.join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(([u, d]) => `<url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join('\n')}\n</urlset>\n`);
   fs.writeFileSync(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
