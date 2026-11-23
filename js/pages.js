@@ -1108,12 +1108,17 @@
       if (m === undefined || ids === undefined) return null;
       const id = m && m[ad]; if (id && ids && ids.t) { const n = Object.keys(ids.t).find(k => +ids.t[k] === +id); if (n) return (TMADC[ad] = n); } }
     const tk = tmTok(ad); let bul = null;
+    // kulubun API kimligi biliniyorsa baska kimlikli uygulama takimina eslenmez (Inter Miami CF -> Inter olmasin, 23 Kas 2026)
+    const tmId = (() => { const m = tmLogoMap(); return m && m[ad] ? +m[ad] : 0; })();
     if (tk.length) {
       const adaylar = new Set(Object.keys(TM)); R.forEach(m => { adaylar.add(m.h); adaylar.add(m.a); });
       const ids = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null)); if (ids && ids.t) Object.keys(ids.t).forEach(n => adaylar.add(n)); else if (ids === undefined) return null;
-      const L = [...adaylar].filter(n => { const u = tmTok(n); return u.length && (u.every(w => tk.includes(w)) || tk.every(w => u.includes(w))); });
+      const idOk = n => !(tmId && ids && ids.t && ids.t[n] && +ids.t[n] !== tmId);
+      // TM adinda fazla sozcuk varsa (Inter Miami CF ~ Inter) tek sozcuklu uygulama adina yalnizca altyapi/yedek ekiyle eslenir
+      const ekOk = w => /^(u|sub|s|y)?\d{2}$|^(ii|iii|b|c|yth|youth|jugend|jgd|reserves?|res|academy|primavera|juniors?)$/.test(w);
+      const L = [...adaylar].filter(idOk).filter(n => { const u = tmTok(n); return u.length && ((u.every(w => tk.includes(w)) && (u.length > 1 || tk.every(w => u.includes(w) || ekOk(w)))) || tk.every(w => u.includes(w))); });
       // kisaltma: kelime kelime on ek (Man City ~ Manchester City, Nott'm ~ Nottingham)
-      if (!L.length) [...adaylar].forEach(n => { const u = tmTok(n); if (u.length && u.length === tk.length && u.every((w, i) => w.length >= 3 && (tk[i].startsWith(w) || w.startsWith(tk[i])))) L.push(n); });
+      if (!L.length) [...adaylar].filter(idOk).forEach(n => { const u = tmTok(n); if (u.length && u.length === tk.length && u.every((w, i) => w.length >= 3 && (tk[i].startsWith(w) || w.startsWith(tk[i])))) L.push(n); });
       bul = L.sort((a, b) => (TM[b] ? 1 : 0) - (TM[a] ? 1 : 0) || a.length - b.length)[0] || null;
     }
     return (TMADC[ad] = bul);

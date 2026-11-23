@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pace } from './api-pace.mjs';
+import { tekilAd } from './team-names.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
@@ -34,6 +35,7 @@ const KUPA = {
   UNL: 5, WC: 1, EURO: 4, WCQE: 32, EUROQ: 960, COPA: 9, WCQSA: 34, FRI: 10,
 };
 const LIG = { ...LIGLER, ...KUPA };
+const L2C = Object.fromEntries(Object.entries(LIG).map(([k, v]) => [v, k]));
 const CODES = String(arg('leagues', Object.keys(LIG).join(','))).split(',').filter(c => LIG[c]);
 const [S0, S1] = String(arg('seasons', '2021-2026')).split('-').map(Number);
 const CUR = 2026; // guncel sezon (Avrupa 2026-27, takvim ligleri 2026)
@@ -82,7 +84,8 @@ const wr = (f, o) => { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.wr
 const dir = (c, s) => path.join(root, 'data', 'api', c, String(s));
 const ids = (rd(path.join(root, 'data', 'teams', 'ids.json')) || {}).t || {};
 const APPN = {}; for (const [n, id] of Object.entries(ids)) if (!APPN[id]) APPN[id] = n;
-const ad = (tid, apiAd) => APPN[tid] || apiAd;
+// uygulama adi; yoksa API adi, ama o ad uygulamada baska kulubun adiysa tekil ad (Inter Miami/Inter, Lille (Belçika)) - 23 Kas 2026
+const ad = (tid, apiAd, c) => APPN[tid] || tekilAd(apiAd, tid, ids, c);
 // guncel sezon tazeleme sureleri; gecmis sezon bir kez cekilir (dosya varsa)
 const taze = (f, s, saat) => { const o = rd(f); if (!o) return false; if (s !== CUR) return true; return age(o.at) < HRS(saat); };
 const log = [];
@@ -97,7 +100,7 @@ async function standings(c, s) {
   const j = await api(`/standings?league=${LIG[c]}&season=${s}`);
   const grs = j.response?.[0]?.league?.standings || [];
   const rows = grs.flatMap(g => g.map(x => ({
-    tid: x.team.id, n: ad(x.team.id, x.team.name), r: x.rank, p: x.points, pl: x.all.played, w: x.all.win, d: x.all.draw, l: x.all.lose,
+    tid: x.team.id, n: ad(x.team.id, x.team.name, c), r: x.rank, p: x.points, pl: x.all.played, w: x.all.win, d: x.all.draw, l: x.all.lose,
     f: x.all.goals.for, a: x.all.goals.against, gd: x.goalsDiff, form: (x.form || '').replace(/W/g, 'G').replace(/D/g, 'B').replace(/L/g, 'M'),
     ds: x.description || '', gr: grs.length > 1 ? x.group : undefined,
     h: [x.home.played, x.home.win, x.home.draw, x.home.lose, x.home.goals.for, x.home.goals.against],
@@ -128,7 +131,7 @@ async function top(c, s) {
   for (const [k, ep, v] of [['g', 'topscorers', st => st.goals.total], ['a', 'topassists', st => st.goals.assists], ['y', 'topyellowcards', st => st.cards.yellow], ['r', 'topredcards', st => st.cards.red]]) {
     if (dur()) return; // yarim kalan dosya yazilmaz
     const j = await api(`/players/${ep}?league=${LIG[c]}&season=${s}`);
-    o[k] = (j.response || []).map(x => { const st = x.statistics[0] || {}; return [x.player.id, x.player.name, st.team?.id || null, ad(st.team?.id, st.team?.name), v(st) || 0, st.games?.appearences || 0]; });
+    o[k] = (j.response || []).map(x => { const st = x.statistics[0] || {}; return [x.player.id, x.player.name, st.team?.id || null, ad(st.team?.id, st.team?.name, c), v(st) || 0, st.games?.appearences || 0]; });
   }
   wr(f, o); log.push(`${c} ${s}: kralliklar`);
 }
@@ -140,7 +143,7 @@ async function fixtures(c, s) {
   const j = await api(`/fixtures?league=${LIG[c]}&season=${s}`);
   const m = (j.response || []).map(x => [x.fixture.id, x.fixture.date, x.teams.home.id, x.teams.away.id, x.goals.home, x.goals.away, x.fixture.status.short,
     String(x.league.round || '').replace('Regular Season - ', ''), x.score?.halftime?.home ?? null, x.score?.halftime?.away ?? null]).sort((a, b) => a[1].localeCompare(b[1]));
-  const tn = {}; (j.response || []).forEach(x => { tn[x.teams.home.id] = ad(x.teams.home.id, x.teams.home.name); tn[x.teams.away.id] = ad(x.teams.away.id, x.teams.away.name); });
+  const tn = {}; (j.response || []).forEach(x => { tn[x.teams.home.id] = ad(x.teams.home.id, x.teams.home.name, c); tn[x.teams.away.id] = ad(x.teams.away.id, x.teams.away.name, c); });
   wr(f, { at: new Date().toISOString(), tn, m }); log.push(`${c} ${s}: fikstur ${m.length} mac`);
 }
 // ---------- 3b. mac ayrintilari (20'li paketler) ----------
@@ -216,7 +219,7 @@ function oyuncu(x) {
   return {
     id: p.id, n: p.name, fn: p.firstname, ln: p.lastname, yas: p.age, dt: p.birth?.date || null, dy: p.birth?.place || null, du: p.birth?.country || null,
     uy: p.nationality || null, boy: p.height || null, kilo: p.weight || null, sak: p.injured ? 1 : 0,
-    tid: st.team?.id || null, t: ad(st.team?.id, st.team?.name),
+    tid: st.team?.id || null, t: ad(st.team?.id, st.team?.name, L2C[st.league?.id]),
     s: (x.statistics || []).map(q => ({
       tid: q.team?.id, mac: n(q.games?.appearences), il: n(q.games?.lineups), dk: n(q.games?.minutes), no: n(q.games?.number), mv: q.games?.position || null, pu: q.games?.rating ? +(+q.games.rating).toFixed(2) : null, kap: q.games?.captain ? 1 : 0,
       g: n(q.goals?.total), a: n(q.goals?.assists), yg: n(q.goals?.conceded), kur: n(q.goals?.saves),
@@ -259,7 +262,7 @@ async function clubs() {
       try {
         const j = await api(`/teams?league=${LIG[c]}&season=${CUR}`);
         for (const x of j.response || []) {
-          const t = o.t[x.team.id] = o.t[x.team.id] || {}; t.n = ad(x.team.id, x.team.name); t.c = c; t.kur = x.team.founded || null; t.ul = x.team.country || null;
+          const t = o.t[x.team.id] = o.t[x.team.id] || {}; t.n = ad(x.team.id, x.team.name, c); t.c = c; t.kur = x.team.founded || null; t.ul = x.team.country || null;
           const v = x.venue || {}; t.v = { n: v.name || null, sh: v.city || null, adr: v.address || null, kap: v.capacity || null, zem: v.surface || null, img: v.image || null };
         }
         o[lk] = new Date().toISOString(); n++;

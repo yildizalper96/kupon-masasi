@@ -9,6 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pace } from './api-pace.mjs';
+import { tekilAd } from './team-names.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const API = path.join(root, 'data', 'api');
@@ -65,6 +66,10 @@ if (NAMES && eksik.size) {
     console.log(`Ad istekleri: ${n}, kalan kota: ${kalan}`);
   }
 }
+
+// ---- ad tekilligi: uygulamada baska kulube ait ad (Inter Miami/Inter, Belcika'daki Lille) yanlis logo/sayfa almasin (23 Kas 2026) ----
+{ const ilkC = {}; tum.forEach(x => { for (const t of [x[3], x[4]]) if (!ilkC[t]) ilkC[t] = x[1]; });
+  for (const id of Object.keys(ad)) ad[id] = tekilAd(ad[id], id, uyg, ilkC[id]); }
 
 // ---- dizin ----
 const hedef = new Set();

@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pace } from './api-pace.mjs';
+import { kapsam, tekilAd } from './team-names.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
@@ -80,9 +81,16 @@ const STOP = new Set(['fc', 'cf', 'afc', 'sc', 'fk', 'sk', 'bk', 'ac', 'as', 'ss
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i').replace(/ø/g, 'o').replace(/[’'`.]/g, ' ').replace(/[^a-zA-Z0-9]+/g, ' ').trim().toLowerCase();
 const NATIONS_N = Object.fromEntries(Object.entries(NATIONS).map(([k, v]) => [norm(k), v]));
 const toks = s => norm(s).split(' ').filter(t => t && !STOP.has(t));
-const APP_TOKS = APP_ALL.map(n => [n, toks(n)]);
 const unmatched = new Map();
-function teamName(code, api) {
+// yarisma -> eslesebilecegi uygulama adlari (ayni ulke; Avrupa kupalarinda Avrupa ligleri). Inter Miami -> Inter hatasi (23 Kas 2026)
+const SCOPE_C = {};
+const scopeOf = code => SCOPE_C[code] || (SCOPE_C[code] = (() => { const l = [...new Set(kapsam(code, Object.keys(appTeams)).flatMap(k => appTeams[k]))]; return { all: l, toks: l.map(n => [n, toks(n)]) }; })());
+// id verilirse: ad ids.json'da baska kulube aitse tekil ad ("Lille (Belçika)")
+function teamName(code, api, id) {
+  const n0 = teamName0(code, api);
+  return id ? tekilAd(n0, id, TID, code) : n0;
+}
+function teamName0(code, api) {
   const clean = api.replace(/-/g, ' ');
   if (code === 'UNL' || code === 'USC' && NATIONS[clean]) {
     const tr = NATIONS[clean] || NATIONS[api] || NATIONS_N[norm(api)];
@@ -92,16 +100,18 @@ function teamName(code, api) {
     return clean;
   }
   const n = norm(clean);
-  if (ALIAS[n]) return ALIAS[n];
+  const SC = scopeOf(code);
+  // elle eslesme: hedef baska ulkenin uygulama takimiysa uygulanmaz
+  if (ALIAS[n] && (SC.all.includes(ALIAS[n]) || !APP_ALL.includes(ALIAS[n]))) return ALIAS[n];
   // tam esit
-  const exact = APP_ALL.find(a => norm(a) === n);
+  const exact = SC.all.find(a => norm(a) === n);
   if (exact) return exact;
   // uygulama adinin tum sozcukleri API adinda geciyor (ve tersi)
   const at = new Set(toks(clean));
-  const cand = APP_TOKS.filter(([, t]) => t.length && t.every(x => at.has(x)));
+  const cand = SC.toks.filter(([, t]) => t.length && t.every(x => at.has(x)));
   if (cand.length === 1) return cand[0][0];
   if (cand.length > 1) return cand.sort((a, b) => b[1].length - a[1].length)[0][0];
-  const rev = APP_TOKS.filter(([, t]) => t.length && at.size && [...at].every(x => t.includes(x)));
+  const rev = SC.toks.filter(([, t]) => t.length && at.size && [...at].every(x => t.includes(x)));
   if (rev.length === 1) return rev[0][0];
   unmatched.set(code + ': ' + api, (unmatched.get(code + ': ' + api) || 0) + 1);
   return clean;
@@ -170,7 +180,9 @@ const cache = fs.existsSync(cachePath) ? JSON.parse(fs.readFileSync(cachePath, '
 const tidPath = path.join(root, 'data', 'teams', 'ids.json');
 const TID = fs.existsSync(tidPath) ? (JSON.parse(fs.readFileSync(tidPath, 'utf8')).t || {}) : {};
 let tidNew = 0;
-const tidAdd = (name, id) => { if (!name || !Number.isFinite(id)) return; if (TID[name] !== id) { TID[name] = id; tidNew++; } };
+// var olan kimlik ASLA ezilmez (eskiden Inter <-> Inter Miami arasinda gidip geliyordu); cakisma raporlanir
+const tidConflict = new Set();
+const tidAdd = (name, id) => { if (!name || !Number.isFinite(id)) return; if (TID[name] == null) { TID[name] = id; tidNew++; } else if (+TID[name] !== +id) tidConflict.add(name + ': ' + TID[name] + ' / ' + id); };
 const TID_SYN = { 'STVV': 'Sint-Truidense', 'Sint-Truidense': 'STVV' };
 // Biten maclari kalici biriktir (takim formu ve tahmin gecmisi icin: ucretsiz planda gecmis mac sorgusu yok). data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y,p}]}
 // p: mac oncesi 1-X-2 olasiligi (tahmin gecmisi bununla, sonuc belli olduktan sonra degismeden hesaplanir)
@@ -195,7 +207,7 @@ const finAdd = list => {
     console.log('finished.json: +' + n + ' bitmis mac (toplam ' + m.length + ')');
   } catch (e) { console.log('finished.json yazilamadi: ' + e.message); }
 };
-const tidSave = () => { for (const [a, b] of Object.entries(TID_SYN)) if (TID[a] && !TID[b]) TID[b] = TID[a]; if (DRY) return; fs.mkdirSync(path.dirname(tidPath), { recursive: true }); fs.writeFileSync(tidPath, JSON.stringify({ at: new Date().toISOString(), t: TID })); };
+const tidSave = () => { if (tidConflict.size) console.log('UYARI ayni ad farkli kimlik (ezilmedi): ' + [...tidConflict].join(' | ')); for (const [a, b] of Object.entries(TID_SYN)) if (TID[a] && !TID[b]) TID[b] = TID[a]; if (DRY) return; fs.mkdirSync(path.dirname(tidPath), { recursive: true }); fs.writeFileSync(tidPath, JSON.stringify({ at: new Date().toISOString(), t: TID })); };
 
 // amator kulup ayni adli gercek kulup sanilan maclar (kullanici 16 Kas 2026: Marseille-Toulon, Rochefort-Juventus)
 const YASAK_MAC = new Set([1647967, 1647983]);
@@ -205,7 +217,7 @@ let skippedCup = 0;
 function toMatch(x) {
   const c = ID2C[x.league.id];
   if (!c) return null;
-  const hn = teamName(c, x.teams.home.name), an = teamName(c, x.teams.away.name);
+  const hn = teamName(c, x.teams.home.name, x.teams.home.id), an = teamName(c, x.teams.away.name, x.teams.away.id);
   // yerel kupalarin ilk turlari: iki takim da uygulamanin bildigi ust lig takimlarindan degilse alma (2./3. lig istemiyoruz)
   // kullanici karari (15 Kas 2026): yerel kupada takimlardan EN AZ BIRI gercekten ust lig takimiysa goster; yalnizca ad benzerligi
   // (ornegin Rochefort-Juventus: Fransa'daki kucuk Juventus) yetmez -> bilinen takim kimligi API'dekiyle ayni olmali.
@@ -237,7 +249,7 @@ if (process.argv.includes('--teams')) {
     try {
       const j = await api('/teams?league=' + LEAGUES[c][0] + '&season=' + season);
       let n = 0;
-      for (const r of j.response) { const nm = teamName(c, r.team.name); if (APP_ALL.includes(nm)) { tidAdd(nm, r.team.id); n++; } else miss.push(c + ': ' + r.team.name); }
+      for (const r of j.response) { const nm = teamName(c, r.team.name, r.team.id); if (APP_ALL.includes(nm)) { tidAdd(nm, r.team.id); n++; } else miss.push(c + ': ' + r.team.name); }
       ok += n; console.log('  ' + c + ' (' + season + '): ' + j.response.length + ' takim, eslesen ' + n);
     } catch (e) { console.log('  ' + c + ' hata: ' + String(e.message).slice(0, 200)); }
   }
