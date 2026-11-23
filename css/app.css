@@ -2786,3 +2786,11 @@ body:has(.kmonay) .km18{display:none}
 .kmyasal-g .kart{border-top:1px solid var(--ln);padding:12px 0 2px;margin:12px 0 0}.kmyasal-g p{margin:0 0 8px}.kmyasal-g ul{padding-left:18px;margin:4px 0 8px}.kmyasal-g a{color:var(--acc)}.kmyasal-y{color:var(--mut)}
 .kmyasal-x{position:absolute;top:10px;right:10px;z-index:1;width:36px;height:36px;border-radius:50%;border:1px solid var(--ln);background:var(--sf);color:var(--ink);font-size:22px;line-height:1;cursor:pointer}
 body:has(.kmyasal) .km18{display:none}
+
+/* diger giris yontemleri (23 Kas 2026): X, Facebook, sifresiz kod */
+.kau-pv{display:grid;gap:8px;margin-top:8px}
+.kau-pv .kau-g{font-size:14px}
+.kau-g.kau-x{background:#000;color:#fff;border-color:#000}
+:root:not([data-theme="light"]) .kau-g.kau-x{border-color:#3a3a3a}
+.kau-otpl{justify-content:center}
+#app .kau.kau input#kac{letter-spacing:4px!important;text-align:center!important;font-size:20px!important}
