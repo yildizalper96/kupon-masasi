@@ -1,3 +1,45 @@
+// Yasal sayfa penceresi (23 Kas 2026): uygulama icindeki /kosullar/ ve /gizlilik/ linkleri yeni sekme yerine sayfa ici
+// pencerede acilir. Icerik statik sayfadan (tools/yasal-sayfalar.mjs) cekilir, <main> icinden ust/alt kisim atilir.
+// Cekilemezse (cevrimdisi, yerel sunucu) link eskisi gibi yeni sekmede acilir.
+(function () {
+  var onb = {};
+  function kapat() { var m = document.getElementById('kmyasal'); if (!m) return; m.remove(); document.removeEventListener('keydown', tus); if (kapat.odak && kapat.odak.focus) kapat.odak.focus(); }
+  function tus(e) { if (e.key === 'Escape') kapat(); }
+  function ac(yol, a) {
+    kapat(); kapat.odak = a;
+    var m = document.createElement('div');
+    m.id = 'kmyasal'; m.className = 'kmyasal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+    m.innerHTML = '<div class="kmyasal-i"><button type="button" class="kmyasal-x" aria-label="Kapat">×</button><div class="kmyasal-g" tabindex="-1"><p class="kmyasal-y">Yükleniyor…</p></div></div>';
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('.kmyasal-x') || (e.target.closest('a[href="/"]'))) { e.preventDefault(); kapat(); } });
+    document.addEventListener('keydown', tus);
+    document.body.appendChild(m);
+    var g = m.querySelector('.kmyasal-g');
+    m.querySelector('.kmyasal-x').focus();
+    (onb[yol] ? Promise.resolve(onb[yol]) : fetch(yol, { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw 0;
+      return r.text();
+    }).then(function (t) {
+      var d = new DOMParser().parseFromString(t, 'text/html'), mn = d.querySelector('main');
+      if (!mn || !mn.querySelector('h1')) throw 0;
+      mn.querySelectorAll('header,footer,script').forEach(function (x) { x.remove(); });
+      return (onb[yol] = mn.innerHTML);
+    })).then(function (h) {
+      if (!document.body.contains(m)) return;
+      g.innerHTML = h;
+      var h1 = g.querySelector('h1'); if (h1) m.setAttribute('aria-label', h1.textContent);
+      g.scrollTop = 0;
+    }).catch(function () { kapat(); window.open(yol, '_blank', 'noopener'); });
+  }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+    var y = a.getAttribute('href').replace(/^https:\/\/simuleto\.com/, '');
+    if (y !== '/kosullar/' && y !== '/gizlilik/') return;
+    e.preventDefault();
+    ac(y, a);
+  }, true);
+})();
+
 // Ilk acilis yasal notu (23 Kas 2026): 18+ ve "simulatordur, bahis yaptirmaz" uyarisi. Bir kez gosterilir,
 // "Anladim" ile kapanir (localStorage km_18). Sayfayi kilitlemez: altta serit. Depolama yoksa her acilista yine cikar.
 (function () {
