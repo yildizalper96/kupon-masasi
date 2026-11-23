@@ -48,7 +48,7 @@ ${ld ? `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\
 <header><a class="l" href="/">Simuleto</a><a href="/mac/">Maç analizleri</a></header>
 ${body}
 <footer>Simuleto bir analiz ve kupon simülatörüdür, bahis yaptırmaz. Olasılıklar istatistiksel tahmindir; bahis tavsiyesi değildir, hiçbir bahis risksiz değildir. 18 yaş altı için değildir.<br><a href="/gizlilik/">Gizlilik</a> · <a href="/kosullar/">Kullanım Koşulları</a> · <a href="mailto:support@simuleto.com">İletişim</a></footer>
-</main></body></html>`;
+</main><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "71c755ce81504619899c79ab48fd8dd3"}'></script></body></html>`;
 
 const ARSIV = 'data/fixtures/seo-arsiv.json', GUN_TUT = 150;
 const bittiMi = m => ['FT', 'AET', 'PEN'].includes(m.st) && Array.isArray(m.sc) && m.sc[0] != null;

@@ -22,7 +22,7 @@ export const GIZLILIK = {
 <li><b>Paylaştığınız kuponlar:</b> bir kuponu kodla paylaşırsanız, kuponun içeriği o kodu bilen herkes tarafından görülebilir.</li>
 <li><b>Hesap açmazsanız:</b> kuponlarınız ve favorileriniz yalnızca kendi cihazınızda (tarayıcının yerel depolamasında) durur; bize gönderilmez.</li>
 <li><b>Hata kayıtları:</b> uygulamada bir yazılım hatası oluşursa hatayı düzeltebilmek için hata metni, hatanın oluştuğu sayfa adresi ve tarayıcı türü kaydedilir. Bu kayıtlarda e-posta, kupon veya hesap bilgisi bulunmaz.</li>
-</ul><p>Reklam, izleme ya da analitik çerezi kullanmıyoruz. Konum, rehber veya cihaz kimliği toplamıyoruz.</p></div>
+</ul><p>Reklam, izleme ya da analitik çerezi kullanmıyoruz. Konum, rehber veya cihaz kimliği toplamıyoruz. Kaç kişinin hangi sayfaları ziyaret ettiğini toplu olarak görmek için çerez kullanmayan ve ziyaretçiyi tanımlamayan <b>Cloudflare Web Analytics</b> kullanılır.</p></div>
 
 <div class="kart"><h2>2. Verileri neden kullanıyoruz</h2><ul>
 <li>Hesabınızı oluşturmak, giriş yapmanızı sağlamak ve şifre sıfırlama gibi hesap e-postalarını göndermek.</li>
@@ -33,7 +33,8 @@ export const GIZLILIK = {
 <div class="kart"><h2>3. Hizmet sağlayıcılar</h2><p>Uygulamanın çalışması için aşağıdaki hizmetler kullanılır. Bu hizmetler, isteğin doğası gereği IP adresinizi görebilir:</p><ul>
 <li><b>Supabase</b>: hesap ve uygulama verilerinin saklandığı veritabanı ve giriş sistemi.</li>
 <li><b>GitHub Pages</b>: sitenin barındırılması.</li>
-<li><b>Cloudflare</b>: alan adı (DNS) ve gelen e-postaların yönlendirilmesi.</li>
+<li><b>Cloudflare</b>: alan adı (DNS), gelen e-postaların yönlendirilmesi ve çerezsiz ziyaret istatistikleri (Web Analytics).</li>
+<li><b>Resend</b>: hesap e-postalarının (doğrulama, şifre sıfırlama) gönderilmesi.</li>
 <li><b>Google</b>: "Google ile giriş" (yalnızca seçerseniz) ve yazı tipleri (Google Fonts).</li>
 <li><b>API-Sports</b>: takım logoları ve oyuncu fotoğrafları bu sağlayıcının sunucularından yüklenir.</li>
 </ul><p>Bu sağlayıcıların sunucuları Türkiye dışında (ör. AB veya ABD) bulunabilir; verileriniz bu ülkelere aktarılabilir.</p></div>
