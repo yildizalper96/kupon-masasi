@@ -304,7 +304,7 @@
   };
   function gunler() {
     try {
-      const t = dk(new Date()), LDS = new Set((typeof LGR !== 'undefined' ? LGR : []).map(r => dk(new Date(r.t))));
+      const t = dk(new Date()), LDS = window.kmPastDays ? window.kmPastDays() : new Set((typeof LGR !== 'undefined' ? LGR : []).map(r => dk(new Date(r.t))));
       return [...new Set(R.filter(m => dk(m.t) >= t || LDS.has(dk(m.t))).map(m => dk(m.t)))].sort();
     } catch (e) { return []; }
   }

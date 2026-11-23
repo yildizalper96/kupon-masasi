@@ -10490,6 +10490,9 @@ R.forEach(add);
 B.forEach(x=>{if(!x)return;const key=[x.c,x.h,x.a].join('|');if((!RES[key]||RES[key][0]=='L')&&x.x!=null&&x.y!=null&&Number.isFinite(+x.x)&&Number.isFinite(+x.y))RES[key]=x.x+'-'+x.y;if(!x.p||!(x.c in LN))return;add({c:x.c,t:new Date(x.t),h:x.h,a:x.a,p:x.p})});
 RECC=LGR.concat(out);RECK=ky;return RECC};
 window.kmRecAll=recAll;
+// Gecmis gunler (23 Kas 2026): gun listesinde gosterilecek gecmis gunler = elle kayit (LGR) gunleri + sonucu (RES) olan her macin gunu.
+// Onceden yalniz LGR kullaniliyordu; elle kayit olmayan gunler (or. 21-22 Kas) listeden dusuyordu.
+const pastDays=()=>{const s=new Set(LGR.map(r=>dk(new Date(r.t))));R.forEach(m=>{if(RES[[m.c,m.h,m.a].join("|")])s.add(dk(m.t))});return s};window.kmPastDays=pastDays;
 const mstat=(gun,c)=>{const sn=Date.now()-(gun||30)*864e5;let h=0,n=0;try{recAll().forEach(r=>{if(c&&r.c!==c)return;if(+new Date(r.t)<sn)return;const s=st(r).s;if(s=='hit'){h++;n++}else if(s=='miss')n++})}catch(e){}return n?{h,n,p:h/n}:null};
 window.kmMstat=mstat;
 // Gunun one cikanlari (17 Kas 2026): ana sayfanin basinda model guven rozeti + gunun en olasi tahminli 3 maci (kupona ekle, karta dokununca mac)
@@ -10846,7 +10849,7 @@ if(tab=='u'){profView();return}
 if(tab=='c'){kupView();return}
 if((tab=='k'||tab=='l')&&Q.trim()){teamView();return}
 if(tab=='l'){ligView();return}
-if(window.__fxWait&&tab!='g'){$('#app').innerHTML='';bindU([]);return}if(tab=='g'){hist();bindU([]);return}const now=Date.now(),tdk=dk(new Date()),LDS=new Set(LGR.map(r=>dk(new Date(r.t)))),L=R.filter(m=>dk(m.t)>=tdk||LDS.has(dk(m.t))),ds=[...new Set(L.map(m=>dk(m.t)))].sort();if(!ds.includes(day)||(window.__dayAuto&&day!=tdk&&ds.includes(tdk))){day=ds.find(d=>d>=tdk)||ds[ds.length-1];window.__dayAuto=1}
+if(window.__fxWait&&tab!='g'){$('#app').innerHTML='';bindU([]);return}if(tab=='g'){hist();bindU([]);return}const now=Date.now(),tdk=dk(new Date()),LDS=pastDays(),L=R.filter(m=>dk(m.t)>=tdk||LDS.has(dk(m.t))),ds=[...new Set(L.map(m=>dk(m.t)))].sort();if(!ds.includes(day)||(window.__dayAuto&&day!=tdk&&ds.includes(tdk))){day=ds.find(d=>d>=tdk)||ds[ds.length-1];window.__dayAuto=1}
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));
 const lb=d=>(x=>x.toLocaleDateString(LOCALE,{weekday:'short'})+' '+dd(x))(new Date(d+'T12:00'));
 const ms0=L.filter(m=>dk(m.t)==day).sort((a,b)=>a.t-b.t),q=Q.trim().toLocaleLowerCase('tr'),ms=ms0.filter(m=>(!F||m.c==F)&&(!LV||['on','live'].includes(stt(m).k))&&(!FV||isFavM(m))&&(!RSK||rfOk(m,RSK))&&(!q||(m.h+' '+m.a).toLocaleLowerCase('tr').includes(q))),fm=ms.filter(isFavM),rest=ms,lg=Object.keys(LN).filter(c=>rest.some(m=>m.c==c)),la=Object.keys(LN).filter(c=>ms0.some(m=>m.c==c));
