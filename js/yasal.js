@@ -13,7 +13,9 @@
     m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('.kmyasal-x') || (e.target.closest('a[href="/"]'))) { e.preventDefault(); kapat(); } });
     document.addEventListener('keydown', tus);
     document.body.appendChild(m);
-    var g = m.querySelector('.kmyasal-g');
+    var g = m.querySelector('.kmyasal-g'), x = m.querySelector('.kmyasal-x');
+    function yer() { x.style.right = (10 + g.offsetWidth - g.clientWidth) + 'px'; }
+    yer();
     m.querySelector('.kmyasal-x').focus();
     (onb[yol] ? Promise.resolve(onb[yol]) : fetch(yol, { cache: 'no-cache' }).then(function (r) {
       if (!r.ok) throw 0;
@@ -27,7 +29,7 @@
       if (!document.body.contains(m)) return;
       g.innerHTML = h;
       var h1 = g.querySelector('h1'); if (h1) m.setAttribute('aria-label', h1.textContent);
-      g.scrollTop = 0;
+      g.scrollTop = 0; yer();
     }).catch(function () { kapat(); window.open(yol, '_blank', 'noopener'); });
   }
   document.addEventListener('click', function (e) {

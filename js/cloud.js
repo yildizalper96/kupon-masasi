@@ -2,6 +2,7 @@
  * Kutuphane kullanmaz; dogrudan Supabase'in /auth/v1 ve /rest/v1 adreslerine fetch atar.
  * config.js bos ise KMCLOUD.on === false ve uygulama eskisi gibi misafir modunda calisir.
  *
+ * 23 Kas 2026: X / Facebook (config.js providers) ve sifresiz e-posta kodu (OTP) eklendi.
  * Disa acilanlar:
  *   window.KMCLOUD = { on, user(), ready(), signIn(e,p), signUp(e,p), google(), signOut(), rest(...), lastError }
  *   window.KMAUTH  = { t(key), card(pbx), bind(), afterLogin() }   // profil sekmesindeki giris arayuzu
@@ -44,8 +45,10 @@
       saveS(toSession({ access_token: q.access_token, refresh_token: q.refresh_token, expires_in: q.expires_in }));
       if (q.type === 'recovery') { C.recovery = true; try { sessionStorage.setItem('km_rec', '1'); } catch (e) {} } else if (q.type === 'signup') C.justConfirmed = true;
     } else if (q.error_description || q.error) {
-      C.lastError = /not enabled|disabled/i.test(q.error_description || '') ? 'nogoogle' : 'net';
+      var pv = ''; try { pv = sessionStorage.getItem('km_prov') || ''; } catch (e) {}
+      C.lastError = /not enabled|disabled|unsupported provider/i.test(q.error_description || '') ? (pv && pv !== 'google' ? 'noprov' : 'nogoogle') : 'net';
     }
+    try { sessionStorage.removeItem('km_prov'); } catch (e) {}
     try { history.replaceState(null, '', location.pathname + location.search + (C.recovery ? '#/sifre-sifirla' : '')); } catch (e) {}
   }
 
@@ -63,6 +66,7 @@
     if (/weak_password/.test(code) || /password should be|at least/i.test(msg)) return 'weak';
     if (/user_already|already registered|already been registered/i.test(code + ' ' + msg)) return 'exists';
     if (/validation_failed|invalid.*email|email.*invalid/i.test(code + ' ' + msg)) return 'invalidmail';
+    if (/otp_expired|token has expired|invalid.*(otp|token)/i.test(code + ' ' + msg)) return 'badcode';
     if (/provider_disabled|not enabled/i.test(code + ' ' + msg)) return 'nogoogle';
     if (/rate_limit|over_email/i.test(code + ' ' + msg) || r.status === 429) return 'limit';
     if (/email_not_confirmed/.test(code)) return 'confirm';
@@ -136,6 +140,23 @@
     var r = await authFetch('/user', 'PUT', { password: pw }, s.access_token);
     return r.ok ? { ok: true } : { error: errKey(r) };
   };
+  // diger OAuth saglayicilari (23 Kas 2026): X ve Facebook; yalniz config.js'deki providers listesindekiler gosterilir
+  C.providers = (CFG.providers || []).filter(function (p) { return p === 'x' || p === 'facebook'; });
+  C.oauth = function (p) {
+    var id = p === 'x' ? (CFG.xProvider || 'x') : p;
+    try { sessionStorage.setItem('km_prov', p); } catch (e) {}
+    location.href = BASE + '/auth/v1/authorize?provider=' + encodeURIComponent(id) + (p === 'facebook' ? '&scopes=email' : '') + '&redirect_to=' + encodeURIComponent(location.origin + location.pathname);
+  };
+  // sifresiz e-posta girisi: baglanti + kod (OTP). Hesap yoksa acilir.
+  C.otp = async function (email, terms) {
+    var r = await authFetch('/otp' + RTO(), 'POST', { email: email, create_user: true, data: terms ? { terms_at: new Date().toISOString() } : undefined });
+    return r.ok ? { ok: true } : { error: errKey(r) };
+  };
+  C.verifyOtp = async function (email, code) {
+    var r = await authFetch('/verify', 'POST', { type: 'email', email: email, token: code });
+    if (r.ok && r.j.access_token) { saveS(toSession(r.j)); return { ok: true }; }
+    return { error: errKey(r) };
+  };
   C.google = function () {
     location.href = BASE + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(location.origin + location.pathname);
   };
@@ -207,7 +228,7 @@
 
   /* ---------------- giris arayuzu (profil sekmesi) ---------------- */
   var T = {
-    tr: { welcome: "Hoş geldin", f1t: "Kupon simülasyonların", f1d: "Kurduğun her kupon hesabında saklanır, sonucu otomatik işlenir.", f2t: "Favori takımların", f2d: "Takip ettiğin takımlar her açılışta hazır bekler.", f3t: "Her cihazda aynı", f3d: "Telefonda kur, bilgisayarda devam et.", f4t: "Kendi istatistiğin", f4d: "Tuttu / tutmadı oranını ve netini gör.", foot: "Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir.", noacc: "Hesabın yok mu?", haveacc: "Zaten hesabın var mı?", title: 'Giriş yap veya hesap oluştur', hint: 'Giriş yaparsan kuponların ve favorilerin hesabında saklanır, cihaz değiştirsen de kaybolmaz.', guest: 'Şu an misafirsin: kuponların ve favorilerin yalnızca bu cihazda durur.', email: 'E-posta', pass: 'Şifre (en az 6 karakter)', signin: 'Giriş yap', signup: 'Hesap oluştur', google: 'Google ile giriş', or: 'veya', wait: 'Bekle…', signedin: 'Giriş yapıldı', signedin2: 'Giriş yapıldı. İki küçük ayar yeter.', own: 'Kuponların, favorilerin ve ayarların yalnızca sana aittir.', bad: 'E-posta veya şifre hatalı.', weak: 'Şifre en az 6 karakter olmalı.', exists: 'Bu e-posta adresiyle zaten bir hesap var, tekrar kayıt olamazsın. Giriş yap; şifreni unuttuysan "Şifremi unuttum" de.', invalidmail: 'Geçerli bir e-posta yaz.', net: 'Bağlantı kurulamadı, birazdan tekrar dene.', confirm: 'Onay e-postası gönderildi. E-postandaki bağlantıya tıkla, sonra giriş yap.', nogoogle: 'Google ile giriş henüz açık değil.', limit: 'Çok fazla deneme, biraz bekleyip tekrar dene.', name: 'Adın veya kullanıcı adın', pass2: 'Şifre', passup: 'Şifre (en az 8 karakter)', passre: 'Şifreyi tekrar yaz', show: 'Göster', hide: 'Gizle', r8: 'En az 8 karakter', rl: 'Harf içeriyor', rd: 'Rakam içeriyor', rm: 'Şifreler aynı', noname: 'Adını yaz (en az 2 karakter).', weakup: 'Şifre en az 8 karakter olmalı, harf ve rakam içermeli.', nomatch: 'Şifreler aynı değil.', noterms: 'Devam etmek için onay kutusunu işaretle.', terms: '18 yaşından büyüğüm; Simuleto’nun bahis yaptırmayan bir simülatör olduğunu biliyorum ve Kullanım Koşulları ile Gizlilik Politikası’nı kabul ediyorum.', googleup: 'Google ile kayıt ol', forgot: 'Şifremi unuttum', vt: 'E-postanı doğrula', vd: 'Hesabını etkinleştirmek için şu adrese bir doğrulama bağlantısı gönderdik:', vs: 'E-postandaki bağlantıya tıkla; hesabın açılır ve otomatik giriş yaparsın. Gelmediyse spam/gereksiz klasörüne bak. Bu adresle daha önce kayıt olduysan mail gönderilmez: giriş yap ya da Şifremi unuttum de.', resend: 'E-postayı tekrar gönder', resendin: 'Tekrar gönder ({n} sn)', sent: 'Doğrulama e-postası tekrar gönderildi.', other: 'Farklı e-posta kullan', back: 'Giriş ekranına dön', ft: 'Şifreni sıfırla', fd: 'Hesabının e-posta adresini yaz, şifre sıfırlama bağlantısı gönderelim.', fsend: 'Sıfırlama bağlantısı gönder', fsent: 'Bağlantı gönderildi. E-postandaki bağlantıya tıklayıp yeni şifreni belirle.', nt: 'Yeni şifre belirle', nd: 'Hesabın için yeni bir şifre yaz.', nsave: 'Şifreyi kaydet', pwdone: 'Şifren değişti. Şimdi yeni şifrenle giriş yapabilirsin.', nok: 'Şifren güncellendi.', confirmin: 'E-posta adresin henüz doğrulanmadı. E-postandaki bağlantıya tıkla.' },
+    tr: { welcome: "Hoş geldin", f1t: "Kupon simülasyonların", f1d: "Kurduğun her kupon hesabında saklanır, sonucu otomatik işlenir.", f2t: "Favori takımların", f2d: "Takip ettiğin takımlar her açılışta hazır bekler.", f3t: "Her cihazda aynı", f3d: "Telefonda kur, bilgisayarda devam et.", f4t: "Kendi istatistiğin", f4d: "Tuttu / tutmadı oranını ve netini gör.", foot: "Simuleto bir simülatördür, bahis yaptırmaz. Hiçbir bahis risksiz değildir.", noacc: "Hesabın yok mu?", haveacc: "Zaten hesabın var mı?", title: 'Giriş yap veya hesap oluştur', hint: 'Giriş yaparsan kuponların ve favorilerin hesabında saklanır, cihaz değiştirsen de kaybolmaz.', guest: 'Şu an misafirsin: kuponların ve favorilerin yalnızca bu cihazda durur.', email: 'E-posta', pass: 'Şifre (en az 6 karakter)', signin: 'Giriş yap', signup: 'Hesap oluştur', google: 'Google ile giriş', or: 'veya', wait: 'Bekle…', signedin: 'Giriş yapıldı', signedin2: 'Giriş yapıldı. İki küçük ayar yeter.', own: 'Kuponların, favorilerin ve ayarların yalnızca sana aittir.', bad: 'E-posta veya şifre hatalı.', weak: 'Şifre en az 6 karakter olmalı.', exists: 'Bu e-posta adresiyle zaten bir hesap var, tekrar kayıt olamazsın. Giriş yap; şifreni unuttuysan "Şifremi unuttum" de.', invalidmail: 'Geçerli bir e-posta yaz.', net: 'Bağlantı kurulamadı, birazdan tekrar dene.', confirm: 'Onay e-postası gönderildi. E-postandaki bağlantıya tıkla, sonra giriş yap.', nogoogle: 'Google ile giriş henüz açık değil.', limit: 'Çok fazla deneme, biraz bekleyip tekrar dene.', name: 'Adın veya kullanıcı adın', pass2: 'Şifre', passup: 'Şifre (en az 8 karakter)', passre: 'Şifreyi tekrar yaz', show: 'Göster', hide: 'Gizle', r8: 'En az 8 karakter', rl: 'Harf içeriyor', rd: 'Rakam içeriyor', rm: 'Şifreler aynı', noname: 'Adını yaz (en az 2 karakter).', weakup: 'Şifre en az 8 karakter olmalı, harf ve rakam içermeli.', nomatch: 'Şifreler aynı değil.', noterms: 'Devam etmek için onay kutusunu işaretle.', terms: '18 yaşından büyüğüm; Simuleto’nun bahis yaptırmayan bir simülatör olduğunu biliyorum ve Kullanım Koşulları ile Gizlilik Politikası’nı kabul ediyorum.', googleup: 'Google ile kayıt ol', forgot: 'Şifremi unuttum', vt: 'E-postanı doğrula', vd: 'Hesabını etkinleştirmek için şu adrese bir doğrulama bağlantısı gönderdik:', vs: 'E-postandaki bağlantıya tıkla; hesabın açılır ve otomatik giriş yaparsın. Gelmediyse spam/gereksiz klasörüne bak. Bu adresle daha önce kayıt olduysan mail gönderilmez: giriş yap ya da Şifremi unuttum de.', resend: 'E-postayı tekrar gönder', resendin: 'Tekrar gönder ({n} sn)', sent: 'Doğrulama e-postası tekrar gönderildi.', other: 'Farklı e-posta kullan', back: 'Giriş ekranına dön', ft: 'Şifreni sıfırla', fd: 'Hesabının e-posta adresini yaz, şifre sıfırlama bağlantısı gönderelim.', fsend: 'Sıfırlama bağlantısı gönder', fsent: 'Bağlantı gönderildi. E-postandaki bağlantıya tıklayıp yeni şifreni belirle.', nt: 'Yeni şifre belirle', nd: 'Hesabın için yeni bir şifre yaz.', nsave: 'Şifreyi kaydet', pwdone: 'Şifren değişti. Şimdi yeni şifrenle giriş yapabilirsin.', nok: 'Şifren güncellendi.', confirmin: 'E-posta adresin henüz doğrulanmadı. E-postandaki bağlantıya tıkla.', x: 'X ile devam et', facebook: 'Facebook ile devam et', noprov: 'Bu giriş yöntemi henüz açık değil.', otpl: 'Şifresiz giriş: e-postana kod gönder', ot: 'Şifresiz giriş', od: 'E-posta adresini yaz; giriş bağlantısı ve kod gönderelim. Hesabın yoksa otomatik açılır.', osend: 'Kod gönder', osent: 'Gönderildi. E-postandaki bağlantıya tıkla ya da gelen kodu aşağıya yaz.', code: 'E-postadaki kod', overify: 'Kodu doğrula ve giriş yap', badcode: 'Kod hatalı veya süresi dolmuş. Yeni kod iste.', nocode: 'Kodu yaz (6 haneli).', oagain: 'Yeni kod gönder' },
     en: { noacc: "No account?", haveacc: "Already have an account?", title: 'Sign in or create an account', hint: 'When you sign in, your slips and favourites are saved to your account and stay with you if you change phones.', guest: "You're a guest right now: your slips and favourites stay on this device only.", email: 'Email', pass: 'Password (at least 6 characters)', signin: 'Sign in', signup: 'Create account', google: 'Continue with Google', or: 'or', wait: 'Please wait…', signedin: 'Signed in', signedin2: 'Signed in. Two small settings and you are done.', own: 'Your slips, favourites and settings belong only to you.', bad: 'Wrong email or password.', weak: 'Password must be at least 6 characters.', exists: 'This email is already registered, try signing in.', invalidmail: 'Enter a valid email.', net: 'Could not connect, try again shortly.', confirm: 'A confirmation email was sent. Click the link in it, then sign in.', nogoogle: 'Google sign-in is not enabled yet.', limit: 'Too many attempts, wait a bit and try again.' },
     es: { noacc: "¿No tienes cuenta?", haveacc: "¿Ya tienes cuenta?", title: 'Inicia sesión o crea una cuenta', hint: 'Al iniciar sesión, tus boletos y favoritos se guardan en tu cuenta y no se pierden si cambias de teléfono.', guest: 'Ahora eres invitado: tus boletos y favoritos solo se guardan en este dispositivo.', email: 'Correo electrónico', pass: 'Contraseña (mínimo 6 caracteres)', signin: 'Iniciar sesión', signup: 'Crear cuenta', google: 'Continuar con Google', or: 'o', wait: 'Espera…', signedin: 'Sesión iniciada', signedin2: 'Sesión iniciada. Solo dos ajustes pequeños.', own: 'Tus boletos, favoritos y ajustes son solo tuyos.', bad: 'Correo o contraseña incorrectos.', weak: 'La contraseña debe tener al menos 6 caracteres.', exists: 'Este correo ya está registrado, prueba a iniciar sesión.', invalidmail: 'Escribe un correo válido.', net: 'No se pudo conectar, inténtalo de nuevo en un momento.', confirm: 'Se envió un correo de confirmación. Pulsa el enlace y luego inicia sesión.', nogoogle: 'El acceso con Google aún no está activado.', limit: 'Demasiados intentos, espera un poco e inténtalo de nuevo.' },
     pt: { noacc: "Não tem conta?", haveacc: "Já tem conta?", title: 'Entre ou crie uma conta', hint: 'Ao entrar, seus bilhetes e favoritos ficam salvos na sua conta e não se perdem se você trocar de celular.', guest: 'Você é convidado agora: seus bilhetes e favoritos ficam salvos apenas neste dispositivo.', email: 'E-mail', pass: 'Senha (mínimo de 6 caracteres)', signin: 'Entrar', signup: 'Criar conta', google: 'Continuar com o Google', or: 'ou', wait: 'Aguarde…', signedin: 'Login feito', signedin2: 'Login feito. Faltam só dois ajustes pequenos.', own: 'Seus bilhetes, favoritos e ajustes são só seus.', bad: 'E-mail ou senha incorretos.', weak: 'A senha deve ter pelo menos 6 caracteres.', exists: 'Este e-mail já está cadastrado, tente entrar.', invalidmail: 'Digite um e-mail válido.', net: 'Não foi possível conectar, tente novamente em instantes.', confirm: 'Enviamos um e-mail de confirmação. Clique no link e depois entre.', nogoogle: 'O login com o Google ainda não está ativado.', limit: 'Muitas tentativas, aguarde um pouco e tente de novo.' },
@@ -222,6 +243,13 @@
   A.t = t;
   A.mode = C.recovery ? "newpw" : "in";
   var GL = "<svg width='18' height='18' viewBox='0 0 48 48' aria-hidden='true'><path fill='#FFC107' d='M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z'/><path fill='#FF3D00' d='m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z'/><path fill='#4CAF50' d='M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z'/><path fill='#1976D2' d='M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z'/></svg>";
+  var XL = "<svg width='16' height='16' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z'/></svg>";
+  var FL = "<svg width='18' height='18' viewBox='0 0 24 24' aria-hidden='true'><path fill='#1877F2' d='M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.62 23.1 24 18.1 24 12.07z'/></svg>";
+  function provs(up) {
+    if (!C.providers.length) return '';
+    var off = up && !A.terms ? ' kau-off' : '', dis = A.busy ? ' disabled' : '';
+    return "<div class=\"kau-pv\">" + C.providers.map(function (p) { return "<button type=\"button\" class=\"kau-g kau-" + p + off + "\" data-kaprov=\"" + p + "\"" + dis + ">" + (p === 'x' ? XL : FL) + "<span>" + esc(t(p)) + "</span></button>"; }).join('') + "</div>";
+  }
   var IC = {
     k: "<svg viewBox=\"0 0 24 24\"><path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 8h6M9 12h6\"/></svg>",
     s: "<svg viewBox=\"0 0 24 24\"><path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z\"/></svg>",
@@ -258,21 +286,25 @@
       return "<h3 class=\"kau-h\">" + esc(t('ft')) + "</h3><p class=\"kau-d\">" + esc(t('fd')) + "</p>" + inp('kae', 'email', 'email', t('email'), A.email) + msg() + btn('kab_fp', 'fsend') +
         "<div class=\"kau-links\">" + lnk('in', 'back') + "</div>" + foot();
     }
+    if (A.mode === 'otp') {
+      return "<h3 class=\"kau-h\">" + esc(t('ot')) + "</h3><p class=\"kau-d\">" + esc(t('od')) + "</p>" + inp('kae', 'email', 'email', t('email'), A.email) +
+        (A.otpSent ? "<input id=\"kac\" type=\"text\" inputmode=\"numeric\" autocomplete=\"one-time-code\" maxlength=\"10\" placeholder=\"" + esc(t('code')) + "\">" : '') + msg() +
+        (A.otpSent ? btn('kab_ov', 'overify') + "<div class=\"kau-links\"><button type=\"button\" class=\"kau-l\" id=\"kab_os\">" + esc(t('oagain')) + "</button>" + lnk('in', 'back') + "</div>" : btn('kab_os', 'osend') + "<div class=\"kau-links\">" + lnk('in', 'back') + "</div>") + foot();
+    }
     if (A.mode === 'newpw') {
       return "<h3 class=\"kau-h\">" + esc(t('nt')) + "</h3><p class=\"kau-d\">" + esc(t('nd')) + "</p>" + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() + msg() + btn('kab_np', 'nsave') + foot();
     }
     var h = "<div class=\"kau-tabs\"><button id=\"kab_tin\" class=\"" + (up ? "" : "on") + "\" type=\"button\">" + esc(t("signin")) + "</button><button id=\"kab_tup\" class=\"" + (up ? "on" : "") + "\" type=\"button\">" + esc(t("signup")) + "</button></div>" +
-      (up ? cb() : "") +
-      "<button class=\"kau-g" + (up && !A.terms ? " kau-off" : "") + "\" id=\"kab_g\"" + dis + ">" + GL + "<span>" + esc(t(up ? "googleup" : "google")) + "</span></button>" +
+      "<button class=\"kau-g" + (up && !A.terms ? " kau-off" : "") + "\" id=\"kab_g\"" + dis + ">" + GL + "<span>" + esc(t(up ? "googleup" : "google")) + "</span></button>" + provs(up) +
       "<div class=\"kau-or\"><span>" + esc(t("or")) + "</span></div>";
     if (up) {
-      h += inp('kan', 'text', 'nickname', t('name'), A.name) + inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() + msg() + (A.msg === 'exists' ? "<div class=\"kau-links\">" + lnk('in', 'signin') + lnk('forgot', 'forgot') + "</div>" : "") + btn('kab_go', 'signup');
+      h += inp('kan', 'text', 'nickname', t('name'), A.name) + inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'new-password', t('passup')) + inp('kap2', A.show ? 'text' : 'password', 'new-password', t('passre')) + rules() + cb() + msg() + (A.msg === 'exists' ? "<div class=\"kau-links\">" + lnk('in', 'signin') + lnk('forgot', 'forgot') + "</div>" : "") + btn('kab_go', 'signup');
     } else {
       h += inp('kae', 'email', 'email', t('email'), A.email) + pwf('kap', 'current-password', t('pass2')) +
         "<div class=\"kau-links r\">" + lnk('forgot', 'forgot') + "</div>" + msg() +
         (A.msg === 'confirmin' ? "<button type=\"button\" class=\"kau-l kau-rs2\" id=\"kab_rs\">" + esc(t('resend')) + "</button>" : "") + btn('kab_go', 'signin');
     }
-    return h + foot();
+    return h + "<div class=\"kau-links kau-otpl\">" + lnk('otp', 'otpl') + "</div>" + foot();
   }
   var WM = "<b class=\"wm kau-wm\">simulet<svg class=\"o\" viewBox=\"44 44 424 424\" aria-hidden=\"true\"><use href=\"#kmball\"/></svg></b>";
   A.card = function (pbx) {
@@ -352,6 +384,21 @@
     if (r.error) return fail(r.error);
     A.msg = 'fsent'; A.ok = true; redraw();
   }
+  async function otpSend() {
+    keep(); if (!MAILRE.test(A.email)) return fail('invalidmail');
+    A.busy = true; A.msg = ''; redraw(); var r; try { r = await C.otp(A.email, A.terms); } catch (e) { r = { error: 'net' }; } A.busy = false;
+    if (r.error) return fail(r.error);
+    A.otpSent = true; A.msg = 'osent'; A.ok = true; redraw(); var c = document.getElementById('kac'); if (c) c.focus();
+  }
+  async function otpVerify() {
+    keep(); var code = val('kac').replace(/\D/g, '');
+    if (!MAILRE.test(A.email)) return fail('invalidmail');
+    if (code.length < 6) return fail('nocode');
+    A.busy = true; A.msg = ''; redraw(); var r; try { r = await C.verifyOtp(A.email, code); } catch (e) { r = { error: 'net' }; } A.busy = false;
+    if (r.error) return fail(r.error);
+    A.msg = ''; A.email = ''; A.otpSent = false; A.mode = 'in';
+    await A.afterLogin(); A.toMatches();
+  }
   async function newpw() {
     var pw = val('kap'), o = pwOk(pw);
     if (!(o.a && o.b && o.c)) return fail('weakup'); if (pw !== val('kap2')) return fail('nomatch');
@@ -371,10 +418,13 @@
     if (g('kab_rs')) g('kab_rs').onclick = resend;
     if (g('kab_fp')) g('kab_fp').onclick = forgot;
     if (g('kab_np')) g('kab_np').onclick = newpw;
+    if (g('kab_os')) g('kab_os').onclick = otpSend;
+    if (g('kab_ov')) g('kab_ov').onclick = otpVerify;
+    [].forEach.call(document.querySelectorAll('[data-kaprov]'), function (el) { el.onclick = function () { keep(); if (A.mode === 'up' && !A.terms) return fail('noterms'); C.oauth(el.getAttribute('data-kaprov')); }; });
     ['kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.addEventListener('input', rulesLive); });
     rulesLive();
     if (g('kat')) g('kat').onchange = function () { keep(); if (A.msg === 'noterms') A.msg = ''; redraw(); };
-    [].forEach.call(document.querySelectorAll('[data-kamode]'), function (el) { el.onclick = function () { keep(); A.mode = el.getAttribute('data-kamode'); A.msg = ''; redraw(); }; });
+    [].forEach.call(document.querySelectorAll('[data-kamode]'), function (el) { el.onclick = function () { keep(); A.mode = el.getAttribute('data-kamode'); A.msg = ''; A.otpSent = false; redraw(); }; });
     [].forEach.call(document.querySelectorAll('[data-kaeye]'), function (el) { el.onclick = function () { keep(); var p = val('kap'), p2 = val('kap2'); A.show = !A.show; redraw(); var a = g('kap'), b = g('kap2'); if (a) a.value = p; if (b) b.value = p2; rulesLive(); }; });
     [['kab_tin', 'in'], ['kab_tup', 'up']].forEach(function (x) { var el = g(x[0]); if (el) el.onclick = function () { if (A.mode === x[1]) return; keep(); A.mode = x[1]; A.msg = ''; redraw(); }; });
     if (g('kab_sw')) g('kab_sw').onclick = function () { var e = g('kae'); if (e) A.email = e.value.trim(); A.mode = A.mode === 'up' ? 'in' : 'up'; A.msg = ''; redraw(); };
@@ -392,7 +442,7 @@
         if (ok) { await A.afterLogin(); A.toMatches(); } else { A.msg = er || 'net'; redraw(); }
       }).then(function (r) { if (r) gis = true; else ov.remove(); });
     }
-    ['kan', 'kae', 'kap', 'kap2'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key !== 'Enter') return; if (A.mode === 'in' || A.mode === 'up') act(A.mode); else if (A.mode === 'forgot') forgot(); else if (A.mode === 'newpw') newpw(); }; });
+    ['kan', 'kae', 'kap', 'kap2', 'kac'].forEach(function (id) { var el = g(id); if (el) el.onkeydown = function (ev) { if (ev.key !== 'Enter') return; if (A.mode === 'otp') { if (A.otpSent && id === 'kac') otpVerify(); else otpSend(); } else if (A.mode === 'in' || A.mode === 'up') act(A.mode); else if (A.mode === 'forgot') forgot(); else if (A.mode === 'newpw') newpw(); }; });
   };
   window.KMAUTH = A;
   // acilista: Google yonlendirmesinden donen veya onceden giris yapmis ama onayi olmayan hesap (vazgecerse cikis + yenile)
