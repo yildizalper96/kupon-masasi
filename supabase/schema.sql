@@ -79,3 +79,42 @@ create policy "client_errors_insert_all" on public.client_errors for insert to a
 revoke all on public.client_errors from anon, authenticated;
 grant insert (msg, src, stack, page, ua) on public.client_errors to anon, authenticated;
 grant usage on sequence public.client_errors_id_seq to anon, authenticated;
+
+-- 8) Paylasilan kupon listesini kapat + kullanici basina kayit siniri (23 Kas 2026) — HENUZ CALISTIRILMADI.
+--    Once istemci (js/data-shim.js, get_shared_coupon kullanir, yoksa eski yola duser) yayinda olmali; sonra bu blok.
+--    a) Kodu bilen okur: tek kupon donduren fonksiyon. Tablo artik anon'a ve baskasinin kuponuna kapali (liste cekilemez).
+create or replace function public.get_shared_coupon(p_code text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select data from public.shared_coupons where code = upper(p_code) limit 1
+$$;
+revoke all on function public.get_shared_coupon(text) from public;
+grant execute on function public.get_shared_coupon(text) to anon, authenticated;
+drop policy if exists "shared_select_all" on public.shared_coupons;
+drop policy if exists "shared_select_own" on public.shared_coupons;
+create policy "shared_select_own" on public.shared_coupons for select to authenticated using (auth.uid() = owner);
+revoke select on public.shared_coupons from anon;
+revoke select (code, data, created_at) on public.shared_coupons from anon;
+--    b) Sinirlar: kullanici basina en cok 20 belge (su an 4 tur kullaniliyor: kupon, favs, profile, prefs) ve 200 paylasilan kupon.
+--       Var olan satirin guncellenmesi (upsert) sinira takilmaz.
+create or replace function public.limit_user_docs() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from public.user_docs where user_id = new.user_id and path = new.path) then return new; end if;
+  if (select count(*) from public.user_docs where user_id = new.user_id) >= 20 then
+    raise exception 'belge siniri asildi' using errcode = '54000';
+  end if;
+  return new;
+end $$;
+drop trigger if exists user_docs_limit on public.user_docs;
+create trigger user_docs_limit before insert on public.user_docs for each row execute function public.limit_user_docs();
+create or replace function public.limit_shared_coupons() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from public.shared_coupons where code = new.code) then return new; end if;
+  if (select count(*) from public.shared_coupons where owner = new.owner) >= 200 then
+    raise exception 'paylasim siniri asildi' using errcode = '54000';
+  end if;
+  return new;
+end $$;
+drop trigger if exists shared_coupons_limit on public.shared_coupons;
+create trigger shared_coupons_limit before insert on public.shared_coupons for each row execute function public.limit_shared_coupons();

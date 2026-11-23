@@ -39,11 +39,18 @@
           }
         }
         if (code && c) {
+          // kodu bilen okur (supabase/schema.sql madde 8: get_shared_coupon); fonksiyon henuz yoksa eski tablo okumasi
           try {
-            rows = await c.rest('GET', 'shared_coupons', '?select=data&code=eq.' + enc(code));
-            if (rows && rows.length) return snap(true, rows[0].data);
+            var d = await c.rest('POST', 'rpc/get_shared_coupon', '', { p_code: code });
+            if (d && typeof d === 'object') return snap(true, d);
             return snap(false, {});
-          } catch (e) { /* ag yok: yerel kopyaya dus */ }
+          } catch (e) {
+            try {
+              rows = await c.rest('GET', 'shared_coupons', '?select=data&code=eq.' + enc(code));
+              if (rows && rows.length) return snap(true, rows[0].data);
+              return snap(false, {});
+            } catch (e2) { /* ag yok: yerel kopyaya dus */ }
+          }
         }
         var l2 = lread(path);
         if (l2 !== null) return snap(true, l2);
