@@ -314,11 +314,36 @@
     } catch (e) {}
   }
 
+  /* Biten maclar arsivi (data/fixtures/finished.json): latest.json penceresinden dusen gunler (ornegin elle listelerin bittigi
+   * gun ile API penceresi arasi) ana listeden kaybolmasin. Kopya olmasin diye: ayni API id'si R'de varsa veya o lig/gun icin
+   * R'de zaten (arsiv disi) mac varsa eklenmez. */
+  var FINAT = '';
+  function finEkle(l) {
+    if (!Array.isArray(l)) return 0;
+    var ids = new Set(), lgGun = new Set(), n = 0;
+    R.forEach(function (m) { if (m.api) ids.add(m.api); if (!m._fin) lgGun.add(m.c + '|' + dk(m.t)); });
+    l.forEach(function (x) {
+      if (!x || !x.c || !(x.c in LN) || ids.has(x.id)) return;
+      var t = new Date(x.t); if (isNaN(t) || !Number.isFinite(+x.x) || !Number.isFinite(+x.y)) return;
+      if (lgGun.has(x.c + '|' + dk(t))) return;
+      var ok = Array.isArray(x.p) && x.p.length === 3, key = x.c + '|' + x.h + '|' + x.a;
+      R.push({ c: x.c, t: t, h: x.h, a: x.a, p: ok ? x.p : [1 / 3, 1 / 3, 1 / 3], np: !ok, api: x.id, _fin: 1 });
+      ids.add(x.id);
+      if (!RES[key] || RES[key].charAt(0) === 'L') RES[key] = x.x + '-' + x.y;
+      n++;
+    });
+    return n;
+  }
+  function finYukle() {
+    return fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (!j || !Array.isArray(j.m) || j.at === FINAT) return 0; FINAT = j.at; return finEkle(j.m); }).catch(function () { return 0; });
+  }
+
   async function boot() {
     var n = false, dl = false, mg = false;
     var bekle = window.__fxWait;
     var emniyet = setTimeout(function () { if (window.__fxWait) { window.__fxWait = false; try { render(); } catch (e) {} } }, 7000);
-    try { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); n = await pf; dl = await pd; mg = mergeDetails(); if (await pg) mg = true; } catch (e) {}
+    try { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); n = await pf; if (await finYukle()) n = true; dl = await pd; mg = mergeDetails(); if (await pg) mg = true; } catch (e) {}
     clearTimeout(emniyet); window.__fxWait = false;
     staleNote();
     if (n || dl || mg || bekle) {
@@ -385,7 +410,7 @@
 
   window.loadFixtures = loadFixtures;
   // acilistan sonra taze veriyle sessiz yenileme (index.html kmFresh): cizim tutulur, sonda tek kez cizilir
-  (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); await pf; await pd; await pg; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });
+  (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); await pf; FINAT = ''; await finYukle(); await pd; await pg; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });
   (window.kmReloaders).push(function () { return typeof refresh === 'function' ? refresh() : null; });
   // render tutma: kmHold acikken cizim ertelenir (ara durum gorunmez)
   try { var _rn = render; render = function () { if (window.kmHold) { window.kmHoldP = 1; return; } return _rn.apply(this, arguments); }; } catch (e) {}
