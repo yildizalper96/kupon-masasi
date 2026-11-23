@@ -98,7 +98,7 @@
       };
       d.m.forEach(function (x) {
         var key = x.c + '|' + x.h + '|' + x.a;
-        if (have.has(key)) { setRes(key, x); return; } // elle yazili (veya onceden eklenmis) mac: yalnizca skor/durum
+        if (have.has(key)) { if (x.id) { var r0 = R.find(function (q) { return !q.api && q.c === x.c && q.h === x.h && q.a === x.a; }); if (r0) r0.api = x.id; } setRes(key, x); return; } // elle yazili (veya onceden eklenmis) mac: yalnizca skor/durum
         // mac listesinde yeni
         if (!(x.c in LN)) return; // bilinmeyen lig
         // ayni yarismada ayni saatte, takimlardan biri ortak baska bir kayit varsa bu bir kopyadir (ornegin ayni takimin Ingilizce/Turkce adi): ekleme
@@ -238,7 +238,7 @@
     if (o.p) h += row('Maç sonucu', '1 ' + pc(o.p[0]) + ' · X ' + pc(o.p[1]) + ' · 2 ' + pc(o.p[2]));
     if (o.ou) h += row('2,5 gol', 'Üst ' + pc(o.ou[0]) + ' · Alt ' + pc(o.ou[1]));
     if (o.bt) h += row('İki takım da gol atar', 'Evet ' + pc(o.bt[0]) + ' · Hayır ' + pc(o.bt[1]));
-    if (!m.np && m.p) h += "<div class='mut' style='padding-top:6px'>Modelimiz: 1 " + pc(m.p[0]) + ' · X ' + pc(m.p[1]) + ' · 2 ' + pc(m.p[2]) + '</div>';
+    if (m.gp) h += "<div class='mut' style='padding-top:6px'>Modelimiz (güç modeli): 1 " + pc(m.gp[0]) + ' · X ' + pc(m.gp[1]) + ' · 2 ' + pc(m.gp[2]) + ' · beklenen gol ' + (m.gl[0].toFixed(1) + '-' + m.gl[1].toFixed(1)).replace(/[.]/g, ',') + '</div>';
     h += "<div class='mut' style='padding-top:6px'>Birçok bahisçinin (" + (o.n || 0) + ") oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar. Bahis sitesi oranı değildir, modelin tahminiyle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</div></div>";
     return h;
   };
@@ -276,7 +276,7 @@
     if (o.p) h += row('Maç sonucu', '1 ' + pc(o.p[0]) + ' · X ' + pc(o.p[1]) + ' · 2 ' + pc(o.p[2]));
     if (o.ou) h += row('2,5 gol', 'Üst ' + pc(o.ou[0]) + ' · Alt ' + pc(o.ou[1]));
     if (o.bt) h += row('İki takım da gol atar', 'Evet ' + pc(o.bt[0]) + ' · Hayır ' + pc(o.bt[1]));
-    if (!m.np && m.p) h += row('Modelimiz', '1 ' + pc(m.p[0]) + ' · X ' + pc(m.p[1]) + ' · 2 ' + pc(m.p[2]));
+    if (m.gp) h += row('Modelimiz (güç modeli)', '1 ' + pc(m.gp[0]) + ' · X ' + pc(m.gp[1]) + ' · 2 ' + pc(m.gp[2]) + ' · beklenen gol ' + (m.gl[0].toFixed(1) + '-' + m.gl[1].toFixed(1)).replace(/[.]/g, ','));
     h += '<p class="kmkay">Birçok bahisçinin (' + (o.n || 0) + ') oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar. Bahis sitesi oranı değildir, modelle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</p></section>';
     return h;
   };
@@ -317,7 +317,7 @@
     var n = false, dl = false, mg = false;
     var bekle = window.__fxWait;
     var emniyet = setTimeout(function () { if (window.__fxWait) { window.__fxWait = false; try { render(); } catch (e) {} } }, 7000);
-    try { var pf = loadFixtures(true), pd = loadDetails(); n = await pf; dl = await pd; mg = mergeDetails(); } catch (e) {}
+    try { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); n = await pf; dl = await pd; mg = mergeDetails(); if (await pg) mg = true; } catch (e) {}
     clearTimeout(emniyet); window.__fxWait = false;
     staleNote();
     if (n || dl || mg || bekle) {
@@ -338,13 +338,34 @@
   /* Yedek model (20 Kas 2026): piyasa beklentisi / API tahmini olmayan maclar icin sezon gol ortalamalarindan Poisson.
    * TM[takim] = {l lig, w,d,o, f atilan, a yenilen}. Iki takim ayni ligde ve en az 3 maci varsa hesaplanir; yoksa mac "olasilik yok" kalir.
    * Lig ortalamasina dogru buzulur (4 sanal mac); ev sahibi carpani 1.12 / 0.88. m.pm=1 isaretli maclar her cizimde yeniden hesaplanir. */
+  // Guc modeli (tools/model-guc.mjs, data/model/guc.json): tum yarismalardaki sonuclardan takim hucum/savunma gucu.
+  // fx: { macId: [beklenen ev golu, beklenen dep golu] }. Piyasa beklentisi varsa 1X2 piyasadan kalir; model "Modelimiz" satiri,
+  // gol pazarlari (piyasa 2,5 gol yoksa) ve piyasasiz maclarin yedegi olarak kullanilir.
+  var KMG = null;
+  function gucYukle() { return fetch('data/model/guc.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.fx) { KMG = j; window.KMG = j; return true; } return false; }).catch(function () { return false; }); }
+  function gucMatris(lh, la, rho) {
+    var pois = function (l, k) { var p = Math.exp(-l); for (var i = 1; i <= k; i++) p *= l / i; return p; };
+    var p1 = 0, px = 0, p2 = 0, s = 0;
+    for (var i = 0; i <= 10; i++) for (var j = 0; j <= 10; j++) {
+      var t = 1; if (rho) { if (!i && !j) t = 1 - lh * la * rho; else if (!i && j === 1) t = 1 + lh * rho; else if (i === 1 && !j) t = 1 + la * rho; else if (i === 1 && j === 1) t = 1 - rho; }
+      var q = Math.max(0, pois(lh, i) * pois(la, j) * t); s += q; if (i > j) p1 += q; else if (i === j) px += q; else p2 += q;
+    }
+    return [p1 / s, px / s, p2 / s];
+  }
+  window.gucMatris = gucMatris;
   function modelDoldur() {
     if (typeof R === undefined || typeof TM === undefined) return;
+    if (KMG && KMG.fx) R.forEach(function (m) {
+      var id = m && (m.api || m.id), g = id && KMG.fx[id]; if (!g) return;
+      if (!m.gl || m.gl[0] !== g[0] || m.gl[1] !== g[1]) { m.gl = g; m.gp = gucMatris(g[0], g[1], KMG.rho || 0); m._gk = null; }
+      if (m.np || m.pm === 1) { m.p = m.gp.slice(); m.np = false; m.pm = 2; }
+      else if (m.pm === 2) m.p = m.gp.slice();
+    });
     var lg = {};
     Object.keys(TM).forEach(function (n) { var t = TM[n]; if (!t || !t.l) return; var g = (t.w || 0) + (t.d || 0) + (t.o || 0); if (!g || t.f == null) return; var o = lg[t.l] || (lg[t.l] = { f: 0, g: 0 }); o.f += +t.f || 0; o.g += g; });
     var pois = function (l, k) { var p = Math.exp(-l); for (var i = 1; i <= k; i++) p *= l / i; return p; };
     R.forEach(function (m) {
-      if (!m || (!m.np && !m.pm)) return;
+      if (!m || (!m.np && m.pm !== 1)) return;
       var A = TM[m.h], B = TM[m.a];
       var gA = A ? (A.w || 0) + (A.d || 0) + (A.o || 0) : 0, gB = B ? (B.w || 0) + (B.d || 0) + (B.o || 0) : 0;
       var L = A && B && A.l === B.l ? lg[A.l] : null;
@@ -363,7 +384,7 @@
 
   window.loadFixtures = loadFixtures;
   // acilistan sonra taze veriyle sessiz yenileme (index.html kmFresh): cizim tutulur, sonda tek kez cizilir
-  (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(); await pf; await pd; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });
+  (window.kmReloaders = window.kmReloaders || []).push(async function () { var pf = loadFixtures(true), pd = loadDetails(), pg = gucYukle(); await pf; await pd; await pg; mergeDetails(); try { R.sort(function (a, b) { return a.t - b.t; }); } catch (e) {} });
   (window.kmReloaders).push(function () { return typeof refresh === 'function' ? refresh() : null; });
   // render tutma: kmHold acikken cizim ertelenir (ara durum gorunmez)
   try { var _rn = render; render = function () { if (window.kmHold) { window.kmHoldP = 1; return; } return _rn.apply(this, arguments); }; } catch (e) {}

@@ -268,10 +268,18 @@ if(['1','1X','2','X2'].includes(k))return T+` ${k.length==1?'Kazanma':'Yenilmeme
 if(k=='X'||k=='12')return T+` Sezonda ${[d(h),d(a)].filter(Boolean).join(', ')} aldı. Beraberlik ihtimali ${pc(m.p[1])}${k=='12'?`, yani biri kazanır ihtimali ${p}`:''}.`;
 const g=n=>SLG[n]&&SLG[n].length?`${n} maç başı ${(sm(SLG[n]).f/SLG[n].length).toFixed(1)} atıp ${(sm(SLG[n]).c/SLG[n].length).toFixed(1)} yiyor`:'',gs=[g(h),g(a)].filter(Boolean);let eg='';try{const q=m.g?{lh:+m.g[0],la:+m.g[1]}:gmk(m);if(isFinite(q.lh)&&isFinite(q.la))eg=` Beklenen gol: ${h} ${q.lh.toFixed(1)}, ${a} ${q.la.toFixed(1)}.`}catch(e){}return(`${gs.length?gs.join('; ')+'.':''}${eg} İhtimal %${Math.round(x.p*100)}.`).trim()}
 const GB={o15:.80,o25:.569,kg:.55,h1:.78,a1:.722,h2:.473};
-function gmk(m,f){const[a,b,c]=m.p,d=a-c,T=2.682+.85*Math.abs(d);let lo=.02,hi=.98,s=.5;
-for(let it=0;it<40;it++){s=(lo+hi)/2;const A=pm(T*s),B=pm(T*(1-s));let w=0,l=0;A.forEach((x,i)=>B.forEach((y,j)=>{if(i>j)w+=x*y;else if(i<j)l+=x*y}));if(w-l<d)lo=s;else hi=s}
-const fh=f?f[0]:1,fa=f?f[1]:1,A=pm(T*s*fh),B=pm(T*(1-s)*fa);let t=0,r={o15:0,o25:0,kg:0,h1:0,a1:0,h2:0};A.forEach((x,i)=>B.forEach((y,j)=>{const z=x*y;t+=z;if(i+j>1)r.o15+=z;if(i+j>2)r.o25+=z;if(i&&j)r.kg+=z;if(i>0)r.h1+=z;if(j>0)r.a1+=z;if(i>1)r.h2+=z}));for(const k in r)r[k]/=t;r.lh=T*s*fh;r.la=T*(1-s)*fa;return r}
-const rsg=(m,x)=>{const g=n=>SLG[n]?`${n} bu sezon maç başı ${(sm(SLG[n]).f/SLG[n].length).toFixed(1)} atıp ${(sm(SLG[n]).c/SLG[n].length).toFixed(1)} yiyor.`:'',q=gmk(m);return`${g(m.h)} ${g(m.a)} Beklenen gol: ${m.h} ${q.lh.toFixed(1)}, ${m.a} ${q.la.toFixed(1)} (1-X-2 ihtimallerinden ve ligin gol ortalamasından hesaplandı). Bu seçeneğin lig geneli baz oranı %${Math.round(x.bs*100)}, bu maçta %${Math.round(x.p*100)}.`};
+// Gol beklentisi (22 Kas 2026): toplam gol once piyasanin 2,5 gol olasiligindan, yoksa guc modelinden (m.gl, data/model/guc.json),
+// o da yoksa eski formulden (2.682+.85*|p1-p2|). Ev/deplasman payi 1X2 olasiligindan. Sonuc maca onbellege alinir (m._gk).
+const gmS=(T,d)=>{let lo=.02,hi=.98,s=.5;for(let it=0;it<40;it++){s=(lo+hi)/2;const A=pm(T*s),B=pm(T*(1-s));let w=0,l=0;A.forEach((x,i)=>B.forEach((y,j)=>{if(i>j)w+=x*y;else if(i<j)l+=x*y}));if(w-l<d)lo=s;else hi=s}return s};
+const gmO=(T,s)=>{const A=pm(T*s),B=pm(T*(1-s));let t=0,o=0;A.forEach((x,i)=>B.forEach((y,j)=>{t+=x*y;if(i+j>2)o+=x*y}));return o/t};
+const gmT=m=>{const d=m.p[0]-m.p[2];let ou=0;try{const o=window.KMX&&KMX.byKey&&KMX.byKey[[m.c,m.h,m.a].join('|')];ou=(o&&o.odds&&o.odds.ou&&+o.odds.ou[0])||0}catch(e){}
+const ck=m.p.join()+'|'+(m.gl||'')+'|'+ou;if(m._gk&&m._gk.k===ck)return m._gk;let T=null,src='f';
+{if(ou>.05&&ou<.95){let lo=.6,hi=6;for(let it=0;it<30;it++){const t=(lo+hi)/2;if(gmO(t,gmS(t,d))<ou)lo=t;else hi=t}T=(lo+hi)/2;src='p'}}
+if(T==null&&m.gl&&m.gl[0]+m.gl[1]>.3){T=m.gl[0]+m.gl[1];src='g'}if(T==null)T=2.682+.85*Math.abs(d);
+return m._gk={k:ck,T,s:gmS(T,d),src}};
+function gmk(m,f){const q=gmT(m),T=q.T,s=q.s;
+const fh=f?f[0]:1,fa=f?f[1]:1,A=pm(T*s*fh),B=pm(T*(1-s)*fa);let t=0,r={o15:0,o25:0,kg:0,h1:0,a1:0,h2:0};A.forEach((x,i)=>B.forEach((y,j)=>{const z=x*y;t+=z;if(i+j>1)r.o15+=z;if(i+j>2)r.o25+=z;if(i&&j)r.kg+=z;if(i>0)r.h1+=z;if(j>0)r.a1+=z;if(i>1)r.h2+=z}));for(const k in r)r[k]/=t;r.lh=T*s*fh;r.la=T*(1-s)*fa;r.src=q.src;return r}
+const rsg=(m,x)=>{const g=n=>SLG[n]?`${n} bu sezon maç başı ${(sm(SLG[n]).f/SLG[n].length).toFixed(1)} atıp ${(sm(SLG[n]).c/SLG[n].length).toFixed(1)} yiyor.`:'',q=gmk(m);return`${g(m.h)} ${g(m.a)} Beklenen gol: ${m.h} ${q.lh.toFixed(1)}, ${m.a} ${q.la.toFixed(1)} (${q.src=='p'?'piyasanın 2,5 gol beklentisinden ve 1-X-2 ihtimallerinden':q.src=='g'?'takımların tüm maçlarından hesaplanan güç modelinden ve 1-X-2 ihtimallerinden':'1-X-2 ihtimallerinden ve ligin gol ortalamasından'} hesaplandı). Bu seçeneğin lig geneli baz oranı %${Math.round(x.bs*100)}, bu maçta %${Math.round(x.p*100)}.`};
 let LU={};let PS={};
 const p3=(l,k)=>{const A=pm(l),B=pm(k);let w=0,d=0,v=0;A.forEach((x,i)=>B.forEach((y,j)=>{const z=x*y;i>j?w+=z:i==j?d+=z:v+=z}));const t=w+d+v;return[w/t,d/t,v/t]};
 const luf=m=>{const f=(LU[[m.c,m.h,m.a].join('|')]||{}).f;return f&&(f[0]!=1||f[1]!=1)?f:null};

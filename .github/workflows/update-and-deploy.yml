@@ -106,6 +106,10 @@ jobs:
       - name: Biten maçları sezon kaydına ekle
         run: node tools/sonuc-ekle.mjs || true
 
+      # Guc modeli: tum sonuclardan takim gucu -> yaklasan maclarin gol beklentisi (data/model/guc.json); istek yok
+      - name: Güç modelini hesapla
+        run: node tools/model-guc.mjs || true
+
       - name: Siteyi paketle
         run: node tools/build-site.mjs _site
 
