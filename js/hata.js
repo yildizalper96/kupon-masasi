@@ -1,9 +1,9 @@
 // Istemci hata kaydi (23 Kas 2026). Ilk yuklenen betik: sonraki betiklerdeki yakalanmamis hatalari ve reddedilen
 // promise'leri toplar. Cihazda son 20 kayit (localStorage km_hata; konsoldan: KMHATA.liste()).
-// Sunucuya gonderim KAPALI: supabase/schema.sql madde 7 (client_errors tablosu) panelde calistirilinca GONDER = true yap.
+// Sunucuya gonderim ACIK (23 Kas 2026): Supabase client_errors tablosu (schema.sql madde 7); okuma yalniz panelden.
 // Gonderilen: hata metni, dosya:satir, sayfa adresi (hash), tarayici ozeti, zaman. Kisisel veri (e-posta, kupon) gonderilmez.
 (function () {
-  var GONDER = false, MAX_OTURUM = 10, MAX_CIHAZ = 20, K = 'km_hata';
+  var GONDER = true, MAX_OTURUM = 10, MAX_CIHAZ = 20, K = 'km_hata';
   var gorulen = {}, say = 0;
   function oku() { try { var a = JSON.parse(localStorage.getItem(K) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function yaz(a) { try { localStorage.setItem(K, JSON.stringify(a.slice(-MAX_CIHAZ))); } catch (e) { } }
@@ -16,7 +16,7 @@
     var anahtar = m + '|' + kaynak; if (gorulen[anahtar]) return; gorulen[anahtar] = 1; say++;
     var k = { t: new Date().toISOString(), m: m, s: kes(String(kaynak || '').replace(location.origin, ''), 160), y: kes(yigin, 600), u: kes(location.pathname + location.hash.replace(/#access_token=.*/, ''), 160), ua: kes(navigator.userAgent, 160) };
     var a = oku(); a.push(k); yaz(a);
-    if (!GONDER) return;
+    if (!GONDER || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return; // yerel gelistirme gonderilmez
     var c = window.KM_SUPABASE; if (!c || !c.url || !c.anonKey) return;
     try { fetch(c.url + '/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: c.anonKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ msg: k.m, src: k.s, stack: k.y, page: k.u, ua: k.ua }) }).catch(function () { }); } catch (e) { }
   }

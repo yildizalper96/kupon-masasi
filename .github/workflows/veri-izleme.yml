@@ -1,0 +1,24 @@
+# Bayat veri uyarisi (23 Kas 2026): canli sitedeki data/fixtures/latest.json 3 saatten eskiyse is BASARISIZ olur.
+# GitHub, zamanlanmis isin basarisizligini depo sahibine e-postayla bildirir (Settings > Notifications > Actions).
+# Bu is API'ye istek atmaz, kota harcamaz; yalnizca yayindaki dosyayi okur.
+name: Veri izleme
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Yayindaki verinin yasi
+        run: |
+          at=$(curl -fsS --retry 3 "https://simuleto.com/data/fixtures/latest.json?t=$(date +%s)" | grep -o '"at":"[^"]*"' | head -1 | cut -d'"' -f4)
+          if [ -z "$at" ]; then echo "::error::latest.json okunamadi"; exit 1; fi
+          yas=$(( ( $(date -u +%s) - $(date -u -d "$at" +%s) ) / 60 ))
+          echo "Son guncelleme: $at ($yas dk once)"
+          if [ "$yas" -gt 180 ]; then echo "::error::Veri $yas dakikadir guncellenmedi (yerel gorev ve GitHub yedegi calismiyor olabilir)"; exit 1; fi

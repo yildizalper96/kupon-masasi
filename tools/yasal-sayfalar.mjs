@@ -21,6 +21,7 @@ export const GIZLILIK = {
 <li><b>Uygulama içi verileriniz:</b> kurduğunuz kupon simülasyonları, favori takımlarınız, takip ettiğiniz ligler ve tema tercihiniz.</li>
 <li><b>Paylaştığınız kuponlar:</b> bir kuponu kodla paylaşırsanız, kuponun içeriği o kodu bilen herkes tarafından görülebilir.</li>
 <li><b>Hesap açmazsanız:</b> kuponlarınız ve favorileriniz yalnızca kendi cihazınızda (tarayıcının yerel depolamasında) durur; bize gönderilmez.</li>
+<li><b>Hata kayıtları:</b> uygulamada bir yazılım hatası oluşursa hatayı düzeltebilmek için hata metni, hatanın oluştuğu sayfa adresi ve tarayıcı türü kaydedilir. Bu kayıtlarda e-posta, kupon veya hesap bilgisi bulunmaz.</li>
 </ul><p>Reklam, izleme ya da analitik çerezi kullanmıyoruz. Konum, rehber veya cihaz kimliği toplamıyoruz.</p></div>
 
 <div class="kart"><h2>2. Verileri neden kullanıyoruz</h2><ul>
