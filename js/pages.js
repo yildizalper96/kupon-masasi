@@ -115,6 +115,21 @@
   const fotoImg = u => u ? `<img class="kmfoto" src="${E(u)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="(this.parentNode||this).classList.add('hf')" onerror="this.remove()">` : '';
   const basH = n => String(n || '').replace(/[^A-Za-zÇĞİÖŞÜçğıöşü. ]/g, '').trim().split(' ').pop().replace('.', '').slice(0, 2).toUpperCase();
   const renk = n => { try { const c = TC[n]; if (c) return c; } catch (e) { } return ['#4a5a68', '#cbd5dc']; };
+  // sakatlik nedeni (API-Football, Ingilizce) -> Turkce; bilinmeyen parca kalirsa genel karsilik
+  const SKT = { 'knock': 'Darbe', 'minor knock': 'Hafif darbe', 'injury': 'Sakatlık', 'illness': 'Hastalık', 'unknown': 'Bilinmiyor', 'yellow cards': 'Sarı kart cezası', 'yellow card': 'Sarı kart cezası', 'red card': 'Kırmızı kart cezası', 'virus': 'Virüs', 'suspended': 'Cezalı', 'suspension through sports court': 'Spor mahkemesi cezası', 'inactive': 'Aktif değil', 'concussion': 'Beyin sarsıntısı', 'tired': 'Yorgunluk', 'rest': 'Dinlenme', 'fitness': 'Kondisyon eksikliği', 'lacking match fitness': 'Maç kondisyonu eksik', 'international duty': 'Milli takım görevi', 'loan agreement': 'Kiralık sözleşmesi', 'medical condition': 'Sağlık sorunu', 'health problems': 'Sağlık sorunu', 'appendicitis': 'Apandisit', 'tonsillitis': 'Bademcik iltihabı', 'hernia': 'Fıtık', 'wound': 'Yara', 'heart condition': 'Kalp rahatsızlığı', 'heart problems': 'Kalp rahatsızlığı', "coach's decision": 'Teknik direktör kararı', 'personal reasons': 'Kişisel nedenler', 'pneumonia': 'Zatürre', 'cancer': 'Kanser', 'contusion': 'Ezilme', 'convalescence': 'Nekahet', 'bowel disease': 'Bağırsak hastalığı', 'stomach disorder': 'Mide rahatsızlığı', 'quarantine': 'Karantina', 'stress': 'Stres', 'overload': 'Aşırı yüklenme', 'doping': 'Doping cezası', 'surgery': 'Ameliyat', 'operation': 'Ameliyat', 'knee surgery': 'Diz ameliyatı', 'groin operation': 'Kasık ameliyatı', 'cold': 'Soğuk algınlığı', 'dead leg': 'Bacakta ezilme', 'jumpers knee': 'Sıçrayıcı dizi', 'collapsed lung': 'Akciğer sönmesi', 'escape clause': 'Serbest kalma maddesi', 'ligament stretching': 'Bağ esnemesi', 'cruciate ligament rupture': 'Çapraz bağ kopması', 'knee medial ligament tear': 'Diz iç yan bağ yırtığı', 'achilles tendon rupture': 'Aşil tendonu kopması', 'distortion of the ankle': 'Ayak bileği burkulması', 'fracture of lower leg': 'Alt bacak kırığı', 'hamstring': 'Arka adale', 'thigh problems': 'Uyluk sorunu', 'ankle problems': 'Ayak bileği sorunu', 'achilles tendon problems': 'Aşil tendonu sorunu', 'gashed leg': 'Bacakta kesik', 'muscle bruise': 'Kas ezilmesi', 'back bruise': 'Sırtta ezilme', 'bruised foot': 'Ayakta ezilme' };
+  const SKP = { 'acl knee': 'Ön çapraz bağ', 'mcl knee': 'İç yan bağ', 'lcl knee': 'Dış yan bağ', 'pcl knee': 'Arka çapraz bağ', 'thigh': 'Uyluk', 'hamstring': 'Arka adale', 'hamstring muscle': 'Arka adale', 'knee': 'Diz', 'muscle': 'Kas', 'ankle': 'Ayak bileği', 'ankle/foot': 'Ayak bileği/ayak', 'groin': 'Kasık', 'calf': 'Baldır', 'calf/shin': 'Baldır/kaval', 'calf muscle': 'Baldır kası', 'back': 'Sırt', 'foot': 'Ayak', 'shoulder': 'Omuz', 'head': 'Baş', 'leg': 'Bacak', 'hip/thigh': 'Kalça/uyluk', 'hip': 'Kalça', 'hand': 'El', 'achilles': 'Aşil', 'achilles tendon': 'Aşil tendonu', 'toe': 'Ayak parmağı', 'rib': 'Kaburga', 'ribs': 'Kaburga', 'abdominal': 'Karın', 'arm': 'Kol', 'facial': 'Yüz', 'face': 'Yüz', 'nose': 'Burun', 'pelvis': 'Leğen kemiği', 'heel': 'Topuk', 'eye': 'Göz', 'neck': 'Boyun', 'chest': 'Göğüs', 'finger': 'Parmak', 'gluteal': 'Kalça kası', 'mouth': 'Ağız', 'collarbone': 'Köprücük kemiği', 'wrist': 'Bilek', 'jaw': 'Çene', 'kidney': 'Böbrek', 'cheekbone': 'Elmacık kemiği', 'elbow': 'Dirsek', 'shin': 'Kaval kemiği', 'thumb / wrist': 'Başparmak/bilek', 'buttock': 'Kalça', 'adductor': 'İç bacak kası', 'forearm': 'Ön kol', 'leg ': 'Bacak' };
+  const sakatTr = r => {
+    const s = String(r || '').trim(), k = s.toLowerCase(); if (!s) return 'Sakatlık'; if (SKT[k]) return SKT[k];
+    let m = k.match(/^(.+?) (injury|strain|problems)$/); if (m && SKP[m[1]]) return SKP[m[1]] + (m[2] === 'strain' ? ' zorlanması' : m[2] === 'problems' ? ' sorunu' : ' sakatlığı');
+    m = k.match(/^(broken|fractured|dislocated|sprained) (.+)$/); if (m && SKP[m[2]]) return SKP[m[2]] + ({ broken: ' kırığı', fractured: ' kırığı', dislocated: ' çıkığı', sprained: ' burkulması' })[m[1]];
+    if (/card|suspen/i.test(k)) return 'Cezalı'; if (/injur/i.test(k)) return 'Sakatlık'; return s;
+  };
+  window.kmSakatTr = sakatTr;
+  // sakat / cezali satiri: tur ikonu (sakat: kirmizi arti, kirmizi kart cezasi, sari kart cezasi, supheli: soru) + Turkce neden
+  const eksTur = r => { const k = String(r || '').toLowerCase(); if (/yellow/.test(k)) return 'sk2'; if (/suspen|red card|card|ceza/.test(k)) return 'kk'; if (/doubt|question|şüphe/.test(k)) return 'sp'; if (/inactive|international|coach|personal|loan|^rest$|tired|fitness|escape|quarantine/.test(k)) return 'ek'; return 'sak'; };
+  const EKSIC = { sak: ['✚', 'Sakat'], kk: ['', 'Cezalı'], sk2: ['', 'Cezalı'], sp: ['?', 'Şüpheli'], ek: ['–', 'Eksik'] };
+  const eksSatir = x => { const t = eksTur(x.r), [ic, ad] = EKSIC[t], ne = x.r ? sakatTr(x.r) : ad, ns = ne === ad || ne === 'Sakatlık' || (t !== 'sak' && ne === 'Cezalı'); return `<div class="kmeks"><i class="kmei ${t}" title="${E(ad)}" aria-label="${E(ad)}">${ic}</i><div><b>${E(x.n)}</b><small>${E(ns ? ad : ad + ' · ' + ne)}</small></div></div>`; };
+  window.kmEksSatir = eksSatir;
   const nedenTr = r => { const s = String(r || ''); if (/suspen|card|ceza/i.test(s)) return 'Cezalı'; if (/injur|muscle|knee|ankle|hamstring|sakat/i.test(s)) return 'Sakat'; if (/doubt|şüphe/i.test(s)) return 'Şüpheli'; return s || 'Eksik'; };
   // davet listesi: FotMob kadro sekmesi duzeni (iki takim yan yana, mevkiye gore gruplu, fotografli)
   function davetListesi(m) {
@@ -130,7 +145,7 @@
       return `<div class="kmdl"><div class="kmdl-b">${bd(n)}<b>${E(n)}</b><span>${sq.p.length} oyuncu</span></div>${GR.map(([k, l]) => { const ps = sq.p.filter(p => (p.p || '') === k); return ps.length ? `<h5>${l}</h5>${ps.map(sat).join('')}` : ''; }).join('')}</div>`;
     };
     const inj = e.inj || [];
-    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(x => `<div class="kmeks"><i class="${/Cezalı/.test(nedenTr(x.r)) ? 'kmkk' : 'kmsk'}"></i><div><b>${E(x.n)}</b><small>${E(nedenTr(x.r))}</small></div></div>`).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
+    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(eksSatir).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
     return card('kmkadro kmdavet', `<div class="kmkb kmkb1"><h3>Davet edilen oyuncular</h3></div>
       <p class="kmnot">Resmi ilk 11 açıklanınca (genelde maçtan 1 saat önce) burada sahada dizilişiyle görünür.</p>
       <div class="kmiki kmdl2">${kol(yan[0])}${kol(yan[1])}</div>
@@ -240,7 +255,7 @@
         return `<div class="kmoyr kmyd"><span class="kmav" style="--ka:${a};--kb:${b}"><i>${E(p.no || basH(p.n))}</i>${fotoImg(fotoUrl(n, p))}</span>${r && +r[2] > 0 ? puanHap(r[2], iy && iy === r) : '<b class="kmpu bos"></b>'}<em class="kmno">${E(p.no || '')}</em><div><b class="kmpln" data-pn="${E(n + '|' + p.n)}">${E(p.n)}</b><small>${E(MEV[p.pos] || '')}</small></div>${/▲/.test(d) ? `<span class="kmgir">${E(d.replace('▲', ''))}'${icon.gir}</span>` : ''}</div>`; }).join('');
     };
     const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], inj = (e && e.inj) || [], lu = e && e.lu;
-    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(x => `<div class="kmeks"><i class="${/Cezalı/.test(nedenTr(x.r)) ? 'kmkk' : 'kmsk'}"></i><div><b>${E(x.n)}</b><small>${E(nedenTr(x.r))}</small></div></div>`).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
+    const eks = s => { const o = inj.filter(x => x.s === s); return o.length ? o.map(eksSatir).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'; };
     const tp = s => { const v = takimPuani(m, s); return v ? puanHap(v.toFixed(1)) : ''; };
     const hoca = lu && (lu.h && lu.h.co || lu.a && lu.a.co) ? `<div class="kmhoca"><span>${E(lu.h && lu.h.co || '–')}</span><b>Antrenör</b><span>${E(lu.a && lu.a.co || '–')}</span></div>` : '';
     return card('kmkadro', `<div class="kmkb"><div>${tp('h')}${bd(m.h)}<b>${E(m.h)}</b><span>${E(raw.h.f || '')}</span></div><h3>${o.baslik || 'Resmi ilk 11'}</h3><div><span>${E(raw.a.f || '')}</span><b>${E(m.a)}</b>${bd(m.a)}${tp('a')}</div></div>
@@ -1311,6 +1326,7 @@
     try { const e = oyuncuBul(pn.dataset.pn); if (!e || !e.key) return; ev.preventDefault(); ev.stopImmediatePropagation(); plOpen(e.key, e.n); } catch (x) { }
   }, true);
   window.teamView = function () {
+    if (QX && Q === QX && !QX.startsWith('@p:')) { const k = tkKanon(QX); if (k !== QX) { Q = QX = k; const q = document.getElementById('q'); if (q) q.value = k; } }
     if (MQ.matches && QX && QX.startsWith('@p:')) { const a = document.getElementById('app'); a.classList.remove('kmeskitv'); a.innerHTML = oyuncuSayfasi(QX.slice(3)); return; }
     const tek = QX && Q === QX && !QX.startsWith('@p:') && (typeof lgm !== 'function' || lgm(Q).length !== 1 || R.some(m => m.h === QX || m.a === QX));
     if (!MQ.matches || !tek) { eskiTeamView(); try { aramaOyuncu(); } catch (e) { } return; }
@@ -1609,7 +1625,7 @@
     const tire = x => x == null || x === '' ? '–' : x;
     // maclar yarisma bazinda ayri tablolar; her tablo en fazla 10 mac, ileri/geri dugmesiyle sayfalanir
     const mSatir = (m, i) => `<tr data-i="${i}"${i >= 10 ? ' hidden' : ''}${m.kmm ? ` data-kmm="${E(m.kmm)}"` : ''}${m.bilinmez ? ' class="bz"' : ''}>
-        <td><span>${E(m.d)}</span><small>${E(m.c || '')}</small></td><td class="tk"${m.rakip ? ` data-tm="${E(m.rakip)}"` : ''}>${m.rakip ? bd(m.rakip) : ''}<span>${E(m.rakip)}</span></td>
+        <td><span>${E(m.d)}</span><small>${E(m.c || '')}</small></td><td class="tk"${m.rakip ? ` data-tm="${E(tkKanon(m.rakip))}"` : ''}>${m.rakip ? bd(tkKanon(m.rakip)) : ''}<span>${E(tkKanon(m.rakip))}</span></td>
         <td class="sk">${m.r ? `<i class="kmkare ${sonuc(m.r)}">${E(m.r)}</i>` : ''}<span>${E(m.skor)}</span></td>
         <td>${E(m.dur || '–')}</td><td>${tire(m.dk)}</td><td>${m.bilinmez ? '–' : m.g}</td><td>${m.bilinmez ? '–' : m.a}</td><td>${m.bilinmez ? '–' : m.y}</td><td>${m.pu ? puanHap(m.pu) : '–'}</td></tr>`;
     const mGrup = []; ml.forEach(m => { const k = m.c || 'Diğer'; let g = mGrup.find(x => x.k === k); if (!g) mGrup.push(g = { k, a: [] }); g.a.push(m); });
@@ -1835,6 +1851,9 @@
   const apiJ = yol => tmV('api:' + yol, () => fetch('data/api/' + yol).then(r => r.ok ? r.json() : null).catch(() => null));
   const apiIds = () => { const j = tmV('idsjson', () => fetch('data/teams/ids.json').then(r => r.ok ? r.json() : null)); return (j && j.t) || null; };
   const takimId = n => { const t = apiIds(); return t ? (t[n] || null) : null; };
+  // takim adi baska kaynakta farkli yazilmis olabilir (Manchester United / Man United): bilinen adlara esle
+  const tkKanon = n => { const t = apiIds(); if (!n || !t || t[n] || (typeof TC !== 'undefined' && TC[n])) return n; const k = Object.keys(t).find(x => ayniTk(n, x)); return k || n; };
+  window.kmTkKanon = tkKanon;
   const takimLig = n => { try { const l = TM[n] && TM[n].l; return APIL.has(l) ? l : null; } catch (e) { return null; } };
   const oyFoto = id => (+id > 0 ? `https://media.api-sports.io/football/players/${+id}.png` : '');
   const sezAd = s => (['BRA', 'ARG', 'MLS'].includes(s.c) ? String(s.s) : `${s.s}-${String(s.s + 1).slice(2)}`);
@@ -2027,7 +2046,7 @@
     let kart = '';
     if (x && (x.sk || []).length) {
       const tarih = s => (s ? new Date(s + 'T12:00:00Z').toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'devam ediyor');
-      kart += card('kmsak', `<h3 class="kmb">Sakatlık geçmişi</h3>${x.sk.slice(0, 8).map(r => `<div class="kmsr"><span>${E(r[0])}</span><b><small>${E(tarih(r[1]))} – ${E(tarih(r[2]))}</small></b></div>`).join('')}${APIKAY}`);
+      kart += card('kmsak', `<h3 class="kmb">Sakatlık geçmişi</h3>${x.sk.slice(0, 8).map(r => `<div class="kmsr"><span>${E(sakatTr(r[0]))}</span><b><small>${E(tarih(r[1]))} – ${E(tarih(r[2]))}</small></b></div>`).join('')}${APIKAY}`);
     }
     const ku = (x && x.ku || []).filter(r => /winner/i.test(r[3]));
     if (ku.length) {

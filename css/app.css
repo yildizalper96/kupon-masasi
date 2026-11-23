@@ -1004,7 +1004,7 @@ input,button,select,textarea{font-family:var(--f)}
   .kmpmc td.tk{text-align:left;cursor:pointer;max-width:200px;overflow:hidden;text-overflow:ellipsis}
   .kmpmc td.tk span{margin-left:8px;vertical-align:middle}
   .kmpmc td.tk .bd{width:20px!important;height:20px!important;line-height:20px!important;font-size:6px!important;vertical-align:middle}
-  .kmpmc td.sk{vertical-align:middle}.kmpmc td.sk>*{vertical-align:middle}.kmpmc td.sk .kmkare{display:inline-flex;margin-right:8px}
+  .kmpmc td.sk{vertical-align:middle}.kmpmc td.sk>*{vertical-align:middle}.kmpmc td.sk .kmkare{display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;margin-right:8px}
   .kmpmc td.sk .kmkare{width:18px;height:18px;font-size:10px}
   .kmpmc tr.bz td{color:var(--mut)}
   .kmpmc .kmkay,.kmpsz .kmkay{padding:0 24px 18px;margin:8px 0 0}
@@ -2202,7 +2202,7 @@ header .hr{position:relative}
 .kmtablo .kmgr{margin:14px 0 6px;font:700 13px var(--f);color:var(--mut)}
 .kmtm-yz{display:flex;flex-wrap:wrap;gap:6px;padding:4px 16px 10px}.kmtm-yz span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--sf2,var(--bg));font:600 12px var(--f);color:var(--mut)}.kmtm-yz b{color:var(--ink)}.kmtm-yz .kmlo{width:16px;height:16px}
 .kmtm-yz button{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:var(--sf2,var(--bg));font:600 12px var(--f);color:var(--mut);cursor:pointer}.kmtm-yz button:hover{color:var(--ink)}.kmtm-yz button.on{border-color:var(--brand);color:var(--ink);background:color-mix(in srgb,var(--brand) 14%,transparent)}
-@media(max-width:700px){.kmtm-yz{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:4px 12px 10px}.kmtm-yz::-webkit-scrollbar{display:none}.kmtm-yz button{flex:none}}
+@media(max-width:700px){.kmtm-yz{flex-wrap:wrap;padding:4px 12px 10px}.kmtm-yz button{flex:none;min-height:30px;padding:4px 10px}}
 .kmh2t{display:block;width:calc(100% - 32px);margin:10px 16px 4px;min-height:40px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--f);cursor:pointer}
 .kmh2h-ix .kmtm-r,.kmtm-gs .kmtm-r{padding-left:16px;padding-right:16px}.kmh2h-ix .kmtm-m span.b{font-weight:700}.kmtm-ad{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis}.kmtm-m .kmh2sk{justify-self:center}
 .kmth-b,.kmth-u>.kmth-b{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:none}.kmth-b .kmtakip{margin-left:0!important}
@@ -2752,3 +2752,10 @@ nav button,header nav button{cursor:pointer}
 .prf-del label{display:block;font-size:13px;color:var(--mut)}
 .prf-del input{display:block;width:100%;box-sizing:border-box;margin:6px 0 10px;padding:10px 12px;border-radius:10px;border:1px solid var(--ln);background:var(--sf2,var(--bg));color:var(--ink);font:600 16px var(--f)}
 .prf-del .kpf .kpb2:disabled{opacity:.45;cursor:default}
+/* sakat / cezali ikonlari (mac kadro sekmesi) */
+.kmeks i.kmei{display:inline-grid;place-items:center;flex:none;font:700 12px/1 var(--f);color:#fff}
+.kmeks i.kmei.sak{width:20px;height:20px;border-radius:50%;background:#e05656}
+.kmeks i.kmei.sp{width:20px;height:20px;border-radius:50%;background:#e0a83a;color:#1b1b1b}
+.kmeks i.kmei.kk,.kmeks i.kmei.sk2{width:13px;height:18px;border-radius:3px;margin:0 3px;background:#e05656;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.kmeks i.kmei.sk2{background:#f2c94c}
+.kmeks i.kmei.ek{width:20px;height:20px;border-radius:50%;background:#7c838d}

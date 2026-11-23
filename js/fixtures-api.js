@@ -262,6 +262,7 @@
     };
     var eks = function (s) {
       var o = inj.filter(function (x) { return x.s === s; });
+      if (o.length && window.kmEksSatir) return o.map(window.kmEksSatir).join('');
       return o.length ? o.map(function (x) { return '<p style="margin:4px 0;font-size:13px"><b>' + esc(x.n) + '</b> <span style="opacity:.65">(' + reasonTr(x.r) + ')</span></p>'; }).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>';
     };
     return '<section class="kmc kmkadro"><h3 class="kmb">Davet edilen oyuncular</h3><div class="kmiki">' + col(sides[0]) + col(sides[1]) + '</div>' +

@@ -164,11 +164,32 @@ for (const m of cand) {
           } catch (x) { log.push('devre istatistigi hata: ' + String(x.message).slice(0, 80)); }
         } else if (e.live && e.live.th) lv.th = e.live.th;
       }
+      // sakat / cezali listesi mac oncesi hic alinamadiysa (mac pencereye gec girdi, kota) mac bitince bir kez al: kadro sekmesi bos kalmasin
+      if (lv.fin && !e.injAt && canSpend()) {
+        try {
+          const ij = await api('/injuries?fixture=' + m.id);
+          e.inj = ij.response.map(x => ({ s: x.team.id === e.hid ? 'h' : 'a', n: x.player.name, r: x.player.reason || x.player.type || '' }));
+          e.injAt = new Date().toISOString(); log.push(`${m.h}-${m.a}: eksik ${e.inj.length} (mac sonu)`);
+        } catch (x) { log.push('eksik hata: ' + String(x.message).slice(0, 80)); }
+      }
       if (lv.fin) { e.ftOk = true; try { addMatch(root, { id: m.id, c: m.c, h: e.h, a: e.a, live: lv }); } catch (x) { log.push('sezon toplami hata: ' + x.message); } log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
       else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
       else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
     } else { if (wantFT) e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: ayrinti bos dondu`); }
   } catch (er) { log.push('mac verisi hata: ' + String(er.message).slice(0, 80)); }
+}
+
+// biten ama sakat / cezali listesi hic alinmamis maclar (eski kayitlar): her calistirmada en cok 4 tane tamamla
+{ let n = 0;
+  for (const m of cand) {
+    const e = D.m[m.id]; if (!e || !e.hid || !e.ftOk || e.injAt || n >= 4 || !canSpend()) continue;
+    n++;
+    try {
+      const ij = await api('/injuries?fixture=' + m.id);
+      e.inj = ij.response.map(x => ({ s: x.team.id === e.hid ? 'h' : 'a', n: x.player.name, r: x.player.reason || x.player.type || '' }));
+      e.injAt = new Date().toISOString(); log.push(`${m.h}-${m.a}: eksik ${e.inj.length} (geriye donuk)`);
+    } catch (x) { log.push('eksik hata: ' + String(x.message).slice(0, 80)); }
+  }
 }
 
 for (const m of cand) {
