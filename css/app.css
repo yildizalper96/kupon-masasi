@@ -2348,12 +2348,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 .kman-n{font-size:11.5px;color:var(--mut);margin-top:8px!important}
 .kman-uy{font-size:11.5px;color:var(--mut);text-align:center;margin:4px 0 18px}
 /* modelin onerileri */
-.kman-oi{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--sf2,rgba(127,127,127,.08));border-left:4px solid var(--ok);margin-bottom:8px}
-.kman-oi.r1{border-left-color:var(--warn)}.kman-oi.r2{border-left-color:var(--hot)}
 .kman-ot{flex:1;min-width:0}
-.kman-ot b{display:block;font:700 14.5px var(--f);color:var(--ink)}
-.kman-ot span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-top:3px;flex-wrap:wrap}
-.kman-ot i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}.kman-oi.r1 .kman-ot i{background:var(--warn)}.kman-oi.r2 .kman-ot i{background:var(--hot)}
 .kman-ek{flex:none;padding:8px 14px;border-radius:999px;border:1.5px solid var(--acc,var(--ok));background:transparent;color:var(--acc,var(--ok));font:700 13px var(--f);cursor:pointer;white-space:nowrap}
 .kman-ek.on{background:var(--brand);border-color:var(--brand);color:var(--sf)}
 .kman-st{flex:none;font-style:normal;font:700 13px var(--f)}.kman-st.ok{color:var(--ok)}.kman-st.miss{color:var(--hot)}
@@ -2394,7 +2389,6 @@ body.kbar-on #app{padding-bottom:184px!important}
 @media(min-width:1100px){
   .kman .kmb{font-size:17px!important}
   .kman .kmb small{font-size:12.5px}
-  .kman-ot b{font-size:15px}.kman-ot span{font-size:12.5px}
   .kman-th>div{padding:16px 8px;gap:8px}.kman-th b{font-size:17px}.kman-th .bd{width:34px!important;height:34px!important}
   .kman .kmoz-f .kmhap{min-width:28px;height:28px;font-size:13.5px;border-radius:8px}.kman .kmoz-f{gap:5px}
   .kman-cr{padding:14px 0}.kman-cr span{font-size:15px}.kman-cr b{font-size:18px}
@@ -2431,13 +2425,7 @@ body.kbar-on #app{padding-bottom:184px!important}
 
 @media(max-width:700px){.kman-ocg{grid-template-columns:1fr}}
 /* masaustu sag sutundaki oneri karti */
-.mside .kman-on .kman-oi{flex-wrap:wrap;gap:10px}
-.mside .kman-on .kman-ot{flex-basis:100%}
-.mside .kman-on .kman-ek{margin-left:auto}
-.mside .kman-on .kman-ot b{font-size:14.5px}
 .mside .kman-on .kmb{font-size:16px!important}
-.mside .kman-on .kman-ot span{display:block}
-.mside .kman-on .kman-ot span i{display:inline-block;margin-right:6px;vertical-align:middle}
 /* Gunun one cikanlari (17 Kas 2026): ana sayfa basi */
 .hro{padding:16px!important}
 .hro-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:0}
@@ -2459,8 +2447,6 @@ body.kbar-on #app{padding-bottom:184px!important}
 .hro-p .kman-ek{padding:6px 11px;font-size:12px;min-height:0!important}
 @media(max-width:700px){.hro-g{display:flex;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px;scroll-snap-type:x mandatory}.hro-g::-webkit-scrollbar{display:none}.hro-k{flex:0 0 78%;scroll-snap-align:start}.hro-gv{width:100%}}
 /* oneri kartinda model tutma orani */
-.kman-gv{font-size:12.5px;color:var(--mut);padding:8px 12px;border-radius:10px;background:color-mix(in srgb,var(--ok) 8%,transparent);margin-top:4px!important}
-.kman-gv b{color:var(--ok)}
 .hro-p b{white-space:normal!important;overflow:visible!important;line-height:1.3}
 .hro-p{align-items:flex-end}
 @media(max-width:700px){.hro-g{scroll-padding:0 16px}}
@@ -2794,3 +2780,22 @@ body:has(.kmyasal) .km18{display:none}
 :root:not([data-theme="light"]) .kau-g.kau-x{border-color:#3a3a3a}
 .kau-otpl{justify-content:center}
 #app .kau.kau input#kac{letter-spacing:4px!important;text-align:center!important;font-size:20px!important}
+/* modelin onerileri (24 Kas 2026): istatistik satirlari gibi; serit/baloncuk yok, solda buyuk yuzde */
+.kman-oi{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--ln)}
+.kman-on .kmb+.kman-oi{border-top:0;padding-top:6px}
+.kman-op{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+.kman-op b{font:800 20px var(--f);font-variant-numeric:tabular-nums;color:var(--ok)}
+.kman-op small{font:600 10.5px var(--f);color:var(--mut);margin-top:5px;white-space:nowrap}
+.kman-oi.r1 .kman-op b{color:var(--warn)}.kman-oi.r2 .kman-op b{color:var(--hot)}
+.kman-ot b{display:block;font:600 14.5px/1.3 var(--f);color:var(--ink)}
+.kman-ot span{display:block;font-size:12.5px;color:var(--mut);margin-top:3px}
+.kman-on-n{font-weight:500!important}
+.kman-st{font-size:12.5px!important;white-space:nowrap}
+.kman-gv{display:flex;align-items:center;gap:18px;padding:12px 0 0;border-top:1px solid var(--ln);margin-top:2px!important;font-size:12.5px;color:var(--mut)}
+.kman-gv>span{flex:1;min-width:0}
+.kman-gv>div{text-align:right;line-height:1.15}
+.kman-gv b{display:block;font:800 17px var(--f);color:var(--ink);font-variant-numeric:tabular-nums}
+.kman-gv small{font-size:11px;color:var(--mut);white-space:nowrap}
+.mside .kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px;font-size:12.5px}
+@media(min-width:1100px){.kman-op b{font-size:22px}.kman-ot b{font-size:15px}.kman-ot span{font-size:13px}.mside .kman-on .kman-ot b{font-size:14.5px}}
+@media(max-width:700px){.kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px!important;font-size:12.5px!important;min-height:0!important;margin-top:-4px}}
