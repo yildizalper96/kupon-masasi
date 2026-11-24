@@ -2243,7 +2243,10 @@ header .hr{position:relative}
   #dz .mr .pr{max-width:200px}
 }
 @media(max-width:1099px){
-  #dz .mr,#app>.box>.lg2~.mr{row-gap:4px!important;min-height:0!important;padding:12px 16px!important}
+  #dz .mr,#app>.box>.lg2~.mr{row-gap:2px!important;min-height:0!important;padding:9px 16px!important}
+  /* sade tahmin satiri (25 Kas 2026): hap arka plani yok, satir kisa */
+  #dz .mr .pr.bp{background:none!important;padding:0!important;height:18px!important;line-height:18px!important;font-size:12px!important}
+  #dz .mr span[data-tm],#dz .mr b[data-tm]{min-height:30px}
   #dz .mr .lt{grid-row:1/span 2!important;align-self:center}
   #dz .mr .pr{display:flex!important;grid-column:2/5!important;grid-row:2!important;justify-self:center;max-width:100%;margin:0!important;font:500 11.5px var(--f)!important;padding:3px 10px!important;border-radius:999px!important;background:var(--sf2)!important}
 }
@@ -2478,6 +2481,16 @@ body.kbar-on #app{padding-bottom:184px!important}
   #dz .mr{grid-template-columns:clamp(104px,19%,172px) minmax(0,1fr) 64px minmax(0,1fr) clamp(104px,19%,172px)!important}
   #dz .mr .lt{justify-self:start;margin-left:6px;width:46px!important}
   #dz .mr .pr{justify-self:end;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+/* Tahmin rozeti tam okunsun (25 Kas 2026): masaustunde de takimlarin altinda, ortada ikinci satir; yan sutunlar daralir, takim adlarina yer kalir */
+@media(min-width:1100px){
+  #dz .mr{grid-template-columns:58px minmax(0,1fr) 64px minmax(0,1fr) 58px!important;row-gap:3px!important;min-height:0!important}
+  #dz .mr,#app>.box>.lg2~.mr{padding-top:12px!important;padding-bottom:12px!important}
+  #dz .mr .lt{grid-row:1/span 2!important;align-self:center;margin-left:4px}
+  #dz .mr .pr{grid-column:2/5!important;grid-row:2!important;justify-self:center!important;max-width:100%!important;margin:0!important}
+  #dz .mr .pr:not(.bp){font-size:12px!important;line-height:18px!important;padding:0 8px!important}
+  #dz .mr .pr.bp{font-size:12.5px!important;line-height:18px!important;height:18px!important;padding:0!important;border-radius:0!important;background:none!important}
+  #dz .mr .pr.bp b{overflow:visible;text-overflow:clip}
 }
 
 /* Kadro tablosu siralama dugmeleri (20 Kas 2026) */
