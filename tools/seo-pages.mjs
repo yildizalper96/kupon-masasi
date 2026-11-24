@@ -29,7 +29,7 @@ const CSS = `:root{--bg:#f6f7f9;--kart:#fff;--yazi:#16202a;--sol:#5b6773;--cizgi
 @media (prefers-color-scheme:dark){:root{--bg:#0e151b;--kart:#16212a;--yazi:#e8edf1;--sol:#93a1ad;--cizgi:#26343f;--vurgu:#3fbf7f;--uyari:#e0a040}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--yazi);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:760px;margin:0 auto;padding:16px}a{color:var(--vurgu)}header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0 12px}
-header a.l{font-weight:800;font-size:20px;color:var(--yazi);text-decoration:none}h1{font-size:24px;line-height:1.25;margin:4px 0 6px}h2{font-size:17px;margin:0 0 10px}
+header a.l{font-weight:800;font-size:20px;color:var(--yazi);text-decoration:none}h1{font-size:24px;line-height:1.25;margin:4px 0 6px}h2{font-size:17px;margin:0 0 10px}h3{font-size:15px;margin:14px 0 6px}
 .alt{color:var(--sol);font-size:14px}.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:14px;padding:14px 16px;margin:12px 0}
 .btn{display:inline-block;background:var(--vurgu);color:#fff;font-weight:700;padding:11px 18px;border-radius:99px;text-decoration:none;margin:6px 0}
 .uc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.uc div{border:1px solid var(--cizgi);border-radius:10px;padding:8px 4px}.uc b{display:block;font-size:22px}.uc small{color:var(--sol)}
@@ -77,6 +77,16 @@ function kayitlar() {
   const lgK = {}; for (const r of Object.values(A)) if (LG[r.c]) lgK[r.c] = { n: LG[r.c].n, ln: LG[r.c].ln };
   try { fs.writeFileSync(path.join(root, ARSIV), JSON.stringify({ at: new Date().toISOString(), lg: lgK, m: A })); } catch (e) { console.warn('seo: arsiv yazilamadi', e.message); }
   return { A, LG };
+}
+
+// Puan tablosu: gruplu liglerde (konferans, grup, Apertura/Clausura) her grup ayri tablo.
+const GRTR = s => String(s).replace(/Western Conference/i, 'Batı Konferansı').replace(/Eastern Conference/i, 'Doğu Konferansı')
+  .replace(/Tabla Anual/i, 'Yıllık tablo').replace(/League ([A-D])/g, '$1 Ligi').replace(/Group ([A-Z])/g, 'Grup $1').replace(/ - /g, ' · ');
+function tabloHtml(rows) {
+  const gr = []; for (const r of rows) { const k = r.gr || ''; let g = gr.find(x => x.k === k); if (!g) gr.push(g = { k, r: [] }); g.r.push(r); }
+  const bas = '<tr><th>Takım</th><th>O</th><th>G-B-M</th><th>Av</th><th>P</th><th>Form</th></tr>';
+  const sat = r => `<tr><td>${r.r}. ${E(r.n)}</td><td>${r.pl}</td><td>${r.w}-${r.d}-${r.l}</td><td>${r.gd > 0 ? '+' : ''}${r.gd}</td><td><b>${r.p}</b></td><td>${E(r.form || '')}</td></tr>`;
+  return gr.map(g => (gr.length > 1 && g.k ? `<h3>${E(GRTR(g.k))}</h3>` : '') + `<table>${bas}${g.r.map(sat).join('')}</table>`).join('');
 }
 
 export function build(out) {
@@ -149,7 +159,7 @@ ${ou || bt ? `<ul>${ou ? `<li>2,5 üst (en az 3 gol): %${yuzde(ou[0])} · 2,5 al
   for (const c of ligler) {
     const L = liste.filter(x => x.m.c === c), gel = L.filter(yakin), gec = L.filter(x => x.bitti).reverse().slice(0, 30);
     const s = ligSlug(c), url = `${SITE}/lig/${s}/`, ad = ligAd(c), kisa = ligKisa(c), tb = tablo(c);
-    const tbl = tb && Array.isArray(tb.rows) && tb.rows.length ? `<div class="kart"><h2>${E(kisa)} puan durumu</h2><table><tr><th>Takım</th><th>O</th><th>G-B-M</th><th>Av</th><th>P</th><th>Form</th></tr>${tb.rows.map(r => `<tr><td>${r.r}. ${E(r.n)}</td><td>${r.pl}</td><td>${r.w}-${r.d}-${r.l}</td><td>${r.gd > 0 ? '+' : ''}${r.gd}</td><td><b>${r.p}</b></td><td>${E(r.form || '')}</td></tr>`).join('')}</table></div>` : '';
+    const tbl = tb && Array.isArray(tb.rows) && tb.rows.length ? `<div class="kart"><h2>${E(kisa)} puan durumu</h2>${tabloHtml(tb.rows)}</div>` : '';
     const body = `<p class="alt"><a href="/mac/">Maç analizleri</a> › ${E(ad)}</p><h1>${E(kisa)} maç tahminleri ve analizleri</h1>
 <p class="alt">${E(ad)}: yaklaşan maçların kazanma olasılıkları, adil oranlar ve maç sonuçları. Saatler Türkiye saatidir.</p>
 <a class="btn" href="/#/lig/${encodeURIComponent(c)}">${E(kisa)} puan durumu ve kupon simülatörü</a>

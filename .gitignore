@@ -18,3 +18,16 @@ tools/yerel-guncelle.log
 tools/gecmis.log
 data/api/**/*.tmp
 tools/gecmis-kupa.log
+
+# Ham API dokumleri (istemci kullanmaz; yerelde kalir, repoya ve yayina girmez)
+data/api/**/m-*.json
+data/api/*/2021/players.json
+data/api/*/2022/players.json
+data/api/*/2023/players.json
+data/api/*/2024/players.json
+data/api/*/2025/players.json
+data/api/*/2021/teamstats.json
+data/api/*/2022/teamstats.json
+data/api/*/2023/teamstats.json
+data/api/*/2024/teamstats.json
+data/api/*/2025/teamstats.json

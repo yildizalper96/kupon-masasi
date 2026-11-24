@@ -60,8 +60,9 @@
 
   // ================= MAC SAYFASI =================
   function macBaslik(m) {
-    const s = stt(m), x = xm(m), gun = gunEtiket(m.t);
-    const alt = n => { const r = x.rank && (n === m.h ? x.rank.h : x.rank.a); if (r) return E(r); const t = TM[n]; if (t && t.r) return `${E(ligAd(t.l))} · ${t.r}.`; const mn = !TM[n] && tmMilli(n); return mn && mn.rk ? `FIFA #${mn.rk}` : ''; };
+    const s = stt(m), x = xm(m), gun = gunEtiket(m.t), tbm = tabloSatir(m.c);
+    // siralama: macin oynandigi yarismanin tablosundaki yer (CL macinda CL sirasi); tablo yoksa takimin kendi ligi
+    const alt = n => { const q = tbm.find(y => y.n === n); if (q && q.r) return `${E(ligAd(m.c))} · ${q.r}.`; const r = x.rank && (n === m.h ? x.rank.h : x.rank.a); if (r) return E(r); const t = TM[n]; if (t && t.r) return `${E(ligAd(t.l))} · ${t.r}.`; const mn = !TM[n] && tmMilli(n); return mn && mn.rk ? `FIFA #${mn.rk}` : ''; };
     const orta = s.sc
       ? `<b class="kmskor">${s.sc[0]} - ${s.sc[1]}</b><span>${s.k === 'ft' ? 'Maç sonu' : (s.k === 'live' || s.k === 'on') ? 'Canlı' : 'Son skor'}</span>`
       : `<b class="kmskor">${hm(m.t)}</b><span>${gun || dd(m.t)}</span>`;
@@ -85,8 +86,8 @@
   // ---- TELEFON (<=1099px) mac basligi: geri dugmesi, buyuk logolar alt alta ad, skor, golculer; ayri yapiskan serit (kucuk skor + sekmeler) ----
   const DAR = matchMedia('(max-width:1099px)');
   function macBaslikMobil(m) {
-    const s = stt(m), x = xm(m), gun = gunEtiket(m.t), canli = s.k === 'live' || s.k === 'on';
-    const alt = n => { const r = x.rank && (n === m.h ? x.rank.h : x.rank.a); if (r) return E(r); const t = TM[n]; return t && t.r && t.l === m.c ? `${t.r}. sırada` : ''; };
+    const s = stt(m), x = xm(m), gun = gunEtiket(m.t), canli = s.k === 'live' || s.k === 'on', tbm = tabloSatir(m.c);
+    const alt = n => { const q = tbm.find(y => y.n === n); if (q && q.r) return `${q.r}. sırada`; const r = x.rank && (n === m.h ? x.rank.h : x.rank.a); if (r) return E(r); const t = TM[n]; return t && t.r && t.l === m.c ? `${t.r}. sırada` : ''; };
     const durum = s.k === 'ft' ? 'Maç sonu' : canli ? 'Canlı' : 'Son skor';
     const orta = s.sc ? `<b class="kmskor">${s.sc[0]} - ${s.sc[1]}</b><span class="${canli ? 'cn' : ''}">${durum}</span>`
       : `<b class="kmskor saat">${hm(m.t)}</b><span>${E(gun || kisaTarih(m.t))}</span>`;
@@ -278,7 +279,7 @@
         <div class="kmyari">${sutunlar(m.h, raw.h, false, 'h')}</div><div class="kmyari dep">${sutunlar(m.a, raw.a, true, 'a')}</div></div>
       ${hoca}
       <h4 class="kmalt orta">${o.yb || 'Yedekler'}</h4><div class="kmiki">${'<div>' + yedek(m.h, raw.h, 'h') + '</div><div>' + yedek(m.a, raw.a, 'a') + '</div>'}</div>
-      <details class="kmeksd"><summary>Sakat ve cezalı oyuncular</summary><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div></details>
+      ${o.eksYok ? '' : `<details class="kmeksd"><summary>Sakat ve cezalı oyuncular</summary><div class="kmiki"><div>${eks('h')}</div><div>${eks('a')}</div></div></details>`}
       <p class="kmkay">${o.kay || 'Kaynak: API-Football'}</p>`);
   }
   // kulup maclari (PS: Transfermarkt sezon kadrosu): resmi ilk 11 yokken iki takimin kadrosu mevkiye gore
@@ -335,7 +336,10 @@
   };
   function apiKadro(n) {
     const X = window.KMX; if (!X || !X.sq) return null; const k = nrm(n);
-    for (const id in X.sq) { const q = X.sq[id]; if (q && nrm(q.n) === k && q.p && q.p.length > 10 && Date.now() - Date.parse(q.at) < 45 * 864e5) return q; }
+    const ok = q => q && q.p && q.p.length > 10 && Date.now() - Date.parse(q.at) < 45 * 864e5;
+    for (const id in X.sq) { const q = X.sq[id]; if (ok(q) && nrm(q.n) === k) return q; }
+    // ad farki: uygulama "Shakhtar Donetsk", API "Shakhtar" (ilk kelime tam ve en az 5 harf)
+    for (const id in X.sq) { const q = X.sq[id], a = ok(q) && nrm(q.n); if (a && a.length >= 5 && (k.startsWith(a + ' ') || a.startsWith(k + ' '))) return q; }
     return null;
   }
   function kadroOyunculari(m, n) {
@@ -361,7 +365,8 @@
     const yok = [...inj, ...haber].filter(Boolean);
     const disari = ad => { const w = nrm(ad); return yok.some(k => w === k || w.split(/[\s-]+/).includes(k) || (k.includes(' ') && w.includes(k))); };
     // forma no + foto (foot-ad -> Transfermarkt kimligi -> API kimligi) + ayrintili mevki (sp.json)
-    const ek = x => { const v = fa[n + '|' + x[0]]; const id = (v && v.t && tmApi()[v.t]) || x[10]; return { no: x[7] || (v && v.no) || '', id: id || undefined, k: (v && v.t && sp && sp[v.t]) || KABA[x[6]] || '' }; };
+    const q = apiKadro(n), qid = ad => { const p = q && q.p.find(p => adEs(p.n, ad)); return p && p.id; };
+    const ek = x => { const v = fa[n + '|' + x[0]]; const id = (v && v.t && tmApi()[v.t]) || x[10] || qid(x[0]); return { no: x[7] || (v && v.no) || '', id: id || undefined, k: (v && v.t && sp && sp[v.t]) || KABA[x[6]] || '' }; };
     const pl = kadroOyunculari(m, n).filter(x => x[1] > 0 && x[2] > 0 && !disari(x[0])).sort((a, b) => b[2] - a[2]).map(x => ({ x, ...ek(x) }));
     // dizilis: takimin en sik kullandigi (Transfermarkt), yoksa 4-2-3-1
     const kl = tmKulup(n), dz = kl && kl.dz && DIZ[kl.dz] ? kl.dz : '4-2-3-1', sab = DIZ[dz];
@@ -382,7 +387,7 @@
     // mac saati gecmis ama resmi 11 henuz gelmemisse (veri gecikmesi) de tahmini 11 gosterilir; yalnizca bitmis macta gosterilmez
     const k = stt(m).k; if (k === 'ft') return '';
     const h = muhtemelKadro(m, 'h'), a = muhtemelKadro(m, 'a'); if (!h || !a) return '';
-    return hamSaha(m, { h, a }, { baslik: k === 'wait' ? 'Muhtemel 11 <small>tahmini</small>' : 'Muhtemel 11 <small>tahmini · resmi 11 bekleniyor</small>', yb: 'Kadrodaki diğer oyuncular',
+    return hamSaha(m, { h, a }, { baslik: k === 'wait' ? 'Muhtemel 11 <small>tahmini</small>' : 'Muhtemel 11 <small>tahmini · resmi 11 bekleniyor</small>', yb: 'Kadrodaki diğer oyuncular', eksYok: dt === 'k',
       kay: 'Tahmini dizilim: takımın bu sezon en sık kullandığı diziliş; her mevkiye o mevkide oynayan ve en çok süre alan oyuncu yerleştirildi; açıklanan sakat ve cezalılar (takım haberleri, API-Football) çıkarıldı. Resmi ilk 11 maçtan yaklaşık 1 saat önce açıklanınca bunun yerine gelir. Kaynak: Transfermarkt.' });
   }
   function kulupKadroKarti(m) {
@@ -396,13 +401,23 @@
     };
     return card('kmkadro', `<h3 class="kmb">Takım kadroları</h3><div class="kmiki">${col(m.h, A)}${col(m.a, B)}</div><p class="kmkay">Bu sezon lig maçında forma giyen oyuncular (parantez: forma numarası), en çok süre alandan başlayarak. Resmi ilk 11 açıklanınca (genelde maçtan 1 saat önce) sahada görünür. Kaynak: Transfermarkt.</p>`);
   }
+  // Sakat ve eksikler (24 Kas 2026): eski "Takim kadrolari" yazi listesinin yerine. API-Football eksikleri + son 6 gunun takim haberlerindeki out listesi.
+  function eksiklerKarti(m) {
+    const X = window.KMX, e = X && X.byKey && X.byKey[key(m)], inj = (e && e.inj) || [];
+    const kol = s => {
+      const n = s === 'h' ? m.h : m.a, l = inj.filter(x => x.s === s).map(eksSatir), gor = new Set(inj.filter(x => x.s === s).map(x => nrm(x.n)));
+      try { (NW || []).filter(x => x && x.tm === n && Array.isArray(x.out) && (+m.t - new Date(x.d)) < 6 * 864e5).forEach(x => x.out.forEach(o => { const k = nrm(o); if (o && ![...gor].some(g => g === k || g.split(/[\s-]+/).includes(k))) { gor.add(k); l.push(eksSatir({ n: o, r: '' })); } })); } catch (er) { }
+      return `<div><p style="margin:0 0 6px">${bd(n, 1)} <b>${E(n)}</b></p>${l.length ? l.join('') : '<p class="kmbos">Açıklanan eksik yok.</p>'}</div>`;
+    };
+    return card('kmkadro', `<h3 class="kmb">Sakat ve eksikler</h3><div class="kmiki">${kol('h')}${kol('a')}</div><p class="kmkay">Açıklanan sakat, cezalı ve şüpheli oyuncular. Kaynak: API-Football, takım haberleri.</p>`);
+  }
   function kadroKarti(m) {
     try { const raw = window.KMX && typeof KMX.luRaw === 'function' && KMX.luRaw(m); if (raw) { const h = hamSaha(m, raw); if (h) return h; } } catch (e) { }
     const lu = LU[key(m)];
     // bitmis mac, resmi 11 verisi henuz gelmemis: sessizce sezon kadrosu gosterme, durumu acikca yaz
     const bekle = !lu && stt(m).k === 'ft' && PS[m.c + '|' + m.h] ? card('kmkadro', `<h3 class="kmb">Resmi ilk 11</h3><p class="kmbos">Bu maçın resmi ilk 11 ve dizilişi henüz gelmedi; bir sonraki veri güncellemesinde eklenecek.</p>`) : '';
     // muhtemel 11 sahasi once: tum kulup kadrolari sq'da oldugu icin davet listesi (milli takim) kulup maclarinda sahayi gizliyordu
-    if (!lu) { const ms = muhtemelSaha(m); return bekle + ((ms ? ms + (dt === 'k' ? kulupKadroKarti(m) : '') : '') || davetListesi(m) || (window.KMX && KMX.squadCard && KMX.squadCard(m)) || kulupKadroKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`)); }
+    if (!lu) { const ms = muhtemelSaha(m); return bekle + ((ms ? ms + (dt === 'k' ? eksiklerKarti(m) : '') : '') || davetListesi(m) || eksiklerKarti(m) || card('kmkadro', `<h3 class="kmb">Kadro</h3><p class="kmbos">Bu maç için muhtemel 11 ya da kadro verisi yok.</p>`)); }
     const iki = pitchOk(lu.h) && pitchOk(lu.a);
     let saha = '';
     if (iki) {
@@ -426,14 +441,23 @@
   window.kmBiten = () => BITEN;
   const bitenYukle = () => fetch('data/fixtures/finished.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && Array.isArray(j.m)) { BITEN = j.m; try { render(); } catch (e) { } } }).catch(() => { });
   (window.kmBoot||function(p){return p})(bitenYukle()); (window.kmReloaders = window.kmReloaders || []).push(bitenYukle);
+  // sitede ligi olmayan takimlarin son 5 maci (tools/fetch-dis-form.mjs, kupa maclarindaki takimlar): {t:{ad:{id,m:[{t,c,h,a,x,y}]}}}
+  let DISF = {};
+  const disfYukle = () => fetch('data/fixtures/dis-form.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.t) { DISF = j.t; try { render(); } catch (e) { } } }).catch(() => { });
+  disfYukle(); (window.kmReloaders = window.kmReloaders || []).push(disfYukle);
+  // ad farki toleransi: uygulama "Shakhtar Donetsk", veri "Shakhtar"
+  const disfBul = n => { if (DISF[n]) return [n, DISF[n]]; const k = nrm(n); for (const a in DISF) { const b = nrm(a); if (b.length >= 5 && (k.startsWith(b + ' ') || b.startsWith(k + ' '))) return [a, DISF[a]]; } return null; };
   // Takim formu: once lig kaydi (SLG); yoksa uygulamadaki biten maclar + karsilasma gecmisi (tum yarismalar), acilan mac haric
   function formListesi(n, m) {
     const slg = son5(n);
     if (slg.length) return slg.slice().reverse().map(r => ({ ev: r.H ? n : r.o, dep: r.H ? r.o : n, sk: r.H ? `${r.f} - ${r.c}` : `${r.c} - ${r.f}`, r: r.r }));
     const l = [], gor = new Set(), ren = (x, y) => x > y ? 'G' : x < y ? 'M' : 'B';
-    const ekle = (h, a, x, y, t) => { const k = h + '|' + a + '|' + x + '-' + y + '|' + new Date(t).toISOString().slice(0, 10); if (gor.has(k)) return; gor.add(k); l.push({ ev: h, dep: a, sk: x + ' - ' + y, r: h === n ? ren(x, y) : ren(y, x), t }); };
+    const ekle = (h, a, x, y, t) => { const k = new Date(t).toISOString().slice(0, 10); if (gor.has(k)) return; gor.add(k); l.push({ ev: h, dep: a, sk: x + ' - ' + y, r: h === n ? ren(x, y) : ren(y, x), t }); };
     BITEN.forEach(x => { if (!x || (x.h !== n && x.a !== n) || (x.c === m.c && x.h === m.h && x.a === m.a)) return; const t = Date.parse(x.t); if (t && Number.isFinite(+x.x) && Number.isFinite(+x.y)) ekle(x.h, x.a, +x.x, +x.y, t); });
     R.forEach(x => { if (key(x) === key(m) || (x.h !== n && x.a !== n)) return; const s2 = stt(x); if (s2.k === 'ft' && s2.sc) ekle(x.h, x.a, +s2.sc[0], +s2.sc[1], x.t); });
+    // sitede ligi olmayan takim: API son maclari (tum yarismalar); veri adi uygulama adina cevrilir
+    const df = disfBul(n);
+    if (df) df[1].m.forEach(x => { const h = x.h === df[0] ? n : x.h, a = x.a === df[0] ? n : x.a, t = Date.parse(x.t); if ((h === n || a === n) && t && t < +m.t - 36e5) ekle(h, a, +x.x, +x.y, t); });
     // karsilasma gecmisi (HH) form sayilmaz: yalniz o iki takimin maclari oldugundan form yaniltici ("takili") gorunuyordu; ayri kartta gosterilir
     return l.sort((p, q) => q.t - p.t).slice(0, 5);
   }
