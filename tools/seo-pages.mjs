@@ -137,11 +137,13 @@ ${ou || bt ? `<ul>${ou ? `<li>2,5 üst (en az 3 gol): %${yuzde(ou[0])} · 2,5 al
     const ozet = p ? `${m.h} %${yuzde(p[0])}, beraberlik %${yuzde(p[1])}, ${m.a} %${yuzde(p[2])}. ` : '';
     const desc = bitti ? `${m.h} ${m.sc[0]}-${m.sc[1]} ${m.a} (${lig}, ${tarihTR(t)}): maç sonucu, maç öncesi olasılıklar, karşılıklı maçlar ve analiz.`
       : `${m.h} – ${m.a} (${lig}, ${tarihTR(t)} ${saatTR(t)}) maç analizi: ${ozet}Puan durumu, form, karşılıklı maçlar ve kupon simülatörü.`;
-    const ld = { '@context': 'https://schema.org', '@type': 'SportsEvent', name: `${m.h} – ${m.a}`, startDate: t.toISOString(), sport: 'Futbol',
-      eventStatus: 'https://schema.org/EventScheduled', url, description: desc,
-      homeTeam: { '@type': 'SportsTeam', name: m.h }, awayTeam: { '@type': 'SportsTeam', name: m.a },
-      competitor: [{ '@type': 'SportsTeam', name: m.h }, { '@type': 'SportsTeam', name: m.a }],
-      ...(rh && rh.st ? { location: { '@type': 'Place', name: rh.st, address: rh.city || undefined } } : {}) };
+    // Google SportsEvent için location zorunlu: stadyum verisi yoksa etiketi hiç koyma (uydurma yok)
+    const takimlar = [{ '@type': 'SportsTeam', name: m.h }, { '@type': 'SportsTeam', name: m.a }];
+    const ld = rh && rh.st ? { '@context': 'https://schema.org', '@type': 'SportsEvent', name: `${m.h} – ${m.a}`, startDate: t.toISOString(), sport: 'Futbol',
+      eventStatus: 'https://schema.org/EventScheduled', url, description: desc, image: [`${SITE}/icons/og-image.png`],
+      homeTeam: takimlar[0], awayTeam: takimlar[1], competitor: takimlar, performer: takimlar,
+      organizer: { '@type': 'SportsOrganization', name: lig },
+      location: { '@type': 'Place', name: rh.st, address: rh.city || rh.st } } : null;
     const bas = bitti ? `${m.h} ${m.sc[0]}-${m.sc[1]} ${m.a} maç sonucu ve analizi` : `${m.h} – ${m.a} maç analizi ve tahmini`;
     fs.mkdirSync(path.join(dir, s), { recursive: true });
     fs.writeFileSync(path.join(dir, s, 'index.html'), sayfa({ title: `${bas} (${gun(t).split('-').reverse().join('.')}) | Simuleto`, desc, url, body: kisim.join('\n'), ld }));
