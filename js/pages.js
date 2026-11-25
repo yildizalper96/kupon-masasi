@@ -413,9 +413,26 @@
     };
     return card('kmkadro', `<h3 class="kmb">Sakat ve eksikler</h3><div class="kmiki">${kol('h')}${kol('a')}</div><p class="kmkay">Açıklanan sakat, cezalı ve şüpheli oyuncular. Kaynak: API-Football, takım haberleri.</p>`);
   }
+  // Dizilis kaynakta yoksa (25 Kas 2026): 11 oyuncunun sezon mevkilerinden (K/D/O/F) dizilis cikarilir, saha yine cizilir
+  function dizTahmin(m, n, t) {
+    try {
+      if (!t || !Array.isArray(t.xi) || t.xi.length !== 11 || pitchOk(t)) return t;
+      const kd = kadroOyunculari(m, n), SR = { K: 0, G: 0, D: 1, O: 2, M: 2, F: 3 };
+      const g = t.xi.map(p => { const nm = String(p).split('|').pop(), x = kd.find(r => adEs(nm, r[0]) || ayniAd(nm, r[0])), c = x ? String(x[6] || '')[0] : ''; return { p, s: c in SR ? SR[c] : -1 }; });
+      // mevkisi bulunamayan oyuncu: kaynak sirasi mevki sirasindaysa (K-D-O-F) komsu oyuncunun mevkisi verilir
+      const bil = g.filter(z => z.s >= 0).map(z => z.s), sirali = bil.every((s, i) => !i || s >= bil[i - 1]);
+      if (g.some(z => z.s < 0) && sirali) g.forEach((z, i) => { if (z.s >= 0) return; if (!i) { z.s = bil.includes(0) ? 1 : 0; return; } const o = g[i - 1].s, s = g.slice(i + 1).find(y => y.s > 0); z.s = o > 0 ? o : s ? s.s : 1; });
+      const say = [1, 2, 3].map(s => g.filter(z => z.s === s).length);
+      if (g.some(z => z.s < 0) || g.filter(z => z.s === 0).length !== 1 || say.some(c => !c)) {
+        // son care: kaynak sirasiyla 1 kaleci + 4-3-3 (tahmini), saha yine cizilir
+        return Object.assign({}, t, { f: '4-3-3', fT: 2 });
+      }
+      return Object.assign({}, t, { f: say.join('-'), xi: [0, 1, 2, 3].flatMap(s => g.filter(z => z.s === s).map(z => z.p)), fT: 1 });
+    } catch (e) { return t; }
+  }
   function kadroKarti(m) {
     try { const raw = window.KMX && typeof KMX.luRaw === 'function' && KMX.luRaw(m); if (raw) { const h = hamSaha(m, raw); if (h) return h; } } catch (e) { }
-    const lu = LU[key(m)];
+    const lu0 = LU[key(m)], lu = lu0 && Object.assign({}, lu0, { h: dizTahmin(m, m.h, lu0.h), a: dizTahmin(m, m.a, lu0.a) });
     // bitmis mac, resmi 11 verisi henuz gelmemis: sessizce sezon kadrosu gosterme, durumu acikca yaz
     const bekle = !lu && stt(m).k === 'ft' && PS[m.c + '|' + m.h] ? card('kmkadro', `<h3 class="kmb">Resmi ilk 11</h3><p class="kmbos">Bu maçın resmi ilk 11 ve dizilişi henüz gelmedi; bir sonraki veri güncellemesinde eklenecek.</p>`) : '';
     // muhtemel 11 sahasi once: tum kulup kadrolari sq'da oldugu icin davet listesi (milli takim) kulup maclarinda sahayi gizliyordu
@@ -433,10 +450,10 @@
     const hoca = (xh.coach || xa.coach) ? `<div class="kmhoca"><span>${E(xh.coach || '–')}</span><b>Antrenör</b><span>${E(xa.coach || '–')}</span></div>` : '';
     const eksik = t => (t && t.out && t.out.length) ? t.out.map(o => { const a = (typeof absIc === 'function') ? absIc(o[1]) : ['', '']; return `<div class="kmeks"><i class="${a[0]}">${a[1]}</i><div><b>${E(o[0])}</b><small>${E(o[1])}</small></div></div>`; }).join('') : '<p class="kmbos">Açıklanan eksik yok.</p>';
     const liste = (!iki) ? `<div class="kmiki">${[lu.h, lu.a].map(t => `<ol class="kmxi">${(t && t.xi || []).map(p => `<li>${E(String(p).split('|').pop())}</li>`).join('')}</ol>`).join('')}</div>` : '';
-    return card('kmkadro', `<div class="kmkb"><div>${bd(m.h)}<b>${E(m.h)}</b><span>${E(lu.h && lu.h.f || '')}</span></div><h3>${E(lu.t || 'Kadro')}</h3><div><span>${E(lu.a && lu.a.f || '')}</span><b>${E(m.a)}</b>${bd(m.a)}</div></div>
+    return card('kmkadro', `<div class="kmkb"><div>${bd(m.h)}<b>${E(m.h)}</b><span>${E(lu.h && lu.h.fT !== 2 && lu.h.f || '')}</span></div><h3>${E(lu.t || 'Kadro')}</h3><div><span>${E(lu.a && lu.a.fT !== 2 && lu.a.f || '')}</span><b>${E(m.a)}</b>${bd(m.a)}</div></div>
       ${saha}${liste}${hoca}
       <h4 class="kmalt">Sakat ve cezalı oyuncular</h4><div class="kmiki">${'<div>' + eksik(lu.h) + '</div><div>' + eksik(lu.a) + '</div>'}</div>
-      ${lu.src ? `<p class="kmkay">Kaynak: ${E(KY(lu.src))}</p>` : ''}`);
+      ${(lu.h && lu.h.fT) || (lu.a && lu.a.fT) ? '<p class="kmkay">Diziliş kaynakta yok; ' + ((lu.h && lu.h.fT === 2) || (lu.a && lu.a.fT === 2) ? 'oyuncular kaynaktaki sırayla yaklaşık yerleştirildi.' : 'oyuncuların bu sezonki mevkilerinden çıkarıldı.') + '</p>' : ''}${lu.src ? `<p class="kmkay">Kaynak: ${E(KY(lu.src))}</p>` : ''}`);
   }
   // biriken biten maclar (veri oturumu: data/fixtures/finished.json = {at, m:[{id,c,t,h,a,x,y}]}); yoksa bos
   let BITEN = [];

@@ -1,4 +1,4 @@
-// Bildirimler (ornek, 25 Kas 2026): sag ustte zil. Favori takimlarin (FAV) ve takip edilen liglerin (km_ligtakip) maclarinda
+// Bildirimler (ornek, 25 Kas 2026): sag ustte zil. Yalnizca favori takimlarin (FAV) maclarinda (lig takibi bildirim uretmez)
 // baslama, gol, devre arasi ve mac sonu olunca zilde sayi yanar, kisa ses calar, listeye yazilir. Veri: km_fx (fixtures-api.js her yuklemede yazar).
 (function () {
   var K_LIST = 'km_bld', K_SNAP = 'km_bld_snap', K_SES = 'km_bld_ses', MAX = 40;
@@ -6,6 +6,8 @@
   function jget(k, d) { try { var x = JSON.parse(ls(k) || 'null'); return x == null ? d : x; } catch (e) { return d; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var liste = jget(K_LIST, []), sesAcik = ls(K_SES) !== '0';
+  // eski kayitlar: ornekleri ve favori olmayan takim bildirimlerini ayikla
+  setTimeout(function () { var n0 = liste.length; liste = liste.filter(function (b) { return b.id && izlenir(b); }); if (liste.length !== n0) { ls(K_LIST, JSON.stringify(liste)); ciz(); } }, 0);
 
   // ---- ses: iki tonlu kisa zil (WebAudio; ilk dokunusta kilit acilir)
   var ac = null;
@@ -24,7 +26,7 @@
 
   // ---- izlenen maclar
   function favlar() { try { return typeof FAV !== 'undefined' ? FAV : new Set(jget('fav', [])); } catch (e) { return new Set(); } }
-  function izlenir(m) { var f = favlar(), lg = jget('km_ligtakip', []); return f.has(m.h) || f.has(m.a) || lg.indexOf(m.c) >= 0; }
+  function izlenir(m) { var f = favlar(); return f.has(m.h) || f.has(m.a); }
   var CANLI = { '1H': 1, '2H': 1, ET: 1, P: 1, LIVE: 1 }, BIT = { FT: 1, AET: 1, PEN: 1 };
   function ligAd(c) { try { return (typeof N !== 'undefined' && N[c]) || c; } catch (e) { return c; } }
   function ekle(b) { b.at = Date.now(); b.yeni = 1; liste.unshift(b); if (liste.length > MAX) liste.length = MAX; ls(K_LIST, JSON.stringify(liste)); }
@@ -60,8 +62,8 @@
   function panelCiz() {
     var sat = liste.length ? liste.map(function (b) {
       return "<button class='bld-r" + (b.yeni ? ' yeni' : '') + "' data-bq='" + esc(b.h) + "'" + (b.c ? " data-bm='" + esc([b.c, b.h, b.a].join('|')) + "'" : '') + "><i class='bld-ik t-" + b.tip + "'>" + (IK[b.tip] || '•') + "</i><span><b>" + esc(b.baslik) + "</b><em>" + esc(b.h) + ' <strong>' + esc(b.skor) + '</strong> ' + esc(b.a) + "</em><small>" + esc(ligAd(b.c)) + ' · ' + once(b.at) + '</small></span></button>';
-    }).join('') : "<div class='bld-bos'>" + ZIL + "<b>Henüz bildirim yok</b><small>Favori takımlarının ve takip ettiğin liglerin maçlarında gol, başlama ve sonuç olunca burada görünür.</small></div>";
-    panel.innerHTML = "<div class='bld-h'><b>Bildirimler</b><button class='bld-ses" + (sesAcik ? ' on' : '') + "' data-bact='ses' title='Bildirim sesi'>" + (sesAcik ? '🔔 Ses açık' : '🔕 Ses kapalı') + "</button></div><div class='bld-l'>" + sat + "</div><div class='bld-f'><button data-bact='ornek'>Örnek bildirim gönder</button>" + (liste.length ? "<button data-bact='sil'>Temizle</button>" : '') + '</div>';
+    }).join('') : "<div class='bld-bos'>" + ZIL + "<b>Henüz bildirim yok</b><small>Favori takımlarının maçlarında gol, başlama ve sonuç olunca burada görünür.</small></div>";
+    panel.innerHTML = "<div class='bld-h'><b>Bildirimler</b><button class='bld-ses" + (sesAcik ? ' on' : '') + "' data-bact='ses' title='Bildirim sesi'>" + (sesAcik ? '🔔 Ses açık' : '🔕 Ses kapalı') + "</button></div><div class='bld-l'>" + sat + "</div>" + (liste.length ? "<div class='bld-f'><button data-bact='sil'>Temizle</button></div>" : '');
   }
   var dugmeler = [];
   function ciz(salla) {
@@ -98,7 +100,6 @@
       var a = t.getAttribute('data-bact');
       if (a === 'ses') { sesAcik = !sesAcik; ls(K_SES, sesAcik ? '1' : '0'); if (sesAcik) cal(); panelCiz(); }
       if (a === 'sil') { liste = []; ls(K_LIST, '[]'); panelCiz(); ciz(); }
-      if (a === 'ornek') ornek();
       return;
     }
     var r = e.target.closest('[data-bq]');
@@ -113,16 +114,6 @@
       var var_ = true; try { var_ = R.some(function (m) { return [m.c, m.h, m.a].join('|') === k; }); } catch (e) {}
       if (!var_ && window.kmApiMac) window.kmApiMac(k).then(function (ok) { if (ok) ac3(); }); else ac3();
     } catch (e) {}
-  }
-
-  // ornek: favori takim (yoksa Fenerbahce) icin uydurma olmayan, "Ornek" etiketli deneme bildirimi
-  function ornek() {
-    var f = Array.from(favlar()), t = f[0] || 'Fenerbahçe';
-    // favori takimin bugune en yakin maci varsa ona baglanir (tiklayinca o macin detayi acilir); skor ornektir
-    var m = null; try { m = R.filter(function (x) { return x.h === t || x.a === t; }).sort(function (x, y) { var n = Date.now(); return Math.abs(+new Date(x.t) - n) - Math.abs(+new Date(y.t) - n); })[0] || null; } catch (e) {}
-    ekle(m ? { id: 0, c: m.c, h: m.h, a: m.a, skor: m.h === t ? '1 - 0' : '0 - 1', tip: 'gol', baslik: "Örnek: GOL! " + t + " (23')" }
-      : { id: 0, c: '', h: t, a: 'Rakip', skor: '1 - 0', tip: 'gol', baslik: "Örnek: GOL! " + t + " (23')" });
-    cal(); kapa(); ciz(true);
   }
 
   var hr = document.querySelector('header .hr'); if (hr) hr.appendChild(dugme('kmb-ust'));
