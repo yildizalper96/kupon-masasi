@@ -2846,3 +2846,6 @@ body:has(.kmyasal) .km18{display:none}
 #kmbld .bld-bos small{opacity:.6;line-height:1.45}
 #kmbld .bld-f{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid var(--ln)}
 #kmbld .bld-f button{flex:1;padding:9px;border-radius:10px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+/* Mobil ortalama (25 Kas 2026): soldaki durum sutununun sagda esi olsun, mac tam ortada */
+@media(max-width:1099px){#dz .mr{grid-template-columns:30px minmax(0,1fr) 50px minmax(0,1fr) 30px!important}}
+@media(max-width:399px){#dz .mr{grid-template-columns:26px minmax(0,1fr) 46px minmax(0,1fr) 26px!important}}
