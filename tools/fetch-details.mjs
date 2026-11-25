@@ -108,7 +108,25 @@ function marketFrom(resp) {
   const w = pick('Match Winner', ['Home', 'Draw', 'Away']);
   const ou = pick('Goals Over/Under', ['Over 2.5', 'Under 2.5']);
   const bt = pick('Both Teams Score', ['Yes', 'No']);
-  return (w || ou || bt) ? { p: w && w.p, ou: ou && ou.p, bt: bt && bt.p, n: Math.max(w?.n || 0, ou?.n || 0, bt?.n || 0) } : null;
+  const b = b365From(bms);
+  return (w || ou || bt || b) ? { p: w && w.p, ou: ou && ou.p, bt: bt && bt.p, n: Math.max(w?.n || 0, ou?.n || 0, bt?.n || 0), b } : null;
+}
+// Sitede gosterilen oran: tek kaynak (Bet365) ham oranlari, uygulamanin secenek anahtarlarina gore. Kaynak adi veriye/siteye yazilmaz.
+function b365From(bms) {
+  const bk = bms.find(x => x.id === 8 || x.name === 'Bet365'); if (!bk) return null;
+  const o = {}, put = (k, v) => { const n = Number(v); if (n > 1) o[k] = n; };
+  const bet = n => bk.bets.find(x => x.name === n)?.values || [];
+  for (const v of bet('Match Winner')) put({ Home: '1', Draw: 'X', Away: '2' }[v.value], v.odd);
+  for (const v of bet('Double Chance')) put({ 'Home/Draw': '1X', 'Draw/Away': 'X2', 'Home/Away': '12' }[v.value], v.odd);
+  for (const v of bet('Both Teams Score')) put({ Yes: 'KG Var', No: 'KG Yok' }[v.value], v.odd);
+  for (const v of bet('Odd/Even')) put({ Odd: 'TEK', Even: 'CIFT' }[v.value], v.odd);
+  const ou = (name, over, under) => { for (const v of bet(name)) { const r = /^(Over|Under) (\d+)\.5$/.exec(v.value); if (r) put(r[1] === 'Over' ? over(+r[2]) : under(+r[2]), v.odd); } };
+  ou('Goals Over/Under', n => 'Ü' + n + '.5', n => 'A' + n + '.5');
+  ou('Total - Home', n => 'EG' + (n + 1), n => 'EA' + n);
+  ou('Total - Away', n => 'DG' + (n + 1), n => 'DA' + n);
+  for (const v of bet('Total Goals/Both Teams To Score')) { const r = /^([ou])\/(yes|no) (\d)\.5$/.exec(v.value); if (r) put('KG' + (r[2] === 'yes' ? 'V' : 'Y') + '+' + (r[1] === 'o' ? 'Ü' : 'A') + r[3] + '.5', v.odd); }
+  delete o.undefined;
+  return Object.keys(o).length ? o : null;
 }
 const ddmmyyyy = iso => { const d = new Date(iso); return String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + d.getUTCFullYear(); };
 const POS = { Goalkeeper: 'K', Defender: 'D', Midfielder: 'O', Attacker: 'F' };
