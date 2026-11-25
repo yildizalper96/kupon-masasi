@@ -1604,6 +1604,40 @@
     });
     return out.sort((x, y) => (y.t || 0) - (x.t || 0));
   }
+  // API mac mac kaydi (data/api/oyuncu/<takimId>.json, tools/player-matches.mjs; tum sezon, kulup + milli takim).
+  // Tablodaki satirlar (tarih +-36 sa ve skor ayni) doldurulur; kayitta olup tabloda olmayan, oynadigi maclar eklenir.
+  // Takimin macinda oyuncunun satiri yoksa (oyuncu o takimda en az bir mac oynamissa) "Oynamadı". Doner: yarisma toplamlari.
+  function oyuncuPmUygula(e, team, milliAd, ml) {
+    const top = [];
+    if (!e || !e.id) return top;
+    const ids = [[takimId(team), 0], [milliAd ? takimId(milliAd) : null, 1]].filter((x, i, a) => x[0] && a.findIndex(y => y[0] === x[0]) === i);
+    ids.forEach(([tid, milli]) => {
+      const j = apiJ('oyuncu/' + tid + '.json'); if (!j || !j.m || !j.p) return;
+      const q = j.p[e.id]; if (!q) return;
+      const by = new Map(q[1].map(r => [String(r[0]), r]));
+      Object.entries(j.m).sort((x, y) => String(y[1][1]).localeCompare(String(x[1][1]))).forEach(([fid, b]) => {
+        const r = by.get(fid), t = Date.parse(b[1]), skor = b[4] + ' - ' + b[5];
+        const k = ml.findIndex(m => !m.apm && m.skor === skor && m.t && Math.abs(m.t - t) < 36 * 3600e3);
+        const dol = (m) => {
+          if (r) Object.assign(m, { dk: r[1], dur: r[12] === 1 ? 'Yedek' : r[12] === 0 ? 'İlk 11' : (m.dur && m.dur !== 'Oynamadı' ? m.dur : ''), g: r[3] || 0, a: r[4] || 0, y: r[5] || 0, pu: r[2] != null ? r[2] : undefined, bilinmez: false, apm: 1 });
+          else if (m.bilinmez || m.dk == null) Object.assign(m, { dk: null, dur: m.dur && m.dur !== '' ? m.dur : 'Oynamadı', g: 0, a: 0, y: 0, pu: undefined, bilinmez: false, apm: 1 });
+        };
+        if (k >= 0) { const m = ml[k] = Object.assign({}, ml[k]); dol(m); if (!m.t) m.t = t; }
+        else if (r) {
+          const ev = +b[2] === +tid, rk = (j.t || {})[ev ? b[3] : b[2]] || '', gf = +(ev ? b[4] : b[5]), ga = +(ev ? b[5] : b[4]), tr = turAd(b[6]);
+          const m = { t, d: /Hafta$/.test(tr) ? tr.replace('Hafta', 'hafta') : kisaTarih(t), c: yarAd(b[0]), rakip: tkKanon(rk), ev, skor, r: gf > ga ? 'G' : gf < ga ? 'M' : 'B', ki: 0 };
+          dol(m); ml.push(m);
+        }
+      });
+      // yarisma toplamlari (yalniz oynadigi maclar)
+      const C = {};
+      q[1].forEach(r => { const b = j.m[r[0]]; if (!b) return; const v = C[b[0]] || (C[b[0]] = { c: b[0], milli, m: 0, min: 0, g: 0, a: 0, y: 0, r: 0, sh: 0, kp: 0, tk: 0, sv: 0, rs: 0, rn: 0 });
+        v.m++; v.min += +r[1] || 0; v.g += +r[3] || 0; v.a += +r[4] || 0; v.y += +r[5] || 0; v.r += +r[6] || 0; v.sh += +r[7] || 0; v.kp += +r[9] || 0; v.tk += +r[10] || 0; v.sv += +r[11] || 0; if (r[2] > 0) { v.rs += +r[2]; v.rn++; } });
+      Object.values(C).sort((x, y) => y.m - x.m).forEach(v => top.push(v));
+    });
+    ml.sort((x, y) => (y.t || 0) - (x.t || 0));
+    return top;
+  }
   function oyuncuVeri(v) {
     const e = oyuncuBul(v), x = e.ps;
     const p = x ? x.p : null, c = x ? x.c : (e.c || ''), team = e.team;
@@ -1654,7 +1688,10 @@
     const saha = nokta ? `<div class="kmph-saha"><i class="ce"></i><i class="ku"></i><i class="ka"></i><b style="left:${nokta[0]}%;top:${nokta[1]}%">${({ Kaleci: 'KL', Defans: 'DF', 'Orta saha': 'OS', Forvet: 'FV' })[mev] || ''}</b></div>` : '';
     const ust = `<div class="kmph-g"><div class="kmph-b">${bilgi.length ? bilgi.map(([a, b, h, tk]) => `<div${tk ? ` class="kmph-lk" data-tm="${E(tk)}" title="${E(tk)} milli takımı"` : ''}><b${h ? ' class="kmph-n"' : ''}>${h ? a : E(a)}</b><small>${b}</small></div>`).join('') : '<p class="kmbos">Kişisel bilgi verisi yok.</p>'}</div>
         <div class="kmph-m"><h4>Mevki</h4>${mev || tmk.sp ? `<b>${E(tmk.sp || mev)}</b>` : '<p class="kmbos">veri yok</p>'}${saha}</div></div>${(kf.b || kf.v || kf.n || kf.no) ? '<p class="kmkay kmph-kay">Kaynak: Transfermarkt</p>' : ''}</div>`;
-    const ml = oyuncuTumMaclar(o, oyuncuMaclari(o)), api = ml.filter(m => m.pu !== undefined && !m.ml); // mlog satirlari (Sofascore) toplam karti uretmez: sezon karti zaten var
+    const ml = oyuncuTumMaclar(o, oyuncuMaclari(o));
+    const pmA = oyuncuPmUygula(e, o.team, (e.milli && e.milli !== o.team) ? e.milli : (kf.n && kf.n !== o.team ? kf.n : null), ml);
+    const api = ml.filter(m => m.pu !== undefined && !m.ml && !m.apm); // mlog (Sofascore) ve API mac kaydi satirlari bu karti uretmez: sezon kartlari zaten var
+
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;
     const f2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
     let sezon;
@@ -1671,14 +1708,24 @@
     ((e.diger) || []).forEach(d => { if (sezonOnce) return; const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
     // sitede biriken maclar (data/players/season.json): yarisma yarisma toplam; varsa maç verisinden hesaplananin yerine gecer
     const sz = sezonKaydi(e, o.team);
+    // API mac kaydi (tum sezon) varsa o yarismanin karti ondan; sitede biriken (season.json) yalnizca kaydi olmayan yarismalar icin
+    const pmC = new Set(pmA.map(a => a.c));
+    pmA.forEach(v => {
+      const t2 = (x, ad) => x == null ? '' : kut(x, ad);
+      const ort = v.rn > 0 ? v.rs / v.rn : null, kl = (sz && sz.pos || e.pos) === 'G' || (sz && sz.pos || e.pos) === 'K' || v.sv > 0;
+      sezon += card('kmpsz', `<h3 class="kmb">${E(yarAd(v.c))} <small>${v.milli ? 'milli takım · ' : ''}bu sezon (${v.m} maç)</small></h3><div class="kmph-s">${t2(v.g, 'Goller')}${t2(v.a, 'Asistler')}${t2(v.m, 'Maçlar')}${t2(v.min, 'Oyun süresi')}
+        ${ort ? `<div><b>${puanHap(ort.toFixed(1))}</b><small>Ortalama puan</small></div>` : ''}${kl ? t2(v.sv, 'Kurtarış') : t2(v.sh, 'Şut') + t2(v.kp, 'Kilit pas')}${t2(v.tk, 'Top çalma')}<div><b><i class="kmkrt s"></i>${v.y}</b><small>Sarı kartlar</small></div>${v.r ? `<div><b><i class="kmkrt k"></i>${v.r}</b><small>Kırmızı kartlar</small></div>` : ''}</div>
+        <p class="kmkay">Kaynak: API-Football</p>`);
+    });
     if (sz && sz.c) Object.entries(sz.c).forEach(([c, v]) => {
+      if (pmC.has(c)) return;
       const t2 = (x, ad) => x == null ? '' : kut(x, ad);
       const ort = v.rn > 0 ? v.rs / v.rn : null, kl = (sz.pos || e.pos) === 'G' || (sz.pos || e.pos) === 'K';
       sezon += card('kmpsz', `<h3 class="kmb">${E(ligAd(c))} <small>sitede biriken maçlar (${v.m || 0} maç)</small></h3><div class="kmph-s">${t2(v.g, 'Goller')}${t2(v.a, 'Asistler')}${t2(v.m, 'Maçlar')}${t2(v.min, 'Oyun süresi')}
         ${ort ? `<div><b>${puanHap(ort.toFixed(1))}</b><small>Ortalama puan</small></div>` : ''}${kl ? t2(v.sv, 'Kurtarış') + t2(v.gc, 'Yenen gol') : t2(v.sh, 'Şut') + t2(v.kp, 'Kilit pas')}${t2(v.tk, 'Top çalma')}<div><b><i class="kmkrt s"></i>${v.y || 0}</b><small>Sarı kartlar</small></div></div>
         <p class="kmkay">Kaynak: API-Football</p>`);
     });
-    const mil = sz ? [] : api.filter(m => true);
+    const mil = sz || pmA.length ? [] : api.filter(m => true);
     if (mil.length) {
       const pu = mil.map(m => +m.pu).filter(x => x > 0), ort = pu.length ? pu.reduce((a, b) => a + b, 0) / pu.length : null;
       sezon += card('kmpsz', `<h3 class="kmb">${p ? 'Kayıtlı maçlar' : 'Sezon performansı'} <small>maç verisinden (${mil.length} maç)</small></h3><div class="kmph-s">${kut(mil.reduce((s, m) => s + m.g, 0), 'Goller')}${kut(mil.reduce((s, m) => s + m.a, 0), 'Asistler')}${kut(mil.length, 'Maçlar')}${kut(mil.reduce((s, m) => s + (+m.dk || 0), 0), 'Oyun süresi')}

@@ -26,7 +26,7 @@ export const LEAGUES = {
   BEL: [144, 'Jupiler Pro League', 'Belçika – Jupiler Pro League', '#eab308'], SCO: [179, 'Scottish Premiership', 'İskoçya – Scottish Premiership', '#0369a1'],
   KSA: [307, 'Saudi Pro League', 'Suudi Arabistan – Saudi Pro League', '#059669'],
   CL: [2, 'Şampiyonlar Ligi', 'Avrupa – Şampiyonlar Ligi', '#1d4ed8'], EL: [3, 'Avrupa Ligi', 'Avrupa – UEFA Avrupa Ligi', '#f59e0b'],
-  ECL: [848, 'Konferans Ligi', 'Avrupa – Konferans Ligi', '#22c55e'], UNL: [5, 'Milli Takımlar Ligi', 'Avrupa – UEFA Uluslar Ligi', '#1d4ed8'],
+  ECL: [848, 'Konferans Ligi', 'Avrupa – Konferans Ligi', '#22c55e'], UNL: [5, 'Uluslar Ligi', 'Avrupa – UEFA Uluslar Ligi', '#1d4ed8'],
   // yeni: yerel kupalar ve Avrupa
   FAC: [45, 'FA Cup', 'İngiltere – FA Cup', '#be123c'], EFL: [48, 'EFL Cup', 'İngiltere – EFL Cup', '#15803d'],
   CDR: [143, 'Copa del Rey', 'İspanya – Copa del Rey', '#c2410c'], CIT: [137, 'Coppa Italia', 'İtalya – Coppa Italia', '#0284c7'],

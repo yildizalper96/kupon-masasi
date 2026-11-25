@@ -37,6 +37,8 @@ run(node, ['tools/top-from-events.mjs']);
 run(node, ['tools/model-guc.mjs']);
 // takim basina tum maclar dizini (takim sayfasi gecmis sezonlar + karsilasmalar; istek yok)
 if (mode === 'full') run(node, ['tools/team-index.mjs']);
+// oyuncu mac mac kaydi (data/api/oyuncu/<takimId>.json; oyuncu sayfasi tablo + sezon kartlari; istek yok). Her calismada: son maclar details.json'dan girer
+run(node, ['tools/player-matches.mjs']);
 if (mode === 'full') run(node, ['tools/keepalive.mjs']); // Supabase 1 hafta islemsizlikte durur
 
 const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/lineups', 'data/results', 'data/standings', 'data/model', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];

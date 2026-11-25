@@ -32,6 +32,7 @@ Object.entries(apiAd).forEach(([id, n]) => ekle(id, n));
 Object.values(rd(path.join(root, 'data', 'tm', 'api-teams.json')) || {}).forEach(l => (l || []).forEach(([id, n]) => ekle(id, n)));
 for (const c of Object.keys(LIG)) for (const s of sezonlar(c)) ((rd(path.join(API, c, String(s), 'standings.json')) || {}).rows || []).forEach(r => ekle(r.tid, r.n));
 const uyg = (rd(path.join(root, 'data', 'teams', 'ids.json')) || {}).t || {};
+Object.entries(((rd(path.join(API, 'milli', 'index.json')) || {}).t) || {}).forEach(([id, n]) => { ad[id] = n; }); // milli takimlarin Turkce adi (fetch-milli.mjs)
 Object.entries(uyg).forEach(([n, id]) => { ad[id] = n; }); // uygulama adi oncelikli
 
 // ---- tum maclar ----
