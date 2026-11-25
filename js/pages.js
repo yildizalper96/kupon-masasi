@@ -1752,9 +1752,15 @@
         ${nx ? `<div class="kmpy-nx"${kmmA(nx)}><small>Sonraki maç</small><span>${E(nx.h)} – ${E(nx.a)}</span><small>${E(kisaTarih(nx.t))}, ${hm(nx.t)} · ${E(ligAd(nx.c))}</small></div>` : ''}`) : '';
     // milli takim: son kadro (API) ya da Transfermarkt milli mac sayisi (cagrilmayan milli oyuncu da gorunur, 'Son kadroda yok')
     const tmI = (typeof tmOyuncu === 'function' && tmOyuncu(e)) || {}, mic = tmI.ic && +tmI.ic[0] > 0 ? tmI.ic : null;
-    const sonK = !!(e.milli && e.milli !== o.team), mT = sonK ? e.milli : (mic && kf.n && kf.n !== o.team ? kf.n : null);
+    // son kadro: milli takimin guncel API kadrosu (data/api/milli/<id>.json sq, fetch-milli.mjs) oyuncu kimligiyle; dosya yoksa eski eslesme (e.milli)
+    const mA = (e.milli && e.milli !== o.team) ? e.milli : (kf.n && kf.n !== o.team ? kf.n : null);
+    const mId = mA ? takimId(mA) : null, mDos = mId ? apiJ('milli/' + mId + '.json') : null;
+    const mSq = mDos && Array.isArray(mDos.sq) && mDos.sq.length ? mDos.sq : null;
+    const mSat = mSq && e.id ? mSq.find(r => +r[0] === +e.id) : null;
+    const sonK = mSq && e.id ? !!mSat : !!(e.milli && e.milli !== o.team), mT = sonK || mic ? mA : null;
+    const mNo = (mSat && +mSat[3] > 0 ? mSat[3] : null) || (e.milli === mA ? e.milliNo : null);
     const mnx = sonK ? siradaki(mT) : null;
-    const milli = mT ? card('kmpyan', `<h3 class="kmb">Milli takım</h3><div class="kmpy" data-tm="${E(mT)}">${bd(mT, 1)}<div><b>${E(mT)}</b><small>${[sonK ? 'Son kadroda' + (e.milliNo ? ' · ' + e.milliNo + ' numara' : '') : 'Son kadroda yok', mic ? mic[0] + ' maç · ' + (mic[1] || 0) + ' gol' : ''].filter(Boolean).map(E).join(' · ')}</small></div></div>
+    const milli = mT ? card('kmpyan', `<h3 class="kmb">Milli takım</h3><div class="kmpy" data-tm="${E(mT)}">${bd(mT, 1)}<div><b>${E(mT)}</b><small>${[sonK ? 'Son kadroda' + (mNo ? ' · ' + mNo + ' numara' : '') : 'Son kadroda yok', mic ? mic[0] + ' maç · ' + (mic[1] || 0) + ' gol' : ''].filter(Boolean).map(E).join(' · ')}</small></div></div>
         ${mnx ? `<div class="kmpy-nx"${kmmA(mnx)}><small>Sonraki maç</small><span>${E(mnx.h)} – ${E(mnx.a)}</span><small>${E(kisaTarih(mnx.t))}, ${hm(mnx.t)} · ${E(ligAd(mnx.c))}</small></div>` : ''}`) : '';
     return bas + ust + tmk.deg + sezon + maclar + tmk.sez + `<div class="mside">${takim}${milli}${tmk.yan}${apo.kart}</div>`;
   }
