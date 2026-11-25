@@ -59,7 +59,7 @@
   function okunmamis() { return liste.filter(function (b) { return b.yeni; }).length; }
   function panelCiz() {
     var sat = liste.length ? liste.map(function (b) {
-      return "<button class='bld-r" + (b.yeni ? ' yeni' : '') + "' data-bq='" + esc(b.h) + "'><i class='bld-ik t-" + b.tip + "'>" + (IK[b.tip] || '•') + "</i><span><b>" + esc(b.baslik) + "</b><em>" + esc(b.h) + ' <strong>' + esc(b.skor) + '</strong> ' + esc(b.a) + "</em><small>" + esc(ligAd(b.c)) + ' · ' + once(b.at) + '</small></span></button>';
+      return "<button class='bld-r" + (b.yeni ? ' yeni' : '') + "' data-bq='" + esc(b.h) + "'" + (b.c ? " data-bm='" + esc([b.c, b.h, b.a].join('|')) + "'" : '') + "><i class='bld-ik t-" + b.tip + "'>" + (IK[b.tip] || '•') + "</i><span><b>" + esc(b.baslik) + "</b><em>" + esc(b.h) + ' <strong>' + esc(b.skor) + '</strong> ' + esc(b.a) + "</em><small>" + esc(ligAd(b.c)) + ' · ' + once(b.at) + '</small></span></button>';
     }).join('') : "<div class='bld-bos'>" + ZIL + "<b>Henüz bildirim yok</b><small>Favori takımlarının ve takip ettiğin liglerin maçlarında gol, başlama ve sonuç olunca burada görünür.</small></div>";
     panel.innerHTML = "<div class='bld-h'><b>Bildirimler</b><button class='bld-ses" + (sesAcik ? ' on' : '') + "' data-bact='ses' title='Bildirim sesi'>" + (sesAcik ? '🔔 Ses açık' : '🔕 Ses kapalı') + "</button></div><div class='bld-l'>" + sat + "</div><div class='bld-f'><button data-bact='ornek'>Örnek bildirim gönder</button>" + (liste.length ? "<button data-bact='sil'>Temizle</button>" : '') + '</div>';
   }
@@ -102,13 +102,26 @@
       return;
     }
     var r = e.target.closest('[data-bq]');
+    if (r && r.getAttribute('data-bm')) { kapa(); macAc(r.getAttribute('data-bm')); return; }
     if (r) { var q = document.getElementById('q'); if (q) { q.value = r.getAttribute('data-bq'); q.dispatchEvent(new Event('input', { bubbles: true })); } kapa(); }
   });
+
+  // bildirime tiklayinca mac detayi (maç satiri tiklamasiyla ayni yol; listede yoksa once yuklenir)
+  function macAc(k) {
+    try {
+      var ac3 = function () { push(); if (tab !== 'k' && tab !== 'l') tab = 'k'; det = k; dt = dtFor(det); PMV = null; render(); try { scrollTo(0, 0); } catch (e) {} };
+      var var_ = true; try { var_ = R.some(function (m) { return [m.c, m.h, m.a].join('|') === k; }); } catch (e) {}
+      if (!var_ && window.kmApiMac) window.kmApiMac(k).then(function (ok) { if (ok) ac3(); }); else ac3();
+    } catch (e) {}
+  }
 
   // ornek: favori takim (yoksa Fenerbahce) icin uydurma olmayan, "Ornek" etiketli deneme bildirimi
   function ornek() {
     var f = Array.from(favlar()), t = f[0] || 'Fenerbahçe';
-    ekle({ id: 0, c: '', h: t, a: 'Rakip', skor: '1 - 0', tip: 'gol', baslik: "Örnek: GOL! " + t + " (23')" });
+    // favori takimin bugune en yakin maci varsa ona baglanir (tiklayinca o macin detayi acilir); skor ornektir
+    var m = null; try { m = R.filter(function (x) { return x.h === t || x.a === t; }).sort(function (x, y) { var n = Date.now(); return Math.abs(+new Date(x.t) - n) - Math.abs(+new Date(y.t) - n); })[0] || null; } catch (e) {}
+    ekle(m ? { id: 0, c: m.c, h: m.h, a: m.a, skor: m.h === t ? '1 - 0' : '0 - 1', tip: 'gol', baslik: "Örnek: GOL! " + t + " (23')" }
+      : { id: 0, c: '', h: t, a: 'Rakip', skor: '1 - 0', tip: 'gol', baslik: "Örnek: GOL! " + t + " (23')" });
     cal(); kapa(); ciz(true);
   }
 
