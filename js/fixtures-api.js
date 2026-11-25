@@ -239,7 +239,7 @@
     if (o.ou) h += row('2,5 gol', 'Üst ' + pc(o.ou[0]) + ' · Alt ' + pc(o.ou[1]));
     if (o.bt) h += row('İki takım da gol atar', 'Evet ' + pc(o.bt[0]) + ' · Hayır ' + pc(o.bt[1]));
     if (m.gp) h += "<div class='mut' style='padding-top:6px'>Modelimiz (güç modeli): 1 " + pc(m.gp[0]) + ' · X ' + pc(m.gp[1]) + ' · 2 ' + pc(m.gp[2]) + ' · beklenen gol ' + (m.gl[0].toFixed(1) + '-' + m.gl[1].toFixed(1)).replace(/[.]/g, ',') + '</div>';
-    h += "<div class='mut' style='padding-top:6px'>Birçok bahisçinin (" + (o.n || 0) + ") oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar. Bahis sitesi oranı değildir, modelin tahminiyle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</div></div>";
+    h += "<div class='mut' style='padding-top:6px'>Birçok bahisçinin oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar; modelle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</div></div>";
     return h;
   };
 
@@ -278,7 +278,7 @@
     if (o.ou) h += row('2,5 gol', 'Üst ' + pc(o.ou[0]) + ' · Alt ' + pc(o.ou[1]));
     if (o.bt) h += row('İki takım da gol atar', 'Evet ' + pc(o.bt[0]) + ' · Hayır ' + pc(o.bt[1]));
     if (m.gp) h += row('Modelimiz (güç modeli)', '1 ' + pc(m.gp[0]) + ' · X ' + pc(m.gp[1]) + ' · 2 ' + pc(m.gp[2]) + ' · beklenen gol ' + (m.gl[0].toFixed(1) + '-' + m.gl[1].toFixed(1)).replace(/[.]/g, ','));
-    h += '<p class="kmkay">Birçok bahisçinin (' + (o.n || 0) + ') oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar. Bahis sitesi oranı değildir, modelle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</p></section>';
+    h += '<p class="kmkay">Birçok bahisçinin oranlarından, bahisçi payı çıkarılarak hesaplanan ortalama olasılıklar; modelle karşılaştırmak içindir. Hiçbir bahis risksiz değildir.</p></section>';
     return h;
   };
 
