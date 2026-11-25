@@ -2812,3 +2812,37 @@ body:has(.kmyasal) .km18{display:none}
 .mside .kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px;font-size:12.5px}
 @media(min-width:1100px){.kman-op b{font-size:22px}.kman-ot b{font-size:15px}.kman-ot span{font-size:13px}.mside .kman-on .kman-ot b{font-size:14.5px}}
 @media(max-width:700px){.kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px!important;font-size:12.5px!important;min-height:0!important;margin-top:-4px}}
+/* Bildirim zili (ornek, 25 Kas 2026): js/bildirim.js */
+.kmbell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;border-radius:50%;border:0;background:transparent;color:var(--ink);cursor:pointer;padding:0;flex:none}
+.kmbell svg{width:23px;height:23px}
+.kmbell:hover,.kmbell.on{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.kmbell .bld-n{position:absolute;top:5px;right:4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ff3b4e;color:#fff;font:800 11px/18px var(--f);text-align:center;box-shadow:0 0 0 2px var(--bg,#000)}
+.kmbell .bld-n[hidden]{display:none}
+.kmbell.salla svg{animation:bldSalla .9s ease}
+@keyframes bldSalla{0%,100%{transform:rotate(0)}15%{transform:rotate(16deg)}30%{transform:rotate(-14deg)}45%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
+.kmb-ust{position:absolute;right:6px;top:50%;transform:translateY(-50%);z-index:3}
+@media(min-width:1100px){.kmb-ust{display:none!important}nav .kmb-nav{display:inline-flex!important;width:40px!important;min-width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important;margin:0 -22px 0 -4px!important}}
+@media(max-width:1099px){nav .kmb-nav{display:none!important}}
+#kmbld{position:fixed;z-index:61;width:390px;max-width:calc(100vw - 24px);max-height:min(560px,75vh);display:flex;flex-direction:column;background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.45);font:500 14px var(--f);overflow:hidden}
+#kmbld[hidden]{display:none}
+@media(max-width:1099px){#kmbld{width:auto;max-width:none}}
+#kmbld .bld-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+#kmbld .bld-h b{font-size:17px;font-weight:800}
+#kmbld button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#kmbld .bld-ses{font-size:12.5px;font-weight:700;padding:6px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent);opacity:.85}
+#kmbld .bld-l{overflow:auto;padding:0 8px}
+#kmbld .bld-r{display:flex;gap:12px;width:100%;text-align:left;padding:11px 10px;border-radius:12px;align-items:flex-start}
+#kmbld .bld-r:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+#kmbld .bld-r.yeni{background:color-mix(in srgb,#3d7bff 14%,transparent)}
+#kmbld .bld-ik{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:15px;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+#kmbld .bld-ik.t-gol{background:rgba(46,204,113,.18)}
+#kmbld .bld-r span{display:flex;flex-direction:column;gap:2px;min-width:0}
+#kmbld .bld-r b{font-weight:800}
+#kmbld .bld-r em{font-style:normal;opacity:.9}
+#kmbld .bld-r strong{font-weight:800;padding:0 3px}
+#kmbld .bld-r small{opacity:.55;font-size:12px}
+#kmbld .bld-bos{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:26px 20px 22px}
+#kmbld .bld-bos svg{width:34px;height:34px;opacity:.45}
+#kmbld .bld-bos small{opacity:.6;line-height:1.45}
+#kmbld .bld-f{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid var(--ln)}
+#kmbld .bld-f button{flex:1;padding:9px;border-radius:10px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--ink) 8%,transparent)}

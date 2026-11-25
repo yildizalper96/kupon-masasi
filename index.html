@@ -73,6 +73,7 @@ document.addEventListener("DOMContentLoaded",function(){setTimeout(function(){Pr
 <script src="js/extras.js"></script>
 <script src="js/desktop.js"></script>
 <script src="js/menu.js"></script>
+<script src="js/bildirim.js"></script>
 <script src="js/yasal.js"></script>
 <script src="js/adres.js"></script>
 <script>if('serviceWorker' in navigator){(function(){var sw=navigator.serviceWorker,eski=!!sw.controller,yk=0;sw.addEventListener('controllerchange',function(){if(eski&&!yk){yk=1;location.reload()}});window.addEventListener('load',function(){sw.register('sw.js',{updateViaCache:'none'}).then(function(r){r.update().catch(function(){});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')r.update().catch(function(){})})}).catch(function(){})})})()}</script>
