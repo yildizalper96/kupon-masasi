@@ -2812,3 +2812,6 @@ body:has(.kmyasal) .km18{display:none}
 .mside .kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px;font-size:12.5px}
 @media(min-width:1100px){.kman-op b{font-size:22px}.kman-ot b{font-size:15px}.kman-ot span{font-size:13px}.mside .kman-on .kman-ot b{font-size:14.5px}}
 @media(max-width:700px){.kman-on .kman-ek{grid-column:2/4;justify-self:start;padding:6px 12px!important;font-size:12.5px!important;min-height:0!important;margin-top:-4px}}
+/* Mobil ortalama (25 Kas 2026): soldaki durum sutununun sagda esi olsun, mac tam ortada */
+@media(max-width:1099px){#dz .mr{grid-template-columns:30px minmax(0,1fr) 50px minmax(0,1fr) 30px!important}}
+@media(max-width:399px){#dz .mr{grid-template-columns:26px minmax(0,1fr) 46px minmax(0,1fr) 26px!important}}
