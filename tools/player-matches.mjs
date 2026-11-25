@@ -73,3 +73,16 @@ for (const [tid, o] of T) {
   wr(f, { at: new Date().toISOString(), ...yeni }); yaz++;
 }
 console.log(`Oyuncu mac kaydi: ${T.size} takim (yazilan ${yaz}, degismeyen ${ayni})`);
+
+// milli kadro haritasi: oyuncu kimligi -> guncel milli kadrosu (data/api/milli/<id>.json sq, fetch-milli.mjs). Oyuncu sayfasi "Son kadroda" bilgisi.
+{
+  const MD = path.join(API, 'milli'), ix = (rd(path.join(MD, 'index.json')) || {}).t || {};
+  const t = {}, p = {};
+  for (const [id, n] of Object.entries(ix)) {
+    const j = rd(path.join(MD, id + '.json')); if (!j || !Array.isArray(j.sq) || !j.sq.length) continue;
+    t[id] = n; for (const r of j.sq) if (r[0] && !p[r[0]]) p[r[0]] = [+id, +r[3] > 0 ? +r[3] : null];
+  }
+  const f = path.join(DIR, 'milli-kadro.json'), eski = rd(f);
+  if (!eski || JSON.stringify({ t: eski.t, p: eski.p }) !== JSON.stringify({ t, p })) wr(f, { at: new Date().toISOString(), t, p });
+  console.log(`Milli kadro haritasi: ${Object.keys(t).length} takim, ${Object.keys(p).length} oyuncu`);
+}
