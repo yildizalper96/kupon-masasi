@@ -9,7 +9,7 @@ import { pace } from './api-pace.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const arg = (k, d) => (process.argv.find(a => a.startsWith('--' + k + '='))?.split('=')[1]) ?? d;
-const HOURS = +arg('hours', 72), MAX = +arg('max', 60), RESERVE = +arg('reserve', 1500);
+const HOURS = +arg('hours', 72), MAX = +arg('max', 250), RESERVE = +arg('reserve', 1500);
 const envText = fs.existsSync(path.join(root, '.env')) ? fs.readFileSync(path.join(root, '.env'), 'utf8') : '';
 const KEY = process.env.API_FOOTBALL_KEY || envText.match(/^\s*API_FOOTBALL_KEY\s*=\s*["']?([^"'\r\n]+)/m)?.[1];
 if (!KEY) { console.error('HATA: API_FOOTBALL_KEY yok.'); process.exit(1); }
@@ -26,7 +26,8 @@ const db = rd(OUT, { t: {} }); db.t = db.t || {};
 
 const now = Date.now(), son = now + HOURS * 36e5;
 const takim = new Set();
-for (const x of latest.m || []) { const t = Date.parse(x.t); if (KUPA.has(x.c) && x.st === 'NS' && t > now - 3 * 36e5 && t < son) { takim.add(x.h); takim.add(x.a); } }
+// 26 Kas 2026: kullanici istegi, sitede gorunen TUM maclarin takimlari (kupa + lig; ligi sitede olsa da kaydi 5 macdan az olabiliyor: MLS/MX/ARG play-off). Istemci yalniz lig kaydi 5'ten azsa kullanir.
+for (const x of latest.m || []) { const t = Date.parse(x.t); if (t > now - 7 * 864e5 && t < son) { takim.add(x.h); takim.add(x.a); } }
 
 let remaining = null, used = 0;
 { const st = await fetch(HOST + '/status', { headers: { 'x-apisports-key': KEY } }).then(r => r.json()).catch(() => null);
@@ -39,12 +40,12 @@ for (const n of takim) {
   const e = db.t[n]; if (e && now - Date.parse(e.at) < 20 * 36e5) continue;
   if (used >= MAX || (remaining !== null && remaining - used <= RESERVE)) break;
   await pace(); used++;
-  let j; try { j = await fetch(`${HOST}/fixtures?team=${id}&last=7`, { headers: { 'x-apisports-key': KEY } }).then(r => r.json()); } catch (er) { console.log('dis-form hata:', n, er.message); continue; }
+  let j; try { j = await fetch(`${HOST}/fixtures?team=${id}&last=10`, { headers: { 'x-apisports-key': KEY } }).then(r => r.json()); } catch (er) { console.log('dis-form hata:', n, er.message); continue; }
   const er = j.errors && (Array.isArray(j.errors) ? j.errors : Object.values(j.errors)); if (er && er.length) { console.log('dis-form API hatasi:', JSON.stringify(j.errors)); break; }
   const m = (j.response || []).filter(f => f.goals && Number.isFinite(f.goals.home) && Number.isFinite(f.goals.away)).map(f => ({
     t: f.fixture.date.slice(0, 16) + 'Z', c: kodOf[f.league.id] || (f.league.country && f.league.country !== "World" ? f.league.country + " – " : "") + f.league.name,
     h: adOf[f.teams.home.id] || f.teams.home.name, a: adOf[f.teams.away.id] || f.teams.away.name, x: f.goals.home, y: f.goals.away,
-  })).sort((p, q) => Date.parse(q.t) - Date.parse(p.t)).slice(0, 5);
+  })).sort((p, q) => Date.parse(q.t) - Date.parse(p.t)).slice(0, 8);
   db.t[n] = { id, at: new Date().toISOString(), m }; yeni++;
 }
 // 30 gunden eski kayitlari at

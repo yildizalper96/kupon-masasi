@@ -23,7 +23,7 @@ fs.mkdirSync(path.dirname(LOCK), { recursive: true }); fs.writeFileSync(LOCK, St
 process.on('exit', () => { try { fs.unlinkSync(LOCK); } catch {} });
 const steps = {
   // Pro plan (21 Kas 2026): gunde 7500 istek. Yedek (reserve) yuksek tutulur ki kota bir hata dongusunde erimesin.
-  full: [['tools/fetch-fixtures.mjs', '--max-pred=4'], ['tools/fetch-details.mjs', '--max=300', '--hours=36', '--reserve=1500', '--squads=40'], ['tools/fetch-dis-form.mjs', '--max=60', '--reserve=1500'], ['tools/fetch-milli.mjs', '--max=400', '--reserve=1500']],
+  full: [['tools/fetch-fixtures.mjs', '--max-pred=4'], ['tools/fetch-details.mjs', '--max=300', '--hours=36', '--reserve=1500', '--squads=40'], ['tools/fetch-dis-form.mjs', '--max=250', '--reserve=1500'], ['tools/fetch-milli.mjs', '--max=400', '--reserve=1500']],
   live: [['tools/fetch-fixtures.mjs', '--live'], ['tools/fetch-details.mjs', '--max=150', '--hours=36', '--reserve=1500']],
   tetik: [['tools/fetch-fixtures.mjs', '--live'], ['tools/fetch-details.mjs', '--phases-only', '--max=80', '--hours=3', '--reserve=500']],
   due: [['tools/fetch-details.mjs', '--phases-only', '--max=80', '--hours=3', '--reserve=500']],
