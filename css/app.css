@@ -2835,7 +2835,7 @@ body:has(.kmyasal) .km18{display:none}
 #kmbld .bld-r:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
 #kmbld .bld-r.yeni{background:color-mix(in srgb,#3d7bff 14%,transparent)}
 #kmbld .bld-ik{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:15px;background:color-mix(in srgb,var(--ink) 10%,transparent)}
-#kmbld .bld-ik.t-gol{background:rgba(46,204,113,.18)}
+#kmbld .bld-ik.t-gol{background:rgba(46,204,113,.18)}#kmbld .bld-ik.t-kmac,#kmbld .bld-ik.t-khit{background:rgba(46,204,113,.18);color:#2ecc71}#kmbld .bld-ik.t-kmiss{background:rgba(231,76,60,.18);color:#e74c3c}
 #kmbld .bld-r span{display:flex;flex-direction:column;gap:2px;min-width:0}
 #kmbld .bld-r b{font-weight:800}
 #kmbld .bld-r em{font-style:normal;opacity:.9}
