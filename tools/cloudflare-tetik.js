@@ -1,15 +1,13 @@
 // Cloudflare Worker "simuleto-tetik" (26 Kas 2026): 5 dk'da bir GitHub'daki bulut veri cekimini (bulut-veri.yml) baslatir.
-// Kurulum: Cloudflare > Workers > Create > bu kod; Settings > Triggers > Cron "*/5 * * * *";
-// Settings > Variables > Secret "GH_TOKEN" (GitHub fine-grained token: yalnizca kupon-masasi deposu, Actions: Read and write).
-// Anahtar bu dosyaya YAZILMAZ.
+// Kurulum: Cloudflare > Workers > simuleto-tetik > Edit code: bu kod; Settings > Trigger events > Cron "*/5 * * * *";
+// Settings > Variables and Secrets > Secret "GH_TOKEN" (GitHub fine-grained token: yalnizca kupon-masasi deposu, Actions: Read and write).
+// Anahtar bu dosyaya YAZILMAZ. Herkese acik adres (workers.dev) tetiklemez, yalnizca durum yazar (kotuye kullanim olmasin).
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(tetikle(env));
+    ctx.waitUntil(tetikle(env).then(s => console.log(s)));
   },
-  // elle deneme: Worker adresine GET -> son tetik sonucu
-  async fetch(req, env) {
-    const r = await tetikle(env);
-    return new Response(r, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  async fetch() {
+    return new Response('simuleto-tetik: zamanlayici 5 dk', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
 };
 

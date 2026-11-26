@@ -88,6 +88,8 @@ const scopeOf = code => SCOPE_C[code] || (SCOPE_C[code] = (() => { const l = [..
 // id verilirse: ad ids.json'da baska kulube aitse tekil ad ("Lille (Belçika)")
 function teamName(code, api, id) {
   const n0 = teamName0(code, api);
+  // 26 Kas 2026: API adi uygulama adina benzemese de (Ferencvarosi TC / Ferencváros) ayni kimlikli uygulama takimi varsa onun adi
+  if (id && !APP_ALL.includes(n0)) { const app = APP_ALL.find(a => +TID[a] === +id); if (app) return app; }
   return id ? tekilAd(n0, id, TID, code) : n0;
 }
 function teamName0(code, api) {
@@ -272,6 +274,9 @@ if (process.argv.includes('--live')) {
     // yalniz ad degil kimlik de: ayrintida takim kimligi biliniyorsa ids.json'daki gercek kimlikle ayni olmali (ayni adli amator kulupler elenir)
     const gercekK = (n, id) => APP_ALL.includes(n) && !(id && TID[n] && String(TID[n]) !== String(id));
     prev.m = prev.m.filter(m => { if (!DOMESTIC_CUPS.has(m.c)) return true; if (YASAK_MAC.has(m.id)) return false; const d = detM[m.id] || {}; return gercekK(m.h, d.hid) || gercekK(m.a, d.aid); }); if (prev.m.length !== n0 && !DRY) { fs.writeFileSync(latestPath, JSON.stringify(prev)); console.log('Yerel kupa: ust lig olmayan', n0 - prev.m.length, 'mac listeden cikarildi.'); } }
+    // eski kayitlarda API adi kalmissa (Ferencvarosi TC) ayni kimlikli uygulama adina cevir: skor uygulamadaki maca baglansin (26 Kas 2026)
+  { const detM = (() => { try { return JSON.parse(fs.readFileSync(path.join(outDir, 'details.json'), 'utf8').replace(/^﻿/, '')).m || {}; } catch (e) { return {}; } })();
+    for (const m of prev.m) { const d = detM[m.id] || {}; for (const [s, id] of [['h', d.hid], ['a', d.aid]]) { if (!id || APP_ALL.includes(m[s])) continue; const app = APP_ALL.find(a => +TID[a] === +id); if (app) m[s] = app; } } }
   const LIVE_ST = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'SUSP']);
   const byId = new Map(prev.m.map(m => [m.id, m]));
   const seen = new Set();
