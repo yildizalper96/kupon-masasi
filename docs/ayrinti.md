@@ -297,3 +297,10 @@ Avrupa Ligi, Konferans Ligi, Türkiye Kupası fikstürleri; diğer ligler için 
 - Çıktı `data/api/milli/index.json` + `<id>.json` (biçim dosya başında). team-index Türkçe milli adları buradan alır.
 - İstemci `pages.js` `milliV(n)` (TM[n].l varsa kulüp sayılır, kullanılmaz): Takım formu (`milliSon5`), Tablo/Puan durumu (`milliTablo`, grup adları Türkçe), Kadro (`milliKadro`, son davet listesi + antrenör), Oyuncu istatistikleri (`milliIstat`), Genel bakış en çoklar (`milliEnCok`), sağda `milliSezon`. Yalnız masaüstü yolu.
 - UNL adı "Milli Takımlar Ligi" → "Uluslar Ligi" (app.js N/LGNM, fetch-fixtures, latest/seo-arsiv). fixtures-api `finEkle`: elle girilmiş aynı maç R'de varsa skor RES'e yazılır (Fransa–Türkiye "gelecek" kalıyordu).
+
+## Oyuncu istatistiği yalnızca API-Football (26 Kas 2026)
+- Kullanıcı kararı: oyuncu istatistiği yalnızca API-Football. statz.ai (`data/players/latest|more|more2.json`), Sofascore (`mlog.json`) ve BRA Transfermarkt oyuncu listesi artık PS'ye yüklenmez (app.js refresh yalnızca `players/api`; fixtures-api.js kmPsDis kapalı; pages.js mlog kapalı).
+- `tools/api-players.mjs` (istek yok, yerel-guncelle player-matches'ten sonra çalıştırır): `data/api/oyuncu/<tid>.json` + fixtures + details sq → `data/players/api.json` (PS biçimi; p satırı sonunda API kimliği p[10]; `e:{C:n}` takımın oyuncu verisi olmayan biten maçları; `ay` bu sezon oynayıp ayrılanlar). Kaleci gol yemeden/yediği gol API'de oyuncu bazında yok: null.
+- Oyuncu sayfası: kulüp API kaydı varsa üst kart tüm yarışmalar toplamı; eksik maç varsa "Takımın N maçında oyuncu verisi yok; bu maçlar sayılmadı" yazar; eski takım kartı yalnızca kimlikle (`ay`). Kimliği olan kayıtlar adla birleştirilmez (aynı adlı farklı oyuncu hatası, ör. Stefan Savić Borac/Trabzonspor).
+- Hata: `player-matches.mjs` lig klasörü filtresi `/^[A-Z]+$/` `L1`'i atlıyordu (Ligue 1 oyuncu maç kaydı hiç yoktu); `/^[A-Z][A-Z0-9]*$/` yapıldı. Yerel çalıştırma sonrası L1 dolar.
+- Eksik oyuncu verisi (26 Kas): 139 takımda 390 biten maç (çoğu Avrupa kupası eleme turları, kupalar, L1). m-YYYY-MM.json dosyaları git'te yok (yerel); eksikler yerel `fetch-history --only=matches` ile tamamlanır.

@@ -23,7 +23,7 @@ const T = new Map(); // tid -> { m:{}, p:{} }
 const tk = id => { if (!T.has(id)) T.set(id, { m: {}, p: {} }); return T.get(id); };
 const fxBil = {}; // fid -> [C, t, h, a, gh, ga, tur]
 
-for (const c of fs.readdirSync(API).filter(d => /^[A-Z]+$/.test(d))) {
+for (const c of fs.readdirSync(API).filter(d => /^[A-Z][A-Z0-9]*$/.test(d))) {
   const d = path.join(API, c, String(SEZON)); if (!fs.existsSync(d)) continue;
   const fx = rd(path.join(d, 'fixtures.json')) || {};
   Object.entries(fx.tn || {}).forEach(([id, n]) => { if (!ad[id]) ad[id] = n; });
