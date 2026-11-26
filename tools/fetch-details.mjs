@@ -229,7 +229,10 @@ for (const m of cand) {
   }
 
   // piyasa beklentisi (Pro plan: maca 6 saatten az kala 2 saatte bir, oncesinde 8 saatte bir)
-  if (!PH && soon && canSpend() && age(e.oddsAt) > HRS(ko < now + HRS(6) ? 2 : 8)) {
+  // KILIT (26 Kas 2026): maca 3 saatten az kala oran GUNCELLENMEZ (hic oran yoksa ve mac baslamadiysa bir kez alinir).
+  // Sebep: Shakhtar-Fenerbahce'de mactan 14 dk once gelen oran "en olasi secim"i X2'den 1X'e cevirdi; mac sonrasi oneriler degismis gorundu.
+  const kilit = ko < now + HRS(3);
+  if (!PH && soon && canSpend() && (kilit ? (!e.odds && ko > now) : age(e.oddsAt) > HRS(ko < now + HRS(6) ? 2 : 8))) {
     try {
       const j = await api('/odds?fixture=' + m.id);
       const mk = marketFrom(j.response);
