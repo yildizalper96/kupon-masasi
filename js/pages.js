@@ -1715,7 +1715,15 @@
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;
     const f2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
     let sezon;
-    if (p) {
+    // API mac kaydi (tum sezon, kulup) varsa ozet kart ondan: tum yarismalar toplami (statz kaydi yalnizca lig ve eski olabiliyor)
+    const pmK = pmA.filter(v => !v.milli);
+    if (pmK.length) {
+      const S = k => pmK.reduce((s, v) => s + (+v[k] || 0), 0), dk = S('min'), g = S('g'), a = S('a'), ek = [];
+      if (dk >= 180) { ek.push(kut(f2(g / (dk / 90)), '90 dk\'da gol')); ek.push(kut(f2((g + a) / (dk / 90)), '90 dk\'da gol+asist')); }
+      sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(kulupAd(o.team))}${pmK.length > 1 ? ' · tüm yarışmalar' : ''}</small></h3><div class="kmph-s">${kut(g, 'Goller')}${kut(a, 'Asistler')}${kut(S('m'), 'Maçlar')}${kut(dk, 'Oyun süresi')}
+        <div><b><i class="kmkrt s"></i>${S('y')}</b><small>Sarı kartlar</small></div>${ek.join('')}</div>
+        <p class="kmkay">Kaynak: API-Football</p>`);
+    } else if (p) {
       const m90 = p[2] / 90, ek = [];
       if (p[6] === 'K') { if (p[8] != null) ek.push(kut(p[8], 'Gol yemeden')); if (p[9] != null) ek.push(kut(p[9], 'Yediği gol')); }
       if (p[2] >= 180) { ek.push(kut(f2(p[3] / m90), '90 dk\'da gol')); ek.push(kut(f2((p[3] + p[4]) / m90), '90 dk\'da gol+asist')); }
@@ -1725,7 +1733,8 @@
     } else sezon = '';
     // eski takim karti: oyuncu bu sezon baslamadan (1 Tem 2026) yeni takima gectiyse eski takimda bu sezon macı olamaz, kart gosterilmez
     const tmP = tmOyuncu(e), sonGecis = tmP && (tmP.tr || []).map(r => String(r[0])).sort().pop(), sezonOnce = sonGecis && sonGecis < '2026-07-01';
-    ((e.diger) || []).forEach(d => { if (sezonOnce) return; const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
+    ((e.diger) || []).forEach(d => { if (sezonOnce) return; { const tid = takimId(d.team), j = e.id && tid ? apiJ('oyuncu/' + tid + '.json') : null; if (j && j.p && !j.p[e.id]) return; } // eski takimin API mac kaydinda bu sezon yoksa (statz eski sezon verisi) kart gosterilmez
+    const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
     // sitede biriken maclar (data/players/season.json): yarisma yarisma toplam; varsa maç verisinden hesaplananin yerine gecer
     const sz = sezonKaydi(e, o.team);
     // API mac kaydi (tum sezon) varsa o yarismanin karti ondan; sitede biriken (season.json) yalnizca kaydi olmayan yarismalar icin
