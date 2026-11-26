@@ -1461,7 +1461,7 @@
     if (OYI && OYI.sig === sig) return OYI;
     const L = [], grup = new Map(), kupa = c => ['CL', 'EL', 'ECL', 'UNL'].includes(c);
     (typeof plAll === 'function' ? plAll() : []).forEach(x => {
-      const g = x.team + '|' + adN(x.p[0]).join(' '), o = grup.get(g);
+      const g = x.team + '|' + adN(x.p[0]).join(' ') + (x.p[10] ? '|' + x.p[10] : ''), o = grup.get(g); // ayni takimda ayni adli iki API oyuncusu ayri kayit
       if (!o) { const e = { key: x.k, n: x.p[0], ad: x.p[0], team: x.team, c: x.c, ps: x, id: x.p[10] || null }; grup.set(g, e); L.push(e); }
       else if (kupa(o.c) && !kupa(x.c)) { o.key = x.k; o.c = x.c; o.ps = x; }
     });
