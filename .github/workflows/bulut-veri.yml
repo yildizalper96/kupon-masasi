@@ -1,0 +1,99 @@
+# ASIL VERI CEKIMI (26 Kas 2026): bilgisayar kapaliyken de calisir.
+#  tetik : Cloudflare Worker (simuleto-tetik) 5 dk'da bir workflow_dispatch ile cagirir. tools/yerel-tetik.mjs ayni karar mantigi:
+#          mac varken canli tur (resmi 11, canli olay/istatistik, mac sonu), saatte bir genel tur, 6 saatte bir tam cekim.
+#  gecmis: gunde bir (00:40 UTC) sezon/gecmis verisi (fetch-history) + oyuncu istatistikleri.
+# Veri dosyalari depoya commit'lenir ("Veri guncelle (bulut, ...)"), degisiklik varsa site yayinlanir.
+# Yerel bilgisayar yedek: bulut son 70 dk icinde commit'lediyse istek atmaz.
+name: Bulut veri cekimi
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'tetik | gecmis'
+        type: choice
+        default: tetik
+        options: [tetik, gecmis]
+  schedule:
+    - cron: '*/10 * * * *'   # yedek: Worker durursa (GitHub zamanlayicisi gecikmeli calisir)
+    - cron: '40 0 * * *'     # gecmis
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: bulut-veri
+  cancel-in-progress: false
+
+jobs:
+  cek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      degisti: ${{ steps.son.outputs.degisti }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 30
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # tetik durumu ve tahmin onbellegi (tools/cache git'te yok) calistirmalar arasinda korunur
+      - name: Durum önbelleği
+        uses: actions/cache@v4
+        with:
+          path: tools/cache
+          key: bulut-${{ github.run_id }}
+          restore-keys: bulut-
+
+      - name: Git kimliği
+        run: |
+          git config user.name "Simuleto Veri"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "BAS=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Veri çek
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '40 0 * * *' && 'gecmis' || 'tetik') }}
+        run: |
+          rm -f tools/cache/.yerel-lock tools/cache/.gecmis-lock
+          echo "Mod: $MODE"
+          if [ "$MODE" = "gecmis" ]; then
+            node tools/fetch-history.mjs --budget=3000 --reserve=2500 || true
+            node tools/yerel-guncelle.mjs veri || true
+          else
+            node tools/yerel-tetik.mjs || true
+          fi
+
+      - name: Değişiklik var mı
+        id: son
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$BAS" ]; then echo "degisti=1" >> $GITHUB_OUTPUT; fi
+
+      - name: Siteyi paketle
+        if: steps.son.outputs.degisti == '1'
+        run: node tools/build-site.mjs _site
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.son.outputs.degisti == '1'
+        with:
+          path: _site
+
+  yayinla:
+    needs: cek
+    if: needs.cek.outputs.degisti == '1'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

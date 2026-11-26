@@ -169,7 +169,7 @@
           var lv = e.live, hm = '';
           try { var dt = new Date(e.liveAt); hm = ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2); } catch (x) {}
           if (typeof LVD !== 'undefined' && (!LVD[k] || LVD[k].src === 'API-Football' || !(LVD[k].ev && LVD[k].ev.length))) {
-            LVD[k] = { m: lv.fin ? 'MS' : 'İlk yarı', at: hm, s: e.h + ' ' + lv.g[0] + '-' + lv.g[1] + ' ' + e.a, src: 'API-Football', ev: lv.ev, st: lv.sx };
+            LVD[k] = { m: lv.fin ? 'MS' : (lv.st === 'HT' ? 'İlk yarı' : (lv.min ? lv.min + "'" : 'Canlı')), at: hm, s: e.h + ' ' + lv.g[0] + '-' + lv.g[1] + ' ' + e.a, src: 'API-Football', ev: lv.ev, st: lv.sx };
             ch++;
           }
           if (typeof STX !== 'undefined' && (lv.t.length || lv.p.h.length) && (!STX[k] || STX[k].src === 'API-Football')) {

@@ -162,7 +162,9 @@ for (const m of cand) {
   const wantFT = mk >= 125 && !e.ftOk && (e.ftTry || 0) < 4;
   // mac bitmis ama resmi 11 eksik (or. veri birlestirmesinde silinmis): ayni istekle kadroyu da al, en cok 2 deneme
   const wantLU = mk >= 125 && e.ftOk && !e.luRaw && (e.luTry || 0) < 2;
-  if (!(wantHT || wantFT || wantLU) || !canSpendLineup()) continue;
+  // 26 Kas 2026: mac suresince canli veri (olaylar, istatistik, skor) ~4 dk arayla; resmi 11 mac oncesi kacirildiysa (bilgisayar uykusu vb.) ayni istekle gelir
+  const wantLive = mk >= 0 && mk < 125 && !e.ftOk && age(e.liveAt) > 4 * 60e3;
+  if (!(wantHT || wantFT || wantLU || wantLive) || !canSpendLineup()) continue;
   if (wantLU && !wantFT) e.luTry = (e.luTry || 0) + 1;
   try {
     const j = await api('/fixtures?id=' + m.id);
@@ -192,7 +194,8 @@ for (const m of cand) {
       }
       if (lv.fin) { e.ftOk = true; try { addMatch(root, { id: m.id, c: m.c, h: e.h, a: e.a, live: lv }); } catch (x) { log.push('sezon toplami hata: ' + x.message); } log.push(`${m.h}-${m.a}: mac sonu alindi (${lv.g[0]}-${lv.g[1]}, ${lv.ev.length} olay)`); }
       else if (wantFT) { e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: mac henuz bitmedi (${lv.st})`); }
-      else { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
+      else if (wantHT) { e.htOk = true; log.push(`${m.h}-${m.a}: ilk yari verisi alindi (${lv.st} ${lv.g[0]}-${lv.g[1]})`); }
+      else log.push(`${m.h}-${m.a}: canli veri (${lv.st} ${lv.min ?? ''}' ${lv.g[0]}-${lv.g[1]})`);
     } else { if (wantFT) e.ftTry = (e.ftTry || 0) + 1; log.push(`${m.h}-${m.a}: ayrinti bos dondu`); }
   } catch (er) { log.push('mac verisi hata: ' + String(er.message).slice(0, 80)); }
 }

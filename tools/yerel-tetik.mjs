@@ -7,6 +7,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
+const BULUT = !!process.env.GITHUB_ACTIONS;
+
+// 26 Kas 2026: asil cekim bulutta (GitHub Actions, Cloudflare Worker 5 dk'da bir tetikler; .github/workflows/bulut-veri.yml).
+// Yerel bilgisayar yedek: bulut son 70 dk icinde veri commit'lediyse istek atmaz, yalnizca yerel kopyayi esitler.
+if (!BULUT) {
+  try {
+    const g = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+    g('fetch', '-q', 'origin', 'main');
+    const ct = +String(g('log', '-1', '--format=%ct', '--grep=^Veri guncelle (bulut', 'origin/main').stdout).trim();
+    if (ct && Date.now() / 1000 - ct < 70 * 60) {
+      g('merge', '--ff-only', '-q', 'origin/main'); // yerelde baska degisiklik varsa olmaz; sorun degil
+      process.exit(0);
+    }
+  } catch {}
+}
 
 // Gecmis/sezon verisi (tools/fetch-history.mjs): gunde bir, kota sifirlandiktan sonra (00:30 UTC = 19:30 Toronto), ARKA PLANDA ve kendi kilidiyle.
 // details.json'a dokunmaz; canli turlari bekletmez. Ciktisini (data/api, data/standings) bir sonraki yerel-guncelle commit'ler.
@@ -15,7 +30,8 @@ const root = path.resolve(import.meta.dirname, '..');
   const gun = new Date().toISOString().slice(0, 10), utcDk = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
   let son = ''; try { son = fs.readFileSync(GD, 'utf8').trim(); } catch {}
   let kilitli = false; try { kilitli = Date.now() - fs.statSync(GK).mtimeMs < 3 * 3600e3; } catch {}
-  if (son !== gun && utcDk >= 30 && !kilitli) {
+  // bulutta gecmis cekimi ayri adimdir (bulut-veri.yml 'gecmis'); arka plan sureci is bitince oldurulur
+  if (!BULUT && son !== gun && utcDk >= 30 && !kilitli) {
     fs.mkdirSync(path.dirname(GK), { recursive: true }); fs.writeFileSync(GD, gun);
     const out = fs.openSync(path.join(root, 'tools/gecmis.log'), 'a');
     // kilit alt surecte alinir/silinir: cmd uzerinden zincir (node bitince kilit kalkar)

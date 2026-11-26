@@ -6,7 +6,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
-const mode = process.argv.find(a => ['live', 'full', 'due', 'tetik'].includes(a)) || 'live';
+const mode = process.argv.find(a => ['live', 'full', 'due', 'tetik', 'veri'].includes(a)) || 'live';
 const noPush = process.argv.includes('--no-push');
 const run = (cmd, args, opt = {}) => spawnSync(cmd, args, { cwd: root, stdio: 'inherit', ...opt });
 const out = (cmd, args) => execFileSync(cmd, args, { cwd: root, encoding: 'utf8' }).trim();
@@ -27,6 +27,7 @@ const steps = {
   live: [['tools/fetch-fixtures.mjs', '--live'], ['tools/fetch-details.mjs', '--max=150', '--hours=36', '--reserve=1500']],
   tetik: [['tools/fetch-fixtures.mjs', '--live'], ['tools/fetch-details.mjs', '--phases-only', '--max=80', '--hours=3', '--reserve=500']],
   due: [['tools/fetch-details.mjs', '--phases-only', '--max=80', '--hours=3', '--reserve=500']],
+  veri: [], // istek yok: yalnizca islem + commit (bulutta gecmis cekiminden sonra)
 }[mode];
 for (const [s, ...a] of steps) run(node, [s, ...a]);
 // biten maclar -> sezon kaydi (puan tablosu, form, son maclar; istek yok). Kota bitse de daha once cekilmis sonuclar islenir.
@@ -46,12 +47,12 @@ if (mode === 'full') run(node, ['tools/keepalive.mjs']); // Supabase 1 hafta isl
 const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/players/api.json', 'data/lineups', 'data/results', 'data/standings', 'data/model', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
 run('git', ['add', '--', ...DATA]);
 if (!out('git', ['diff', '--cached', '--name-only'])) { console.log('Degisiklik yok.'); process.exit(0); }
-run('git', ['commit', '-q', '-m', `Veri guncelle (yerel, ${mode})`]);
+run('git', ['commit', '-q', '-m', `Veri guncelle (${process.env.GITHUB_ACTIONS ? 'bulut' : 'yerel'}, ${mode})`]);
 if (noPush) { console.log('--no-push: push edilmedi.'); process.exit(0); }
 
 run('git', ['fetch', '-q', 'origin', 'main']);
 // Push oncesi: bizim veri commit'imiz disinda yerel commit olmamali
 const ahead = out('git', ['log', 'origin/main..HEAD', '--format=%s']).split('\n').filter(Boolean);
-if (ahead.some(s => !s.startsWith('Veri guncelle (yerel'))) { console.error('Push edilmemis baska commit var, push YAPILMADI:\n' + ahead.join('\n')); process.exit(2); } // 2: veri cekildi, push edilemedi
+if (ahead.some(s => !s.startsWith('Veri guncelle ('))) { console.error('Push edilmemis baska commit var, push YAPILMADI:\n' + ahead.join('\n')); process.exit(2); } // 2: veri cekildi, push edilemedi
 if (run('git', ['pull', '--rebase', '--autostash', '-q', 'origin', 'main']).status !== 0) { console.error('pull --rebase basarisiz, push yapilmadi.'); process.exit(2); }
 process.exit(run('git', ['push', '-q', 'origin', 'main']).status === 0 ? 0 : 2);
