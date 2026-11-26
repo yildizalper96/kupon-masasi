@@ -67,6 +67,15 @@ for (const rel of ['fixtures/latest.json']) {
   const p = path.join(root, 'data', 'fixtures', 'latest.json'), j = rd(p);
   if (j && Array.isArray(j.m)) { const n0 = j.m.length; j.m = j.m.filter(m => !YASAK.has(m.id)); if (j.m.length !== n0) { wr(p, j); console.log('latest.json: yasakli ' + (n0 - j.m.length) + ' amator mac cikarildi'); } }
 }
+{ // dis-form.json (tools/fetch-dis-form.mjs, yalniz yerelde cekilir): takim takim, "at" yeni olan kazanir (26 Kas 2026: onbellek depodakini eziyordu)
+  const rel = 'fixtures/dis-form.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
+  if (rep && rep.t) {
+    const t = Object.assign({}, (cur && cur.t) || {});
+    for (const [n, v] of Object.entries(rep.t)) if (!t[n] || ts(v) >= ts(t[n])) t[n] = v;
+    wr(path.join(root, 'data', rel), { at: ts(cur) > ts(rep) ? cur.at : rep.at, t });
+    console.log(rel + ': birlesti (' + Object.keys(t).length + ' takim)');
+  } else console.log(rel + ': ' + (cur ? 'onbellek korundu' : 'dosya yok'));
+}
 { // seo-arsiv.json (tools/seo-pages.mjs): SEO mac sayfalari arsivi; iki kopyanin birlesimi (adres anahtarina gore, alanlar birlesir)
   const rel = 'fixtures/seo-arsiv.json', cur = rd(path.join(root, 'data', rel)), rep = rd(path.join(repoDir, rel));
   if (rep && rep.m) {
