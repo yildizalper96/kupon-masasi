@@ -1,5 +1,5 @@
 // API-Football -> data/fixtures/latest.json
-// Kullanim: node tools/fetch-fixtures.mjs [--from=YYYY-MM-DD] [--days=8] [--max-pred=40] [--dry]
+// Kullanim: node tools/fetch-fixtures.mjs [--from=YYYY-MM-DD] [--days=9] [--max-pred=40] [--dry]
 // Istek butcesi (ucretsiz plan, gunde 100): her tarih 1 istek + her yeni mac icin en fazla --max-pred tahmin istegi.
 // Anahtar .env'den okunur (API_FOOTBALL_KEY), asla yazdirilmaz.
 import fs from 'node:fs';
@@ -168,8 +168,8 @@ for (const m of appSrc.matchAll(/^\d{4}-\d\d-\d\dT\d\d:\d\d\|([^|\n]+)\|([^|\n]+
 // Gun Turkiye saatine gore (UTC+3): TR'de gece 00-03 arasi UTC hala dunu gosterir, yarin penceresi kayardi.
 const today = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
-// Ucretsiz plan yalnizca dun-bugun-yarin tarihlerine izin veriyor (UTC). Ucretli planda --days arttirilir.
-const from = arg('from', addDays(today, -1)), days = +arg('days', 3), maxPred = +arg('max-pred', 40);
+// PRO plan: dun + bugun + onumuzdeki 7 gun (TR saati). Eskiden ucretsiz plan kalintisi days=3 idi -> yalniz yarina kadar mac gorunuyordu (27 Kas 2026).
+const from = arg('from', addDays(today, -1)), days = +arg('days', 9), maxPred = +arg('max-pred', 40);
 const dates = Array.from({ length: days }, (_, i) => addDays(from, i));
 
 const outDir = path.join(root, 'data', 'fixtures');
