@@ -41,7 +41,11 @@
     if (!L.length) return '<p class="mut">Bu gün ' + K.ad.toLowerCase() + ' bandında uygun seçim yok.</p>';
     var od = L.reduce(function (a, x) { return a * oranOf(x); }, 1), p = L.reduce(function (a, x) { return a * x.p; }, 1);
     var i = KPC.push(L.map(function (x) { return { mk: [x.m.c, x.m.h, x.m.a].join('|'), k: x.k }; })) - 1;
-    return L.map(function (x) { return cl({ m: x.m }, { k: x.k, p: x.p, o: 1 / x.p }); }).join('') +
+    return L.map(function (x) {
+      var h = cl({ m: x.m }, { k: x.k, p: x.p, o: 1 / x.p }), lb = null; try { lb = lab(x.k, x.m); } catch (e) { }
+      if (!lb) { var t = x.k; try { t = labx(x.k, x.m) || x.k; } catch (e) { } h = h.replace("<div class='cr2'>" + lb, "<div class='cr2'>" + t); } // lab() Ü3.5 bilmiyor: "undefined" yazmasin
+      return h;
+    }).join('') +
       '<div class="pk"><span class="big">' + od.toFixed(2) + '</span><span class="s">Toplam tahmini oran<br>Birlikte tutma ihtimali ~%' + Math.round(p * 100) + '</span></div>' +
       '<button class="kpb" data-kall="' + i + '">Kupona ekle (' + L.length + ' seçim)</button>';
   }
