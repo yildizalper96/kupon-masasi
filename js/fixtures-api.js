@@ -56,7 +56,8 @@
           window.KMLX[sc] = sd;
           // oyuncu istatistikleri (dis kaynak: Transfermarkt): PS kaydi [ad, mac, dk, gol, asist, sari, mevki, forma no] -> Kadro ve Oyuncu istatistikleri sekmeleri
           // app.js refresh() PS'yi sonuc dosyasindan yeniden yukler; bu yuzden her yuklemeden sonra kmPsDis() yeniden uygular
-          if (sd.players) {
+          // 26 Kas 2026: oyuncu istatistigi yalnizca API-Football (data/players/api.json); dis kaynak PS'ye yazilmaz
+          if (false && sd.players) {
             window.kmPsDis = function () {
               if (typeof PS === 'undefined') return;
               Object.keys(sd.players).forEach(function (t) {

@@ -1461,14 +1461,14 @@
     if (OYI && OYI.sig === sig) return OYI;
     const L = [], grup = new Map(), kupa = c => ['CL', 'EL', 'ECL', 'UNL'].includes(c);
     (typeof plAll === 'function' ? plAll() : []).forEach(x => {
-      const g = x.team + '|' + adN(x.p[0]).join(' '), o = grup.get(g);
-      if (!o) { const e = { key: x.k, n: x.p[0], ad: x.p[0], team: x.team, c: x.c, ps: x }; grup.set(g, e); L.push(e); }
+      const g = x.team + '|' + adN(x.p[0]).join(' ') + (x.p[10] ? '|' + x.p[10] : ''), o = grup.get(g); // ayni takimda ayni adli iki API oyuncusu ayri kayit
+      if (!o) { const e = { key: x.k, n: x.p[0], ad: x.p[0], team: x.team, c: x.c, ps: x, id: x.p[10] || null }; grup.set(g, e); L.push(e); }
       else if (kupa(o.c) && !kupa(x.c)) { o.key = x.k; o.c = x.c; o.ps = x; }
     });
     // ayni tam ad (en az iki kelime) birden cok kulupte: sezon icinde transfer; en cok mac oynadigi kulup ana kayit
     // takim degistiren oyuncu (data/players/gecis.json "LIG|Takim|Ad"): eski takim kaydi gizli; yeni takim ana kayit, eski istatistik diger olarak kalir
     L.forEach(e => { e.gizli = gz.has(e.ps.c + '|' + e.ps.team + '|' + e.ps.p[0]); });
-    { const ta = new Map(); L.forEach(e => { const k = adN(e.n).join(' '); if (k.split(' ').length >= 2 || gz.size) (ta.get(k) || ta.set(k, []).get(k)).push(e); });
+    { const ta = new Map(); L.forEach(e => { if (e.id) return; /* API kimligi olan kayit (data/players/api.json) adla birlestirilmez: ayni ad farkli oyuncu olabilir; transfer ay listesinden */ const k = adN(e.n).join(' '); if (k.split(' ').length >= 2 || gz.size) (ta.get(k) || ta.set(k, []).get(k)).push(e); });
       ta.forEach(l => { if (l.length < 2) return; if (adN(l[0].n).length < 2) { const vis = l.filter(x => !x.gizli); l.filter(x => x.gizli).forEach(h => { const c = vis.filter(v => v.ps.p[6] === h.ps.p[6]); const t = c.length === 1 ? c[0] : (vis.length === 1 ? vis[0] : null); if (t) (t.diger = t.diger || []).push(h.ps); }); return; } l.sort((x, y) => (x.gizli ? 1 : 0) - (y.gizli ? 1 : 0) || (+y.ps.p[1] || 0) - (+x.ps.p[1] || 0)); const ana = l[0]; ana.diger = l.slice(1).map(x => x.ps); l.slice(1).forEach(x => { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); }); }); }
     for (let i = L.length - 1; i >= 0; i--) if (L[i].gizli) L.splice(i, 1);
     const psTakim = new Set(L.map(e => e.team).concat(L.flatMap(e => (e.diger || []).map(x => x.team))));
@@ -1499,10 +1499,12 @@
     const evAd = {};
     try { Object.entries(LVD).forEach(([k, v]) => { const [, h, a] = k.split('|'); (v && v.ev || []).forEach(ev => { const tm = ev.s === 'a' ? a : ev.s === 'h' ? h : null; if (tm) [ev.a, ev.b].forEach(n => { if (n) (evAd[tm] = evAd[tm] || new Set()).add(n); }); }); }); } catch (e) { }
     const tamAd = (tm, n) => { const c = [...(evAd[tm] || [])].filter(x => !/\./.test(x) && adN(x).length > 1 && ayniAd(x, n)); return c.length === 1 ? c[0] : null; };
+    const idM = new Map(); L.forEach(e => { if (e.id && !idM.has(e.id)) idM.set(e.id, e); });
     api.forEach(o => {
       const t = adN(o.n), s = t[t.length - 1], tam = tamAd(o.team, o.n);
       const kulupBag = psTakim.has(o.team) || !!TM[o.team];
-      let ad = (soy[s] || []).filter(e => ayniAd(e.n, o.n) && (!kulupBag || e.team === o.team));
+      const idE = o.id && idM.has(o.id) ? [idM.get(o.id)] : [];
+      let ad = idE.length ? idE : (soy[s] || []).filter(e => ayniAd(e.n, o.n) && (!kulupBag || e.team === o.team) && !(e.id && o.id && e.id !== o.id));
       if (ad.length > 1 && tam) ad = ad.filter(e => adN(e.n).join(' ') === adN(tam).join(' '));
       if (ad.length === 1) {
         const e = ad[0];
@@ -1583,7 +1585,8 @@
       return { t: psTarih(m.d), d: m.d, c: m.c, rakip, ev, skor, r: m.r, dk, dur, g, a, y, bilinmez: !(m.x || []).length && !ui && !g && !a && !y, ki };
     }).filter(r => !r.ki || (!r.bilinmez && r.dur !== 'Oynamadı')));
     // maci mac ayrinti dosyasi (data/players/mlog.json, Sofascore; API ucretsiz planda gecmis maclari vermiyor): yalniz verisi bilinmeyen satirlar, rakip + skor ayniysa ve oyuncu o maci kadrosunda bulunuyorsa doldurulur
-    { const ML = tmV('mlog', () => fetch('data/players/mlog.json').then(r => r.ok ? r.json() : null));
+    // 26 Kas 2026: oyuncu istatistigi yalnizca API-Football; Sofascore (mlog) kullanilmaz
+    { const ML = null;
       if (ML && ML.t) ps.forEach(r => {
         const L = ML.t[kay[r.ki || 0][1]]; if (!L) return;
         const e = L.find(x => x.s === r.skor && ayniTk(x.r, r.rakip)); if (!e) return;
@@ -1715,17 +1718,28 @@
     const kut = (a, b) => `<div><b>${a}</b><small>${b}</small></div>`;
     const f2 = n => (Math.round(n * 100) / 100).toFixed(2).replace('.', ',');
     let sezon;
-    if (p) {
+    // API mac kaydi (tum sezon, kulup) varsa ozet kart ondan: tum yarismalar toplami (statz kaydi yalnizca lig ve eski olabiliyor)
+    const pmK = pmA.filter(v => !v.milli);
+    // takimin oyuncu verisi olmayan biten maclari (data/players/api.json e): sayilmadi, kartta acikca yazilir
+    const tEk = (Object.entries(typeof PS !== 'undefined' ? PS : {}).find(([k]) => k.split('|').slice(1).join('|') === o.team) || [])[1], eks = (tEk && tEk.e) || {};
+    const eksNot = c => { const l = (c ? [c] : Object.keys(eks)).filter(x => eks[x] > 0), n = l.reduce((s, x) => s + eks[x], 0); return n ? `<p class="kmkay">Takımın ${n} maçında${c ? '' : ' (' + l.map(x => E(yarAd(x))).join(', ') + ')'} oyuncu verisi yok; bu maçlar sayılmadı.</p>` : ''; };
+    if (pmK.length) {
+      const S = k => pmK.reduce((s, v) => s + (+v[k] || 0), 0), dk = S('min'), g = S('g'), a = S('a'), ek = [];
+      if (dk >= 180) { ek.push(kut(f2(g / (dk / 90)), '90 dk\'da gol')); ek.push(kut(f2((g + a) / (dk / 90)), '90 dk\'da gol+asist')); }
+      sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(kulupAd(o.team))}${pmK.length > 1 ? ' · tüm yarışmalar' : ''}</small></h3><div class="kmph-s">${kut(g, 'Goller')}${kut(a, 'Asistler')}${kut(S('m'), 'Maçlar')}${kut(dk, 'Oyun süresi')}
+        <div><b><i class="kmkrt s"></i>${S('y')}</b><small>Sarı kartlar</small></div>${ek.join('')}</div>
+        ${eksNot()}<p class="kmkay">Kaynak: API-Football</p>`);
+    } else if (p) {
       const m90 = p[2] / 90, ek = [];
       if (p[6] === 'K') { if (p[8] != null) ek.push(kut(p[8], 'Gol yemeden')); if (p[9] != null) ek.push(kut(p[9], 'Yediği gol')); }
       if (p[2] >= 180) { ek.push(kut(f2(p[3] / m90), '90 dk\'da gol')); ek.push(kut(f2((p[3] + p[4]) / m90), '90 dk\'da gol+asist')); }
       sezon = card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(kulupAd(o.team))}</small></h3><div class="kmph-s">${kut(p[3], 'Goller')}${kut(p[4], 'Asistler')}${kut(p[1], 'Maçlar')}${kut(p[2], 'Oyun süresi')}
         <div><b><i class="kmkrt s"></i>${p[5]}</b><small>Sarı kartlar</small></div>${ek.join('')}</div>
-        <p class="kmkay">Kaynak: ${E(KY(o.t.src))}</p>`);
+        ${eksNot()}<p class="kmkay">Kaynak: API-Football</p>`);
     } else sezon = '';
-    // eski takim karti: oyuncu bu sezon baslamadan (1 Tem 2026) yeni takima gectiyse eski takimda bu sezon macı olamaz, kart gosterilmez
-    const tmP = tmOyuncu(e), sonGecis = tmP && (tmP.tr || []).map(r => String(r[0])).sort().pop(), sezonOnce = sonGecis && sonGecis < '2026-07-01';
-    ((e.diger) || []).forEach(d => { if (sezonOnce) return; const q = d.p, T = PS[d.tk] || {}; sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(d.team)}</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: ${E(KY(T.src))}</p>`); });
+    // eski takim karti (API-Football, oyuncu kimligiyle): bu sezon oynayip takimdan ayrilanlar (data/players/api.json ay listesi)
+    if (e.id) Object.entries(typeof PS !== 'undefined' ? PS : {}).forEach(([k, T]) => { const tk = k.split('|').slice(1).join('|'); if (tk === o.team) return; const q = (T.ay || []).find(r => r[6] === e.id); if (!q) return;
+      sezon += card('kmpsz', `<h3 class="kmb">Sezon performansı <small>${E(tk)} · ayrılmadan önce</small></h3><div class="kmph-s">${kut(q[3], 'Goller')}${kut(q[4], 'Asistler')}${kut(q[1], 'Maçlar')}${kut(q[2], 'Oyun süresi')}<div><b><i class="kmkrt s"></i>${q[5]}</b><small>Sarı kartlar</small></div></div><p class="kmkay">Kaynak: API-Football</p>`); });
     // sitede biriken maclar (data/players/season.json): yarisma yarisma toplam; varsa maç verisinden hesaplananin yerine gecer
     const sz = sezonKaydi(e, o.team);
     // API mac kaydi (tum sezon) varsa o yarismanin karti ondan; sitede biriken (season.json) yalnizca kaydi olmayan yarismalar icin
@@ -1735,7 +1749,7 @@
       const ort = v.rn > 0 ? v.rs / v.rn : null, kl = (sz && sz.pos || e.pos) === 'G' || (sz && sz.pos || e.pos) === 'K' || v.sv > 0;
       sezon += card('kmpsz', `<h3 class="kmb">${E(yarAd(v.c))} <small>${v.milli ? 'milli takım · ' : ''}bu sezon (${v.m} maç)</small></h3><div class="kmph-s">${t2(v.g, 'Goller')}${t2(v.a, 'Asistler')}${t2(v.m, 'Maçlar')}${t2(v.min, 'Oyun süresi')}
         ${ort ? `<div><b>${puanHap(ort.toFixed(1))}</b><small>Ortalama puan</small></div>` : ''}${kl ? t2(v.sv, 'Kurtarış') : t2(v.sh, 'Şut') + t2(v.kp, 'Kilit pas')}${t2(v.tk, 'Top çalma')}<div><b><i class="kmkrt s"></i>${v.y}</b><small>Sarı kartlar</small></div>${v.r ? `<div><b><i class="kmkrt k"></i>${v.r}</b><small>Kırmızı kartlar</small></div>` : ''}</div>
-        <p class="kmkay">Kaynak: API-Football</p>`);
+        ${v.milli ? '' : eksNot(v.c)}<p class="kmkay">Kaynak: API-Football</p>`);
     });
     if (sz && sz.c) Object.entries(sz.c).forEach(([c, v]) => {
       if (pmC.has(c)) return;

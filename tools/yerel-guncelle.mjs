@@ -39,9 +39,11 @@ run(node, ['tools/model-guc.mjs']);
 if (mode === 'full') run(node, ['tools/team-index.mjs']);
 // oyuncu mac mac kaydi (data/api/oyuncu/<takimId>.json; oyuncu sayfasi tablo + sezon kartlari; istek yok). Her calismada: son maclar details.json'dan girer
 run(node, ['tools/player-matches.mjs']);
+// oyuncu istatistik listesi yalnizca API-Football'dan (data/players/api.json; kadro tablolari + oyuncu sayfasi; istek yok)
+run(node, ['tools/api-players.mjs']);
 if (mode === 'full') run(node, ['tools/keepalive.mjs']); // Supabase 1 hafta islemsizlikte durur
 
-const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/lineups', 'data/results', 'data/standings', 'data/model', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
+const DATA = ['data/history/all.json', 'data/fixtures','data/teams', 'data/players/season.json', 'data/players/api.json', 'data/lineups', 'data/results', 'data/standings', 'data/model', 'data/api', 'data/tm/api-teams.json', 'data/tm/clublogo.json'];
 run('git', ['add', '--', ...DATA]);
 if (!out('git', ['diff', '--cached', '--name-only'])) { console.log('Degisiklik yok.'); process.exit(0); }
 run('git', ['commit', '-q', '-m', `Veri guncelle (yerel, ${mode})`]);
