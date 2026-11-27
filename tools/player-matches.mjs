@@ -44,6 +44,23 @@ for (const c of fs.readdirSync(API).filter(d => /^[A-Z][A-Z0-9]*$/.test(d))) {
     }
   }
 }
+// onceki kayit: aylik dosyasi bu makinede olmayan maclar korunur (m-*.json git'e girmez; bulutta dosya yoktur, kayit eksilmesin)
+{
+  const DIR0 = path.join(API, 'oyuncu');
+  for (const f of fs.existsSync(DIR0) ? fs.readdirSync(DIR0).filter(x => /^\d+\.json$/.test(x)) : []) {
+    const j = rd(path.join(DIR0, f)); if (!j || !j.m || !j.p) continue;
+    const tid = +f.slice(0, -5), kalan = Object.keys(j.m).filter(fid => fxBil[fid] && !T.get(tid)?.m[fid]); // yalnizca guncel sezon
+    if (!kalan.length) continue;
+    const o = tk(tid), al = new Set(kalan.map(Number));
+    for (const fid of kalan) o.m[fid] = fxBil[fid];
+    for (const [pid, [n, rows]] of Object.entries(j.p)) {
+      const r = rows.filter(x => al.has(x[0])); if (!r.length) continue;
+      const q = o.p[pid] || (o.p[pid] = [n, []]);
+      if (String(n).length > String(q[0]).length) q[0] = n;
+      q[1].push(...r);
+    }
+  }
+}
 // son maclar: details.json live.px (aylik dosyada olmayanlar)
 {
   const D = rd(path.join(root, 'data', 'fixtures', 'details.json')) || {};

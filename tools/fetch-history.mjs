@@ -318,6 +318,9 @@ function hakemler() {
       }
     }
   }
+  // mac dosyalari eksikse (bulut, yarim onbellek) mevcut kayit ezilmez
+  const say = h => Object.values(h || {}).reduce((a, x) => a + x.n, 0), eski = say(rd(path.join(base, 'hakemler.json'))?.h);
+  if (say(H) < eski * 0.995) { log.push(`hakemler: mac dosyalari eksik (${say(H)}/${eski} mac), kayit korunuyor`); return; }
   wr(path.join(base, 'hakemler.json'), { at: new Date().toISOString(), h: H });
   log.push(`hakemler: ${Object.keys(H).length} hakem`);
 }

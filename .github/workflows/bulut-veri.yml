@@ -50,6 +50,15 @@ jobs:
           key: bulut-${{ github.run_id }}
           restore-keys: bulut-
 
+      # mac ayrintilari (m-*.json) git'e girmez; saklanmazsa gecmis cekimi her gun 51 bin maci yeniden indirir (~2600 istek, 27 Kas 2026)
+      - name: Maç ayrıntısı önbelleği
+        if: github.event.inputs.mode == 'gecmis' || github.event.schedule == '40 0 * * *'
+        uses: actions/cache@v4
+        with:
+          path: data/api/*/*/m-*.json
+          key: maclar-${{ github.run_id }}
+          restore-keys: maclar-
+
       - name: Git kimliği
         run: |
           git config user.name "Simuleto Veri"
@@ -64,7 +73,9 @@ jobs:
           rm -f tools/cache/.yerel-lock tools/cache/.gecmis-lock
           echo "Mod: $MODE"
           if [ "$MODE" = "gecmis" ]; then
-            node tools/fetch-history.mjs --budget=3000 --reserve=2500 || true
+            node tools/fetch-history.mjs --only=standings,top,fixtures,matches --budget=3000 --reserve=2500 || true
+            # takim/oyuncu sezon verisi yalnizca guncel sezon (eski sezon dosyalari git'e girmez)
+            node tools/fetch-history.mjs --only=teamstats,players,clubs,ekstra --seasons=2026 --budget=1000 --reserve=2500 || true
             node tools/yerel-guncelle.mjs veri || true
           else
             node tools/yerel-tetik.mjs || true
