@@ -88,7 +88,10 @@ jobs:
 
       - name: Siteyi paketle
         if: steps.son.outputs.degisti == '1'
-        run: node tools/build-site.mjs _site
+        run: |
+          # yarim kalmis rebase / cakisma isareti varsa YAYINLAMA (27 Kas 2026)
+          if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ] || grep -lq '^<<<<<<< ' data/fixtures/*.json; then echo "Cakisma var, yayin yok"; exit 1; fi
+          node tools/build-site.mjs _site
 
       - uses: actions/upload-pages-artifact@v3
         if: steps.son.outputs.degisti == '1'

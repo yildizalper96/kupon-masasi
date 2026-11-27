@@ -54,5 +54,12 @@ run('git', ['fetch', '-q', 'origin', 'main']);
 // Push oncesi: bizim veri commit'imiz disinda yerel commit olmamali
 const ahead = out('git', ['log', 'origin/main..HEAD', '--format=%s']).split('\n').filter(Boolean);
 if (ahead.some(s => !s.startsWith('Veri guncelle ('))) { console.error('Push edilmemis baska commit var, push YAPILMADI:\n' + ahead.join('\n')); process.exit(2); } // 2: veri cekildi, push edilemedi
-if (run('git', ['pull', '--rebase', '--autostash', '-q', 'origin', 'main']).status !== 0) { console.error('pull --rebase basarisiz, push yapilmadi.'); process.exit(2); }
+// Cakismada rebase YARIDA BIRAKILMAZ (27 Kas 2026: bulut isi cakisma isaretli latest.json'u yayinladi, site eski tahmini gosterdi).
+// Bulutta depodaki surume donulur (yayin gecerli veriyle yapilir, sonraki calisma yeniden ceker); yerelde yalniz rebase geri alinir.
+if (run('git', ['pull', '--rebase', '--autostash', '-q', 'origin', 'main']).status !== 0) {
+  run('git', ['rebase', '--abort']);
+  if (process.env.GITHUB_ACTIONS) run('git', ['reset', '-q', '--hard', 'origin/main']);
+  else { run('git', ['reset', '-q', '--soft', 'HEAD~1']); run('git', ['checkout', '-q', 'origin/main', '--', ...DATA]); run('git', ['reset', '-q']); } // yerel veri commit'i geri alinir, veri depodaki surume doner; sonraki calisma yeniden ceker
+  console.error('pull --rebase basarisiz (cakisma), geri alindi, push yapilmadi.'); process.exit(2);
+}
 process.exit(run('git', ['push', '-q', 'origin', 'main']).status === 0 ? 0 : 2);
