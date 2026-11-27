@@ -2635,7 +2635,8 @@ body.kbar-on #app{padding-bottom:184px!important}
 #kmpanel .kmv-not{font-size:11.5px;color:var(--mut);text-align:center;padding:10px 8px 4px;line-height:1.4}
 #kmpanel .kmp-tema button{height:38px!important;border-radius:999px!important}
 #kmpanel .kmv-r i:has(.kmv-av){border-radius:50%;background:var(--brand,var(--acc))}
-#kmpanel .kmv-av{display:grid;place-items:center;width:100%;height:100%;color:#0b0f1a;font:700 13px/1 var(--f);letter-spacing:.02em}
+#kmpanel .kmv-av img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#fff}
+#kmpanel .kmv-av{position:relative;display:grid;place-items:center;width:100%;height:100%;color:#0b0f1a;font:700 13px/1 var(--f);letter-spacing:.02em}
 nav button,header nav button{cursor:pointer}
 /*simulator dolu hali*/
 .smk-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px}

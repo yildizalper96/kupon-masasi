@@ -86,7 +86,7 @@
   function ciz() {
     var u = kim(), ad = u ? esc(u.name || 'Üye') : '', harf = u ? esc(basHarf(u)) : '';
     panel.innerHTML =
-      '<div class="kmv-h">Hesap</div><div class="kmv-grp">' + (u ? satir('u', '<span class="kmv-av">' + harf + '</span>', ad, 'Profil ve ayarlarım') : satir('u', IC.u, 'Giriş yap', 'veya ücretsiz hesap oluştur')) + '</div>' +
+      '<div class="kmv-h">Hesap</div><div class="kmv-grp">' + (u ? satir('u', '<span class="kmv-av">' + harf + (u.avatarUrl ? '<img src="' + esc(u.avatarUrl) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">' : '') + '</span>', ad, 'Profil ve ayarlarım') : satir('u', IC.u, 'Giriş yap', 'veya ücretsiz hesap oluştur')) + '</div>' +
       '<div class="kmv-h">Sayfalar</div><div class="kmv-grp">' + satir('c', IC.c, 'Simülatör') + satir('g', IC.g, 'Tahmin geçmişi') + '</div>' +
       '<div class="kmv-h">Görünüm</div><div class="kmv-grp">' +
         '<div class="kmp-sat"><b>Tema</b>' + TEMA + '</div>' +
