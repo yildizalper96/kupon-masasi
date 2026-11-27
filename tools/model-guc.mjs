@@ -177,6 +177,11 @@ if (process.argv.includes('--piyasa')) {
       }
     }
   }
+  // tahmin kilidi (27 Kas 2026): maca 3 saatten az kalan/baslamis/biten maclarda onceki deger korunur (mac oncesi son tahmin degismesin)
+  { const eski = (rd(path.join(root, 'data', 'model', 'guc.json')) || {}).fx || {}, bas = {};
+    for (const c of fs.readdirSync(API)) { const d = path.join(API, c); if (!fs.statSync(d).isDirectory() || c === 'takim') continue;
+      for (const s of fs.readdirSync(d)) { if (!/^\d{4}$/.test(s) || +s < new Date().getFullYear() - 1) continue; const j = rd(path.join(d, s, 'fixtures.json')); if (j && j.m) for (const x of j.m) bas[x[0]] = Date.parse(x[1]); } }
+    for (const [id, v] of Object.entries(eski)) if (bas[id] && bas[id] <= simdi + 3 * 3600e3 && bas[id] > simdi - 4 * 864e5) fx[id] = v; }
   const out = { at: new Date().toISOString(), son: new Date(L[L.length - 1].t).toISOString(), rho: P.rho, fx };
   fs.mkdirSync(path.join(root, 'data', 'model'), { recursive: true });
   fs.writeFileSync(path.join(root, 'data', 'model', 'guc.json'), JSON.stringify(out));

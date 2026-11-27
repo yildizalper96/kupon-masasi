@@ -375,15 +375,22 @@ if (!DRY) {
 // API'nin kaba kaliplari (33/33/33, 10/45/45, 0/50/50 vb.) gercek olasilik degil: yok say.
 const detOdds = (() => { try { return JSON.parse(fs.readFileSync(path.join(outDir, 'details.json'), 'utf8').replace(/^﻿/, '')).m || {}; } catch (e) { return {}; } })();
 const KABA = new Set(['33,33,33', '10,45,45', '0,50,50', '5,45,50', '10,40,50']);
-let pPiyasa = 0, pApi = 0;
+let pPiyasa = 0, pApi = 0, pKilit = 0;
+// Tahmin kilidi (27 Kas 2026): maca 3 saatten az kala ya da mac basladiysa onceki p/ps KORUNUR. Sebep: Alanyaspor-Konyaspor
+// macinda 6 saatlik tam calisma devre arasinda yeni piyasa olasiligini yazdi, en olasi secim X2 -> 1X dondu ve mac sonu
+// kullanicinin gordugu son mac oncesi tahmin yerine baska tahmin degerlendirildi. Mac oncesi son tahmin = mac sonu degerlendirilen.
+const eskiP = (() => { const r = new Map(); for (const f of ['finished.json', 'latest.json']) { try { const j = JSON.parse(fs.readFileSync(path.join(outDir, f), 'utf8').replace(/^﻿/, '')); for (const x of (j.m || j)) if (x && Array.isArray(x.p) && x.p.length === 3) r.set(x.id, { p: x.p, ps: x.ps || r.get(x.id)?.ps }); } catch (e) {} } return r; })();
+const kilitMs = Date.now() + 3 * 3600e3;
 for (const m of matches) {
+  const e = eskiP.get(m.id);
+  if (e && (Date.parse(m.t) <= kilitMs || (m.st && m.st !== 'NS' && m.st !== 'TBD'))) { m.p = e.p; if (e.ps) m.ps = e.ps; pKilit++; continue; }
   const o = detOdds[m.id]?.odds?.p;
   if (Array.isArray(o) && o.length === 3 && o.every(Number.isFinite) && o.reduce((a, b) => a + b, 0) > 0.9) { m.p = o.map(x => +x.toFixed(4)); m.ps = 'piyasa'; pPiyasa++; continue; }
   let v = cache[m.id];
   if (v && (Math.max(...v) - Math.min(...v) < 1 || KABA.has(v.map(Math.round).sort((a, b) => a - b).join(',')))) v = null;
   if (v) { m.p = v.map(x => +(x / v.reduce((a, b) => a + b, 0)).toFixed(4)); m.ps = 'api'; pApi++; }
 }
-console.log(`Olasilik kaynagi: piyasa ${pPiyasa}, API ${pApi}`);
+console.log(`Olasilik kaynagi: piyasa ${pPiyasa}, API ${pApi}, kilitli ${pKilit}`);
 
 matches.sort((a, b) => a.t.localeCompare(b.t) || a.c.localeCompare(b.c));
 // "Ligler" sekmesinde arama/acilis icin takma adlar (uygulamadaki LGA gibi)
