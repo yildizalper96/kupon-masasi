@@ -321,14 +321,17 @@
   var FINAT = '';
   function finEkle(l) {
     if (!Array.isArray(l)) return 0;
-    var ids = new Set(), lgGun = new Set(), n = 0;
-    R.forEach(function (m) { if (m.api) ids.add(m.api); if (!m._fin) lgGun.add(m.c + '|' + dk(m.t)); });
+    var ids = new Set(), n = 0;
+    R.forEach(function (m) { if (m.api) ids.add(m.api); });
     l.forEach(function (x) {
       if (!x || !x.c || !(x.c in LN) || ids.has(x.id)) return;
       var t = new Date(x.t); if (isNaN(t) || !Number.isFinite(+x.x) || !Number.isFinite(+x.y)) return;
       var ok = Array.isArray(x.p) && x.p.length === 3, key = x.c + '|' + x.h + '|' + x.a;
-      // ayni mac R'de (elle girilmis kayit, api id'siz) varsa yalniz skoru yaz (25 Kas 2026: Fransa-Turkiye "gelecek" kaliyordu)
-      if (lgGun.has(x.c + '|' + dk(t))) { if ((!RES[key] || RES[key].charAt(0) === 'L') && R.some(function (m) { return m.c === x.c && m.h === x.h && m.a === x.a && Math.abs(m.t - t) < 864e5; })) RES[key] = x.x + '-' + x.y; return; }
+      // Kopya kontrolu MAC bazinda: ayni lig + ayni takimlar (1 gun icinde) ya da ayni lig + ayni saat + takimlardan biri ayni.
+      // Eskiden lig+gun bazindaydi: elle listede o gunden tek mac (Sabah-Barcelona) olunca o gunun diger 8 SL maci hic
+      // gorunmuyordu (27 Kas 2026, Car 25 Kas). Ayni mac R'de (elle girilmis, api id'siz) varsa yalniz skoru yaz.
+      var ayni = R.find(function (m) { return !m._fin && m.c === x.c && ((m.h === x.h && m.a === x.a && Math.abs(m.t - t) < 864e5) || (Math.abs(m.t - t) < 6e4 && (m.h === x.h || m.a === x.a))); });
+      if (ayni) { var k2 = ayni.c + '|' + ayni.h + '|' + ayni.a; if (!RES[k2] || RES[k2].charAt(0) === 'L') RES[k2] = x.x + '-' + x.y; return; }
       R.push({ c: x.c, t: t, h: x.h, a: x.a, p: ok ? x.p : [1 / 3, 1 / 3, 1 / 3], np: !ok, api: x.id, _fin: 1 });
       ids.add(x.id);
       if (!RES[key] || RES[key].charAt(0) === 'L') RES[key] = x.x + '-' + x.y;
